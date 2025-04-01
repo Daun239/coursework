@@ -29,3 +29,19 @@ I:\Coursework\coursework\CinemaNetwork.Application\obj\Debug\net8.0\CinemaNetwor
 I:\Coursework\coursework\CinemaNetwork.Application\obj\Debug\net8.0\refint\CinemaNetwork.Application.dll
 I:\Coursework\coursework\CinemaNetwork.Application\obj\Debug\net8.0\CinemaNetwork.Application.pdb
 I:\Coursework\coursework\CinemaNetwork.Application\obj\Debug\net8.0\ref\CinemaNetwork.Application.dll
+F:\Univershit\6 sem\coursework\coursework\CinemaNetwork.Application\bin\Debug\net8.0\CinemaNetwork.Application.deps.json
+F:\Univershit\6 sem\coursework\coursework\CinemaNetwork.Application\bin\Debug\net8.0\CinemaNetwork.Application.dll
+F:\Univershit\6 sem\coursework\coursework\CinemaNetwork.Application\bin\Debug\net8.0\CinemaNetwork.Application.pdb
+F:\Univershit\6 sem\coursework\coursework\CinemaNetwork.Application\bin\Debug\net8.0\CinemaNetwork.Infrastructure.dll
+F:\Univershit\6 sem\coursework\coursework\CinemaNetwork.Application\bin\Debug\net8.0\CinemaNetwork.Infrastructure.pdb
+F:\Univershit\6 sem\coursework\coursework\CinemaNetwork.Application\obj\Debug\net8.0\CinemaNetwork.Application.csproj.AssemblyReference.cache
+F:\Univershit\6 sem\coursework\coursework\CinemaNetwork.Application\obj\Debug\net8.0\CinemaNetwork.Application.GeneratedMSBuildEditorConfig.editorconfig
+F:\Univershit\6 sem\coursework\coursework\CinemaNetwork.Application\obj\Debug\net8.0\CinemaNetwork.Application.AssemblyInfoInputs.cache
+F:\Univershit\6 sem\coursework\coursework\CinemaNetwork.Application\obj\Debug\net8.0\CinemaNetwork.Application.AssemblyInfo.cs
+F:\Univershit\6 sem\coursework\coursework\CinemaNetwork.Application\obj\Debug\net8.0\CinemaNetwork.Application.csproj.CoreCompileInputs.cache
+F:\Univershit\6 sem\coursework\coursework\CinemaNetwork.Application\obj\Debug\net8.0\CinemaNetwork.Application.sourcelink.json
+F:\Univershit\6 sem\coursework\coursework\CinemaNetwork.Application\obj\Debug\net8.0\CinemaNe.88DAA25F.Up2Date
+F:\Univershit\6 sem\coursework\coursework\CinemaNetwork.Application\obj\Debug\net8.0\CinemaNetwork.Application.dll
+F:\Univershit\6 sem\coursework\coursework\CinemaNetwork.Application\obj\Debug\net8.0\refint\CinemaNetwork.Application.dll
+F:\Univershit\6 sem\coursework\coursework\CinemaNetwork.Application\obj\Debug\net8.0\CinemaNetwork.Application.pdb
+F:\Univershit\6 sem\coursework\coursework\CinemaNetwork.Application\obj\Debug\net8.0\ref\CinemaNetwork.Application.dll

@@ -27,3 +27,18 @@ I:\Coursework\coursework\CinemaNetwork.Infrastructure\obj\Debug\net8.0\refint\Ci
 I:\Coursework\coursework\CinemaNetwork.Infrastructure\obj\Debug\net8.0\CinemaNetwork.Infrastructure.pdb
 I:\Coursework\coursework\CinemaNetwork.Infrastructure\obj\Debug\net8.0\CinemaNetwork.Infrastructure.genruntimeconfig.cache
 I:\Coursework\coursework\CinemaNetwork.Infrastructure\obj\Debug\net8.0\ref\CinemaNetwork.Infrastructure.dll
+F:\Univershit\6 sem\coursework\coursework\CinemaNetwork.Infrastructure\bin\Debug\net8.0\CinemaNetwork.Infrastructure.deps.json
+F:\Univershit\6 sem\coursework\coursework\CinemaNetwork.Infrastructure\bin\Debug\net8.0\CinemaNetwork.Infrastructure.runtimeconfig.json
+F:\Univershit\6 sem\coursework\coursework\CinemaNetwork.Infrastructure\bin\Debug\net8.0\CinemaNetwork.Infrastructure.dll
+F:\Univershit\6 sem\coursework\coursework\CinemaNetwork.Infrastructure\bin\Debug\net8.0\CinemaNetwork.Infrastructure.pdb
+F:\Univershit\6 sem\coursework\coursework\CinemaNetwork.Infrastructure\obj\Debug\net8.0\CinemaNetwork.Infrastructure.csproj.AssemblyReference.cache
+F:\Univershit\6 sem\coursework\coursework\CinemaNetwork.Infrastructure\obj\Debug\net8.0\CinemaNetwork.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+F:\Univershit\6 sem\coursework\coursework\CinemaNetwork.Infrastructure\obj\Debug\net8.0\CinemaNetwork.Infrastructure.AssemblyInfoInputs.cache
+F:\Univershit\6 sem\coursework\coursework\CinemaNetwork.Infrastructure\obj\Debug\net8.0\CinemaNetwork.Infrastructure.AssemblyInfo.cs
+F:\Univershit\6 sem\coursework\coursework\CinemaNetwork.Infrastructure\obj\Debug\net8.0\CinemaNetwork.Infrastructure.csproj.CoreCompileInputs.cache
+F:\Univershit\6 sem\coursework\coursework\CinemaNetwork.Infrastructure\obj\Debug\net8.0\CinemaNetwork.Infrastructure.sourcelink.json
+F:\Univershit\6 sem\coursework\coursework\CinemaNetwork.Infrastructure\obj\Debug\net8.0\CinemaNetwork.Infrastructure.dll
+F:\Univershit\6 sem\coursework\coursework\CinemaNetwork.Infrastructure\obj\Debug\net8.0\refint\CinemaNetwork.Infrastructure.dll
+F:\Univershit\6 sem\coursework\coursework\CinemaNetwork.Infrastructure\obj\Debug\net8.0\CinemaNetwork.Infrastructure.pdb
+F:\Univershit\6 sem\coursework\coursework\CinemaNetwork.Infrastructure\obj\Debug\net8.0\CinemaNetwork.Infrastructure.genruntimeconfig.cache
+F:\Univershit\6 sem\coursework\coursework\CinemaNetwork.Infrastructure\obj\Debug\net8.0\ref\CinemaNetwork.Infrastructure.dll

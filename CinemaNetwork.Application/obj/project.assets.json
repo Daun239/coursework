@@ -5146,32 +5146,34 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\New\\.nuget\\packages\\": {}
+    "C:\\Users\\ADMIN\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "I:\\Coursework\\coursework\\CinemaNetwork.Application\\CinemaNetwork.Application.csproj",
+      "projectUniqueName": "F:\\Univershit\\6 sem\\coursework\\coursework\\CinemaNetwork.Application\\CinemaNetwork.Application.csproj",
       "projectName": "CinemaNetwork.Application",
-      "projectPath": "I:\\Coursework\\coursework\\CinemaNetwork.Application\\CinemaNetwork.Application.csproj",
-      "packagesPath": "C:\\Users\\New\\.nuget\\packages\\",
-      "outputPath": "I:\\Coursework\\coursework\\CinemaNetwork.Application\\obj\\",
+      "projectPath": "F:\\Univershit\\6 sem\\coursework\\coursework\\CinemaNetwork.Application\\CinemaNetwork.Application.csproj",
+      "packagesPath": "C:\\Users\\ADMIN\\.nuget\\packages\\",
+      "outputPath": "F:\\Univershit\\6 sem\\coursework\\coursework\\CinemaNetwork.Application\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\New\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        "C:\\Users\\ADMIN\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
         "net8.0"
       ],
       "sources": {
+        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
         "net8.0": {
           "targetAlias": "net8.0",
           "projectReferences": {
-            "I:\\Coursework\\coursework\\CinemaNetwork.Infrastructure\\CinemaNetwork.Infrastructure.csproj": {
-              "projectPath": "I:\\Coursework\\coursework\\CinemaNetwork.Infrastructure\\CinemaNetwork.Infrastructure.csproj"
+            "F:\\Univershit\\6 sem\\coursework\\coursework\\CinemaNetwork.Infrastructure\\CinemaNetwork.Infrastructure.csproj": {
+              "projectPath": "F:\\Univershit\\6 sem\\coursework\\coursework\\CinemaNetwork.Infrastructure\\CinemaNetwork.Infrastructure.csproj"
             }
           }
         }
@@ -5185,8 +5187,7 @@
         "enableAudit": "true",
         "auditLevel": "low",
         "auditMode": "direct"
-      },
-      "SdkAnalysisLevel": "9.0.200"
+      }
     },
     "frameworks": {
       "net8.0": {
@@ -5229,7 +5230,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.202/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.403/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

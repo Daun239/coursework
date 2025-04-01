@@ -6,6 +6,8 @@ using CinemaNetwork.Infrastructure.Repositories;
 using CinemaNetwork.Services;
 using Microsoft.EntityFrameworkCore;
 using CinemaNetwork.Application.Services;
+using CinemaNetwork.API.Models;
+using CinemaNetwork.Application.Dtos;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,9 +20,9 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 
 
-builder.Services.AddDbContext<CinemaNetworkContext>(options =>
+builder.Services.AddDbContext<CinemaNetwork.Infrastructure.Data.CinemaNetworkContext>(options =>
 {
-    options.UseSqlServer(builder.Configuration.GetConnectionString("PC"));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("Laptop"));
 });
 
 
@@ -67,6 +69,11 @@ builder.Services.AddScoped<IScreeningFormatService, ScreeningFormatService>();
 builder.Services.AddScoped<IScreeningService, ScreeningService>();
 builder.Services.AddScoped<ISeatService, SeatService>();
 builder.Services.AddScoped<ITicketService, TicketService>();
+
+builder.Services.AddScoped(typeof(IService<,>), typeof(Service<,>));
+builder.Services.AddScoped<IService<ProductsInOrder, ProductsInOrderDto>, Service<ProductsInOrder, ProductsInOrderDto>>();
+
+
 
 
 builder.Services.AddCors(options =>

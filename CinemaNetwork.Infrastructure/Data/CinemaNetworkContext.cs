@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using CinemaNetwork.Infrastructure.Models;
+﻿using CinemaNetwork.Infrastructure.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace CinemaNetwork.Infrastructure.Data;

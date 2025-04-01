@@ -4810,24 +4810,26 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\New\\.nuget\\packages\\": {}
+    "C:\\Users\\ADMIN\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "I:\\Coursework\\coursework\\CinemaNetwork.Infrastructure\\CinemaNetwork.Infrastructure.csproj",
+      "projectUniqueName": "F:\\Univershit\\6 sem\\coursework\\coursework\\CinemaNetwork.Infrastructure\\CinemaNetwork.Infrastructure.csproj",
       "projectName": "CinemaNetwork.Infrastructure",
-      "projectPath": "I:\\Coursework\\coursework\\CinemaNetwork.Infrastructure\\CinemaNetwork.Infrastructure.csproj",
-      "packagesPath": "C:\\Users\\New\\.nuget\\packages\\",
-      "outputPath": "I:\\Coursework\\coursework\\CinemaNetwork.Infrastructure\\obj\\",
+      "projectPath": "F:\\Univershit\\6 sem\\coursework\\coursework\\CinemaNetwork.Infrastructure\\CinemaNetwork.Infrastructure.csproj",
+      "packagesPath": "C:\\Users\\ADMIN\\.nuget\\packages\\",
+      "outputPath": "F:\\Univershit\\6 sem\\coursework\\coursework\\CinemaNetwork.Infrastructure\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\New\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        "C:\\Users\\ADMIN\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
         "net8.0"
       ],
       "sources": {
+        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
@@ -4845,8 +4847,7 @@
         "enableAudit": "true",
         "auditLevel": "low",
         "auditMode": "direct"
-      },
-      "SdkAnalysisLevel": "9.0.200"
+      }
     },
     "frameworks": {
       "net8.0": {
@@ -4885,7 +4886,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.202/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.403/PortableRuntimeIdentifierGraph.json"
       }
     }
   }
