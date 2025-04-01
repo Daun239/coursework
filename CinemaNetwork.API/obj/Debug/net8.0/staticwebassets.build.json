@@ -1,0 +1,12 @@
+{
+  "Version": 1,
+  "Hash": "x/Cyv5K9eq1PdRYKFsn87ckVcehZp8aSt4dRY9pBygI=",
+  "Source": "CinemaNetwork.API",
+  "BasePath": "_content/CinemaNetwork.API",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": [],
+  "Endpoints": []
+}
