@@ -6,13 +6,20 @@ using CinemaNetwork.Infrastructure.Repositories;
 using CinemaNetwork.Services;
 using Microsoft.EntityFrameworkCore;
 using CinemaNetwork.Application.Services;
-using CinemaNetwork.API.Models;
 using CinemaNetwork.Application.Dtos;
+using CinemaNetwork.Infrastructure.Models;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using Microsoft.AspNetCore.Identity;
+using CinemaNetwork.API.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+
+var config = builder.Configuration; // Додаємо цю змінну
+
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -20,58 +27,47 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 
 
-builder.Services.AddDbContext<CinemaNetwork.Infrastructure.Data.CinemaNetworkContext>(options =>
+builder.Services.AddDbContext<CinemaNetworkContext>(options =>
 {
-    options.UseSqlServer(builder.Configuration.GetConnectionString("Laptop"));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("PC"));
 });
 
 
-// Реєстрація репозиторіїв
-builder.Services.AddScoped<IAgeRestrictionRepository, AgeRestrictionRepository>();
-builder.Services.AddScoped<ICheckRepository, CheckRepository>();
-builder.Services.AddScoped<ICheckTicketRepository, CheckTicketRepository>();
-builder.Services.AddScoped<ICinemaRepository, CinemaRepository>();
-builder.Services.AddScoped<ICityRepository, CityRepository>();
-builder.Services.AddScoped<ICountryRepository, CountryRepository>();
-// builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
-builder.Services.AddScoped<IGenreRepository, GenreRepository>();
-builder.Services.AddScoped<IHallRepository, HallRepository>();
-builder.Services.AddScoped<IHallTechnologyRepository, HallTechnologyRepository>();
-builder.Services.AddScoped<ILanguageRepository, LanguageRepository>();
-// builder.Services.AddScoped<IMovieGenreRepository, MovieGenreRepository>();
-builder.Services.AddScoped<IMovieRepository, MovieRepository>();
-builder.Services.AddScoped<IPaymentMethodRepository, PaymentMethodRepository>();
-builder.Services.AddScoped<IPublisherRepository, PublisherRepository>();
-builder.Services.AddScoped<IRunRepository, RunRepository>();
-builder.Services.AddScoped<IScreeningFormatRepository, ScreeningFormatRepository>();
-builder.Services.AddScoped<IScreeningRepository, ScreeningRepository>();
-builder.Services.AddScoped<ISeatRepository, SeatRepository>();
-builder.Services.AddScoped<ITicketRepository, TicketRepository>();
 
-// Реєстрація сервісів
-builder.Services.AddScoped<IAgeRestrictionService, AgeRestrictionService>();
-builder.Services.AddScoped<ICheckService, CheckService>();
-builder.Services.AddScoped<ICheckTicketService, CheckTicketService>();
-builder.Services.AddScoped<ICinemaService, CinemaService>();
-builder.Services.AddScoped<ICityService, CityService>();
-builder.Services.AddScoped<ICountryService, CountryService>();
-builder.Services.AddScoped<IEmployeeService, EmployeeService>();
-builder.Services.AddScoped<IGenreService, GenreService>();
-builder.Services.AddScoped<IHallService, HallService>();
-builder.Services.AddScoped<IHallTechnologyService, HallTechnologyService>();
-builder.Services.AddScoped<ILanguageService, LanguageService>();
-builder.Services.AddScoped<IMovieGenreService, MovieGenreService>();
-builder.Services.AddScoped<IMovieService, MovieService>();
-builder.Services.AddScoped<IPaymentMethodService, PaymentMethodService>();
-builder.Services.AddScoped<IPublisherService, PublisherService>();
-builder.Services.AddScoped<IRunService, RunService>();
-builder.Services.AddScoped<IScreeningFormatService, ScreeningFormatService>();
-builder.Services.AddScoped<IScreeningService, ScreeningService>();
-builder.Services.AddScoped<ISeatService, SeatService>();
-builder.Services.AddScoped<ITicketService, TicketService>();
 
-builder.Services.AddScoped(typeof(IService<,>), typeof(Service<,>));
-builder.Services.AddScoped<IService<ProductsInOrder, ProductsInOrderDto>, Service<ProductsInOrder, ProductsInOrderDto>>();
+builder.Services.AddIdentity<IdentityUser, IdentityRole>()
+    .AddEntityFrameworkStores<CinemaNetworkContext>()
+    .AddDefaultTokenProviders();
+
+
+
+//----------------------------------------------jwt------------------
+
+
+builder.Services.AddAuthentication(x => {
+    x.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+    x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer( x => {
+    x.TokenValidationParameters = new TokenValidationParameters {
+        ValidIssuer = config["JWTSettings:Issuer"],
+        ValidAudience = config["JWTSettings:Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey (Encoding.UTF8.GetBytes(config["JWTSettings:Key"]!)),
+
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+    };
+});
+
+builder.Services.AddAuthorization();
+
+
+//-------------------------------------------------------------------
+
+
+
 
 
 
@@ -89,6 +85,15 @@ builder.Services.AddCors(options =>
 
 
 var app = builder.Build();
+
+
+using (var scope = app.Services.CreateScope())
+{
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    await RoleSeeder.SeedRolesAsync(roleManager);
+}
+
+
 
 
 app.UseCors("AllowSpecificOrigins");
@@ -112,3 +117,49 @@ app.Run();
 
 
 
+// // Реєстрація репозиторіїв
+// builder.Services.AddScoped<IAgeRestrictionRepository, AgeRestrictionRepository>();
+// builder.Services.AddScoped<ICheckRepository, CheckRepository>();
+// builder.Services.AddScoped<ICheckTicketRepository, CheckTicketRepository>();
+// builder.Services.AddScoped<ICinemaRepository, CinemaRepository>();
+// builder.Services.AddScoped<ICityRepository, CityRepository>();
+// builder.Services.AddScoped<ICountryRepository, CountryRepository>();
+// // builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
+// builder.Services.AddScoped<IGenreRepository, GenreRepository>();
+// builder.Services.AddScoped<IHallRepository, HallRepository>();
+// builder.Services.AddScoped<IHallTechnologyRepository, HallTechnologyRepository>();
+// builder.Services.AddScoped<ILanguageRepository, LanguageRepository>();
+// // builder.Services.AddScoped<IMovieGenreRepository, MovieGenreRepository>();
+// builder.Services.AddScoped<IMovieRepository, MovieRepository>();
+// builder.Services.AddScoped<IPaymentMethodRepository, PaymentMethodRepository>();
+// builder.Services.AddScoped<IPublisherRepository, PublisherRepository>();
+// builder.Services.AddScoped<IRunRepository, RunRepository>();
+// builder.Services.AddScoped<IScreeningFormatRepository, ScreeningFormatRepository>();
+// builder.Services.AddScoped<IScreeningRepository, ScreeningRepository>();
+// builder.Services.AddScoped<ISeatRepository, SeatRepository>();
+// builder.Services.AddScoped<ITicketRepository, TicketRepository>();
+
+// // Реєстрація сервісів
+// builder.Services.AddScoped<IAgeRestrictionService, AgeRestrictionService>();
+// builder.Services.AddScoped<ICheckService, CheckService>();
+// builder.Services.AddScoped<ICheckTicketService, CheckTicketService>();
+// builder.Services.AddScoped<ICinemaService, CinemaService>();
+// builder.Services.AddScoped<ICityService, CityService>();
+// builder.Services.AddScoped<ICountryService, CountryService>();
+// builder.Services.AddScoped<IEmployeeService, EmployeeService>();
+// builder.Services.AddScoped<IGenreService, GenreService>();
+// builder.Services.AddScoped<IHallService, HallService>();
+// builder.Services.AddScoped<IHallTechnologyService, HallTechnologyService>();
+// builder.Services.AddScoped<ILanguageService, LanguageService>();
+// builder.Services.AddScoped<IMovieGenreService, MovieGenreService>();
+// builder.Services.AddScoped<IMovieService, MovieService>();
+// builder.Services.AddScoped<IPaymentMethodService, PaymentMethodService>();
+// builder.Services.AddScoped<IPublisherService, PublisherService>();
+// builder.Services.AddScoped<IRunService, RunService>();
+// builder.Services.AddScoped<IScreeningFormatService, ScreeningFormatService>();
+// builder.Services.AddScoped<IScreeningService, ScreeningService>();
+// builder.Services.AddScoped<ISeatService, SeatService>();
+// builder.Services.AddScoped<ITicketService, TicketService>();
+
+// builder.Services.AddScoped(typeof(IService<,>), typeof(Service<,>));
+// builder.Services.AddScoped<IService<ProductsInOrder, ProductsInOrderDto>, Service<ProductsInOrder, ProductsInOrderDto>>();

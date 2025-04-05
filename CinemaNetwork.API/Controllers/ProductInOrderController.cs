@@ -1,11 +1,11 @@
 using CinemaNetwork.Application.Dtos;
 using CinemaNetwork.Application.Interfaces_Services;
 using Microsoft.AspNetCore.Mvc;
-using CinemaNetwork.API.Models;
+using CinemaNetwork.Infrastructure.Models;
 
 namespace CinemaNetwork.Api.Controllers
 {
-    [Route("api/product-in-order")]
+    [Route("api/ProductInOrder")]
     [ApiController]
     public class ProductInOrderController : GenericController<ProductsInOrder, ProductsInOrderDto>
     {

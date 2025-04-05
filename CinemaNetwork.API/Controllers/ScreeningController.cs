@@ -1,11 +1,11 @@
 using CinemaNetwork.Application.Dtos;
 using CinemaNetwork.Application.Interfaces_Services;
 using Microsoft.AspNetCore.Mvc;
-using CinemaNetwork.API.Models;
+using CinemaNetwork.Infrastructure.Models;
 
 namespace CinemaNetwork.Api.Controllers
 {
-    [Route("api/screening")]
+    [Route("api/Screening")]
     [ApiController]
     public class ScreeningController : GenericController<Screening, ScreeningDto>
     {

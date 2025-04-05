@@ -1,12 +1,17 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using CinemaNetwork.Application.Dtos;
+using CinemaNetwork.Application.Interfaces_Services;
+using Microsoft.AspNetCore.Mvc;
+using CinemaNetwork.Infrastructure.Models;
 
-namespace CinemaNetwork.API.Controllers
+namespace CinemaNetwork.Api.Controllers
 {
-    public class ProductCheckController
+    [Route("api/ProductCheck")]
+    [ApiController]
+    public class ProductCheckController : GenericController<ProductCheck, ProductCheckDto>
     {
-        
+        public ProductCheckController(IService<ProductCheck, ProductCheckDto> service) 
+            : base(service)
+        {
+        }
     }
 }

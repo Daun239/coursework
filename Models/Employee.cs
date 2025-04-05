@@ -1,12 +1,11 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Identity;
+using System;
 using System.Collections.Generic;
 
 namespace CinemaNetwork.API.Models;
 
-public partial class Employee
+public partial class Employee : IdentityUser // IdentityUser already has Id, Email, PhoneNumber, etc.
 {
-    public int EmployeeId { get; set; }
-
     public int CinemaId { get; set; }
 
     public int EmployeePositionId { get; set; }
@@ -14,10 +13,6 @@ public partial class Employee
     public string? Name { get; set; }
 
     public string? Surname { get; set; }
-
-    public string? CellNumber { get; set; }
-
-    public string? Email { get; set; }
 
     public DateTime? CreateDateTime { get; set; }
 

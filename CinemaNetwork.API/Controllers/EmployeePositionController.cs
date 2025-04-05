@@ -1,12 +1,18 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
-namespace CinemaNetwork.API.Controllers
+using CinemaNetwork.Application.Interfaces_Services;
+using Microsoft.AspNetCore.Mvc;
+using CinemaNetwork.Infrastructure.Models;
+using CinemaNetwork.Application.Dtos;
+
+namespace CinemaNetwork.Api.Controllers
 {
-    public class EmployeePositionController
+    [Route("api/EmployeePosition")]
+    [ApiController]
+    public class EmployeePositionController : GenericController<EmployeePosition, EmployeePositionDto>
     {
-        
+        public EmployeePositionController(IService<EmployeePosition, EmployeePositionDto> service) 
+            : base(service)
+        {
+        }
     }
 }

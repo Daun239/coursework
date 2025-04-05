@@ -1,11 +1,11 @@
 using CinemaNetwork.Application.Dtos;
 using CinemaNetwork.Application.Interfaces_Services;
 using Microsoft.AspNetCore.Mvc;
-using CinemaNetwork.API.Models;
+using CinemaNetwork.Infrastructure.Models;
 
 namespace CinemaNetwork.Api.Controllers
 {
-    [Route("api/product-in-storage")]
+    [Route("api/ProductInStorage")]
     [ApiController]
     public class ProductInStorageController : GenericController<ProductsInStorage, ProductsInStorageDto>
     {

@@ -1,4 +1,5 @@
-﻿namespace CinemaNetwork.Infrastructure.Dtos;
+﻿
+namespace CinemaNetwork.Application.Dtos;
 
 public partial class EmployeePositionDto
 {

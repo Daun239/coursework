@@ -357,7 +357,6 @@ I:\Coursework\coursework\CinemaNetwork.Api\obj\Debug\net8.0\staticwebassets\msbu
 I:\Coursework\coursework\CinemaNetwork.Api\obj\Debug\net8.0\staticwebassets\msbuild.buildMultiTargeting.CinemaNetwork.API.props
 I:\Coursework\coursework\CinemaNetwork.Api\obj\Debug\net8.0\staticwebassets\msbuild.buildTransitive.CinemaNetwork.API.props
 I:\Coursework\coursework\CinemaNetwork.Api\obj\Debug\net8.0\staticwebassets.pack.json
-I:\Coursework\coursework\CinemaNetwork.Api\obj\Debug\net8.0\CinemaNe.99A790F1.Up2Date
 I:\Coursework\coursework\CinemaNetwork.Api\obj\Debug\net8.0\CinemaNetwork.API.dll
 I:\Coursework\coursework\CinemaNetwork.Api\obj\Debug\net8.0\refint\CinemaNetwork.API.dll
 I:\Coursework\coursework\CinemaNetwork.Api\obj\Debug\net8.0\CinemaNetwork.API.pdb
@@ -549,3 +548,5 @@ F:\Univershit\6 sem\coursework\coursework\CinemaNetwork.Api\obj\Debug\net8.0\sco
 F:\Univershit\6 sem\coursework\coursework\CinemaNetwork.Api\obj\Debug\net8.0\CinemaNe.99A790F1.Up2Date
 F:\Univershit\6 sem\coursework\coursework\CinemaNetwork.Api\obj\Debug\net8.0\CinemaNetwork.API.genruntimeconfig.cache
 F:\Univershit\6 sem\coursework\coursework\CinemaNetwork.Api\obj\Debug\net8.0\ref\CinemaNetwork.API.dll
+I:\Coursework\coursework\CinemaNetwork.Api\bin\Debug\net8.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
+I:\Coursework\coursework\CinemaNetwork.Api\obj\Debug\net8.0\CinemaNe.28EF096C.Up2Date

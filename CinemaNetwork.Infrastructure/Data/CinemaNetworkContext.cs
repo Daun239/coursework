@@ -1,9 +1,11 @@
 ﻿using CinemaNetwork.Infrastructure.Models;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace CinemaNetwork.Infrastructure.Data;
 
-public partial class CinemaNetworkContext : DbContext
+public partial class CinemaNetworkContext : IdentityDbContext<IdentityUser>
 {
     public CinemaNetworkContext()
     {

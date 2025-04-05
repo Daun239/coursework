@@ -1,6 +1,5 @@
 using AutoMapper;
 using CinemaNetwork.Application.Dtos;
-using CinemaNetwork.Infrastructure.Dtos;
 using CinemaNetwork.Infrastructure.Models;
 
 public class MappingProfile : Profile

@@ -1,11 +1,11 @@
 using CinemaNetwork.Application.Dtos;
 using CinemaNetwork.Application.Interfaces_Services;
+using CinemaNetwork.Infrastructure.Models;
 using Microsoft.AspNetCore.Mvc;
-using CinemaNetwork.API.Models;
 
 namespace CinemaNetwork.Api.Controllers
 {
-    [Route("api/product-type")]
+    [Route("api/ProductType")]
     [ApiController]
     public class ProductTypeController : GenericController<ProductType, ProductTypeDto>
     {
