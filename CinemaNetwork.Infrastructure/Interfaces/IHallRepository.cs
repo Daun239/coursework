@@ -6,12 +6,7 @@ using CinemaNetwork.Infrastructure.Models;
 
 namespace CinemaNetwork.Infrastructure.Interfaces
 {
-    public interface IHallRepository
+    public interface IHallRepository : IRepository<Hall>
     {
-        Task<List<Hall>> GetAllAsync();
-        Task<Hall?> GetByIdAsync(int id);
-        Task<Hall> CreateAsync(Hall hall);
-        Task<Hall?> UpdateAsync(int id, Hall hall);
-        Task<Hall?> DeleteAsync(int id);
     }
 }

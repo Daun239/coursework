@@ -6,7 +6,7 @@ using CinemaNetwork.Infrastructure.Models;
 
 namespace CinemaNetwork.Infrastructure.Interfaces
 {
-    public interface IEmployeeRepository : IRepository<AgeRestriction>
+    public interface IEmployeeRepository : IRepository<Employee>
     {
     }
 }

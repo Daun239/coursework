@@ -2,14 +2,15 @@ using AutoMapper;
 using CinemaNetwork.Application.Dtos;
 using CinemaNetwork.Application.Interfaces_Services;
 using CinemaNetwork.Application.Services;
-using CinemaNetwork.Infrastructure.Data;
+using CinemaNetwork.Infrastructure.Interfaces;
 using CinemaNetwork.Infrastructure.Models;
 
 namespace CinemaNetwork.Services
 {
     public class LanguageService : Service<Language, LanguageDto>, ILanguageService
     {
-        public LanguageService(CinemaNetworkContext context, IMapper mapper) : base(context, mapper)
+        public LanguageService(IRepository<Language> repository, IMapper mapper)
+            : base(repository, mapper)
         {
         }
     }

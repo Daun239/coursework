@@ -3,7 +3,7 @@ using CinemaNetwork.Infrastructure.Models;
 
 namespace CinemaNetwork.Application.Interfaces_Services
 {
-    public interface IMovieGenreService : IService<MovieGenre, MoviesGenreDto>
+    public interface IMovieGenreService : IService<MoviesGenre, MoviesGenreDto>
     {
     }
 }

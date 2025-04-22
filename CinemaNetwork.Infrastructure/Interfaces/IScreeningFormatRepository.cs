@@ -6,12 +6,8 @@ using CinemaNetwork.Infrastructure.Models;
 
 namespace CinemaNetwork.Infrastructure.Interfaces
 {
-    public interface IScreeningFormatRepository
+    public interface IScreeningFormatRepository : IRepository<ScreeningFormat>
     {
-        Task<List<ScreeningFormat>> GetAllAsync();
-        Task<ScreeningFormat?> GetByIdAsync(int id);
-        Task<ScreeningFormat> CreateAsync(string screeningFormat);
-        Task<ScreeningFormat?> UpdateAsync(int id, string screeningFormat);
-        Task<ScreeningFormat?> DeleteAsync(int id);
+
     }
 }

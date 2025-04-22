@@ -1,27 +1,20 @@
 using CinemaNetwork.Infrastructure.Data;
 using CinemaNetwork.Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata;
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
-using System.Threading.Tasks;
+using System.Linq.Dynamic.Core;
 namespace CinemaNetwork.Infrastructure.Repositories
 {
     public class Repository<TEntity> : IRepository<TEntity> where TEntity : class
     {
         private readonly CinemaNetworkContext _context;
+        internal readonly DbSet<TEntity> dbSet;
 
         public Repository(CinemaNetworkContext dbContext)
         {
             _context = dbContext;
-        }
-
-        public async Task<List<TEntity>> GetAllAsync()
-        {
-            return await _context.Set<TEntity>().ToListAsync();
+            dbSet = dbContext.Set<TEntity>();
         }
 
         public async Task<TEntity?> GetByIdAsync(int id)
@@ -71,6 +64,59 @@ namespace CinemaNetwork.Infrastructure.Repositories
             await _context.SaveChangesAsync();
             return entity;
         }
+
+        // Delete with Predicate
+        public async Task<List<TEntity?>> DeleteAsync(string dynamicFilter)
+        {
+            var entities = await dbSet.Where(dynamicFilter).ToListAsync();
+            dbSet.RemoveRange(entities);
+            await _context.SaveChangesAsync();
+            return entities;
+        }
+
+        // Update with Predicate
+        public async Task UpdateAsync(Expression<Func<TEntity, bool>> predicate, Action<TEntity> updateAction)
+        {
+            var entitiesToUpdate = await _context.Set<TEntity>().Where(predicate).ToListAsync();
+            if (entitiesToUpdate.Any())
+            {
+                foreach (var entity in entitiesToUpdate)
+                {
+                    updateAction(entity);
+                    _context.Set<TEntity>().Update(entity);
+                }
+
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task<int> GetCountWithFilters(string? dynamicFilter = null)
+        {
+
+            IQueryable<TEntity> query = dbSet;
+            if (!String.IsNullOrWhiteSpace(dynamicFilter)) {
+                query = query.Where(dynamicFilter);
+            }
+            var count = query.CountAsync();
+            return await count;
+        }
+
+        public async Task<IEnumerable<TEntity?>> GetWithDynamicFilterAsync(string? dynamicFilter = null, string? sortBy = null, int page = 1, int pageSize = 10)
+        {
+            IQueryable<TEntity> query = dbSet;
+
+            if (!string.IsNullOrWhiteSpace(dynamicFilter)) {
+                query = query.Where(dynamicFilter);
+            }
+
+            if (!string.IsNullOrWhiteSpace(sortBy)) {
+                query = query.OrderBy(sortBy);
+            }
+
+            query = query.Skip((page - 1) * pageSize).Take(pageSize);
+            return await query.ToListAsync();
+        }
+
     }
 
 }

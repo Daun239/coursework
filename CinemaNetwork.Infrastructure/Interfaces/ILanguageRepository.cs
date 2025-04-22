@@ -6,12 +6,7 @@ using CinemaNetwork.Infrastructure.Models;
 
 namespace CinemaNetwork.Infrastructure.Interfaces
 {
-    public interface ILanguageRepository
+    public interface ILanguageRepository : IRepository<Language>
     {
-        Task<List<Language>> GetAllAsync();
-        Task<Language?> GetByIdAsync(int id);
-        Task<Language> CreateAsync(string language);
-        Task<Language?> UpdateAsync(int id, string language);
-        Task<Language?> DeleteAsync(int id);
     }
 }

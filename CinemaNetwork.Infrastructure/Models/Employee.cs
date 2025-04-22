@@ -19,6 +19,8 @@ public partial class Employee
 
     public string? Email { get; set; }
 
+    public string PasswordHash { get; set; } = null!;
+
     public DateTime? CreateDateTime { get; set; }
 
     public DateTime? UpdateDateTime { get; set; }

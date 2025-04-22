@@ -7,9 +7,9 @@ namespace CinemaNetwork.Api.Controllers
 {
     [Route("api/MovieGenre")]
     [ApiController]
-    public class MovieGenreController : GenericController<MovieGenre, MoviesGenreDto>
+    public class MovieGenreController : GenericController<MoviesGenre, MoviesGenreDto>
     {
-        public MovieGenreController(IService<MovieGenre, MoviesGenreDto> service) 
+        public MovieGenreController(IService<MoviesGenre, MoviesGenreDto> service) 
             : base(service)
         {
         }

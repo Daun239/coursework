@@ -1,1 +1,13 @@
 **/debug/
+# Ignore node_modules inside the Frontend folder
+Frontend/**/node_modules/
+
+# Ignore production build folders inside Frontend
+Frontend/**/build/
+Frontend/**/dist/
+
+# Log files
+Frontend/npm-debug.log*
+Frontend/yarn-debug.log*
+Frontend/yarn-error.log*
+Frontend/pnpm-debug.log*

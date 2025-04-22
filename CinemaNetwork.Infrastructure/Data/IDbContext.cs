@@ -29,6 +29,6 @@ namespace CinemaNetwork.Infrastructure.Data
         public DbSet<Check> Checks { get; set; }
         public DbSet<Ticket> Tickets { get; set; }
         public DbSet<CheckTicket> CheckTickets { get; set; }
-        public DbSet<MovieGenre> MoviesGenres { get; set; }
+        public DbSet<MoviesGenre> MoviesGenres { get; set; }
     }
 }

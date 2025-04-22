@@ -1,15 +1,15 @@
 {
   "format": 1,
   "restore": {
-    "I:\\Coursework\\coursework\\CinemaNetwork.Api\\CinemaNetwork.Api.csproj": {}
+    "I:\\Coursework\\coursework\\CinemaNetwork.Api\\CinemaNetwork.API.csproj": {}
   },
   "projects": {
-    "I:\\Coursework\\coursework\\CinemaNetwork.Api\\CinemaNetwork.Api.csproj": {
+    "I:\\Coursework\\coursework\\CinemaNetwork.Api\\CinemaNetwork.API.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "I:\\Coursework\\coursework\\CinemaNetwork.Api\\CinemaNetwork.Api.csproj",
-        "projectName": "CinemaNetwork.Api",
-        "projectPath": "I:\\Coursework\\coursework\\CinemaNetwork.Api\\CinemaNetwork.Api.csproj",
+        "projectUniqueName": "I:\\Coursework\\coursework\\CinemaNetwork.Api\\CinemaNetwork.API.csproj",
+        "projectName": "CinemaNetwork.API",
+        "projectPath": "I:\\Coursework\\coursework\\CinemaNetwork.Api\\CinemaNetwork.API.csproj",
         "packagesPath": "C:\\Users\\New\\.nuget\\packages\\",
         "outputPath": "I:\\Coursework\\coursework\\CinemaNetwork.Api\\obj\\",
         "projectStyle": "PackageReference",
@@ -61,7 +61,7 @@
             },
             "Microsoft.AspNetCore.Identity.EntityFrameworkCore": {
               "target": "Package",
-              "version": "[8.0.14, )"
+              "version": "[8.0.0, )"
             },
             "Microsoft.AspNetCore.OpenApi": {
               "target": "Package",
@@ -69,7 +69,7 @@
             },
             "Microsoft.EntityFrameworkCore": {
               "target": "Package",
-              "version": "[8.0.14, )"
+              "version": "[9.0.3, )"
             },
             "Microsoft.EntityFrameworkCore.Design": {
               "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
@@ -95,9 +95,17 @@
               "target": "Package",
               "version": "[9.0.0, )"
             },
+            "MongoDB.Driver": {
+              "target": "Package",
+              "version": "[3.3.0, )"
+            },
             "Swashbuckle.AspNetCore": {
               "target": "Package",
               "version": "[6.0.0, )"
+            },
+            "System.Linq.Dynamic.Core": {
+              "target": "Package",
+              "version": "[1.6.0.2, )"
             }
           },
           "imports": [
@@ -181,7 +189,7 @@
             },
             "Microsoft.AspNetCore.Identity.EntityFrameworkCore": {
               "target": "Package",
-              "version": "[8.0.14, )"
+              "version": "[8.0.0, )"
             },
             "Microsoft.EntityFrameworkCore.SqlServer": {
               "target": "Package",
@@ -190,6 +198,10 @@
             "Microsoft.Extensions.DependencyInjection": {
               "target": "Package",
               "version": "[9.0.0, )"
+            },
+            "System.Linq.Dynamic.Core": {
+              "target": "Package",
+              "version": "[1.6.0.2, )"
             }
           },
           "imports": [
@@ -254,7 +266,7 @@
           "dependencies": {
             "Microsoft.AspNetCore.Identity.EntityFrameworkCore": {
               "target": "Package",
-              "version": "[8.0.14, )"
+              "version": "[8.0.0, )"
             },
             "Microsoft.EntityFrameworkCore.SqlServer": {
               "target": "Package",
@@ -267,6 +279,10 @@
             "Microsoft.Extensions.Configuration": {
               "target": "Package",
               "version": "[9.0.0, )"
+            },
+            "System.Linq.Dynamic.Core": {
+              "target": "Package",
+              "version": "[1.6.0.2, )"
             },
             "dotenv.net": {
               "target": "Package",

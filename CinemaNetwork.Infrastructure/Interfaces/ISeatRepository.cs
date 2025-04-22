@@ -6,12 +6,7 @@ using CinemaNetwork.Infrastructure.Models;
 
 namespace CinemaNetwork.Infrastructure.Interfaces
 {
-    public interface ISeatRepository
+    public interface ISeatRepository : IRepository<Seat>
     {
-        Task<List<Seat>> GetAllAsync();
-        Task<Seat?> GetByIdAsync(int id);
-        Task<Seat> SeatCreateAsync(Seat updateSeatDto);
-        Task<Seat?> UpdateAsync(int id, Seat updateSeatDto);
-        Task<Seat?> DeleteAsync(int id);
     }
 }

@@ -8,10 +8,5 @@ namespace CinemaNetwork.Infrastructure.Interfaces
 {
     public interface IPaymentMethodRepository
     {
-        Task<List<PaymentMethod>> GetAllAsync();
-        Task<PaymentMethod?> GetByIdAsync(int id);
-        Task<PaymentMethod> CreateAsync(string paymentMethod);
-        Task<PaymentMethod?> UpdateAsync(int id, string paymentMethod);
-        Task<PaymentMethod?> DeleteAsync(int id);
     }
 }

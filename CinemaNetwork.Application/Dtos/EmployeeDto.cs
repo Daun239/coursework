@@ -15,4 +15,6 @@ namespace CinemaNetwork.Application.Dtos;
         public string? CellNumber { get; set; }
 
         public string? Email { get; set; }
+
+            public string? Password {get; set; } = null!;
     }

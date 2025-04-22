@@ -18,22 +18,27 @@ namespace CinemaNetwork.Api.Controllers
             _service = service;
         }
 
-        [HttpGet]
-        public async Task<ActionResult<List<TDto>>> GetAll()
+        [HttpGet("all")]
+        public virtual async Task<ActionResult<List<TDto>>> GetAll(
+            [FromQuery] string? dynamicFilter = null,
+            [FromQuery] string? sortBy = null, 
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10
+        )
+
         {
-            var items = await _service.GetAllAsync();
+            var items = await _service.GetAllAsync(dynamicFilter, sortBy, page, pageSize);
             return Ok(items);
         }
 
-        [HttpGet("{id}")]
-        public async Task<ActionResult<TDto>> GetById(int id)
+        [HttpGet("count")]
+        public virtual async Task<ActionResult<List<TDto>>> GetCount(
+            [FromQuery] string? dynamicFilter = null
+        )
+        
         {
-            var item = await _service.GetByIdAsync(id);
-            if (item == null)
-            {
-                return NotFound();
-            }
-            return Ok(item);
+            var items = await _service.GetCountAsync(dynamicFilter);
+            return Ok(items);
         }
 
         [HttpPost]
@@ -43,8 +48,8 @@ namespace CinemaNetwork.Api.Controllers
             return Ok(createdItem);
         }
 
-        [HttpPut("{id}")]
-        public async Task<ActionResult<TDto>> Update(int id, [FromBody] TDto dto)
+        [HttpPut]
+        public async Task<ActionResult<TDto>> Update([FromBody] TDto dto)
         {
             var updatedItem = await _service.UpdateAsync(dto);
             if (updatedItem == null)
@@ -53,17 +58,15 @@ namespace CinemaNetwork.Api.Controllers
             }
             return Ok(updatedItem);
         }
-
-        [HttpDelete("{id}")]
-        public async Task<ActionResult<TDto>> Delete(int id)
+        [HttpDelete]
+        public async Task<ActionResult<List<TDto>>> Delete([FromQuery] string? dynamicFilter)
         {
-            var deletedItem = await _service.DeleteAsync(id);
+            var deletedItem = await _service.DeleteAsync(dynamicFilter);
             if (deletedItem == null)
             {
                 return NotFound();
             }
             return Ok(deletedItem);
         }
-
     }
 }

@@ -46,7 +46,7 @@
           "dependencies": {
             "Microsoft.AspNetCore.Identity.EntityFrameworkCore": {
               "target": "Package",
-              "version": "[8.0.14, )"
+              "version": "[8.0.0, )"
             },
             "Microsoft.EntityFrameworkCore.SqlServer": {
               "target": "Package",
@@ -59,6 +59,10 @@
             "Microsoft.Extensions.Configuration": {
               "target": "Package",
               "version": "[9.0.0, )"
+            },
+            "System.Linq.Dynamic.Core": {
+              "target": "Package",
+              "version": "[1.6.0.2, )"
             },
             "dotenv.net": {
               "target": "Package",

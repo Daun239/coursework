@@ -15,7 +15,7 @@ public class MappingProfile : Profile
         CreateMap<Country, CountryDto>().ReverseMap();
         CreateMap<DeliveryOrder, DeliveryOrderDto>().ReverseMap();
         CreateMap<DeliveryOrderStatus, DeliveryOrderStatusDto>().ReverseMap();
-        CreateMap<Employee, EmployeeDto>().ReverseMap();
+        CreateMap<EmployeeDto, Employee>().ReverseMap();
         CreateMap<EmployeePosition, EmployeePositionDto>().ReverseMap();
         CreateMap<Genre, GenreDto>().ReverseMap();
         CreateMap<Hall, HallDto>().ReverseMap();
