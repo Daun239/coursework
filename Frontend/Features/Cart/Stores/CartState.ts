@@ -24,11 +24,11 @@ export const useCartStore = create(
         product: [],
         ticket: [],
       },
-
       addItem: (type, item) =>
         set((state) => {
           const exists = state.cart[type].some(
-            (i) => getItemId(i) === getItemId(item)
+            (i) =>
+              i.seatId === item.seatId && i.screeningId === item.screeningId
           );
 
           if (exists) return state;

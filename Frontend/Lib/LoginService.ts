@@ -1,5 +1,18 @@
-// Lib/LoginService.ts
+import { jwtDecode } from "jwt-decode";
+
 import { useUserStore } from "../Stores/UserStore";
+
+type JwtPayload = {
+  sub: string; // employeeId
+  email: string;
+  name: string;
+  surname: string;
+  cellNumber: string;
+  role: string;
+  cinemaId: string;
+  exp: number;
+  iat: number;
+};
 
 export class LoginService {
   constructor(private baseUrl: string) {}
@@ -15,10 +28,18 @@ export class LoginService {
       const data = await response.json();
       if (response.ok) {
         const token = data.token;
-        const apiUser = data.employee || data.user; // ← залежно як назвав у API (в тебе в API це `employee`)
+
+        const decoded: JwtPayload = jwtDecode(token);
+
+        console.log("decoded", decoded);
         const user = {
-          ...apiUser,
-          employeeId: apiUser.id, // 👈 додаємо employeeId вручну
+          employeeId: Number(decoded.sub),
+          email: decoded.email,
+          name: decoded.name,
+          surname: decoded.surname,
+          cellNumber: decoded.cellNumber,
+          role: decoded.role,
+          cinemaId: Number(decoded.cinemaId),
         };
 
         console.log("user", user);

@@ -1,91 +1,64 @@
-import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import React from "react";
+import { useParams } from "react-router-dom";
+import { useCartStore } from "../../Cart/Stores/CartState";
+import { toast } from "react-toastify";
+import SeatColorLegend from "./SeatColorLegend";
+import SeatTable from "./SeatTable";
+import useScreeningData from "../Hooks/useScreeningData";
 import { useServiceStore } from "../../../Stores/ServicesStore";
-import { Seat } from "../../../Types/Seat";
-import { Hall } from '../../../Types/Hall';
-import { Screening } from '../../../Types/Screening';
-import { HallTechnology } from '../../../Types/HallTechnology';
-import { Language } from '../../../Types/Language';
-import formFilterQuery from '../../../Lib/formFilterQuery';
-import SeatTable from "./SeatTable"
-import { ScreeningFormat } from '../../../Types/ScreeningFormat';
-
-
-
-
+import { Ticket } from "../../../Types/Ticket";
 
 const ScreeningTickets: React.FC = () => {
   const { id } = useParams();
-  const [selectedSeats, setSelectedSeats] = useState<Seat[]>([]);
-  const [occupiedSeats, setOccupiedSeats] = useState<Seat[]>([]);
-  const [hall, setHall] = useState<Hall | null>(null);
-  const [seats, setSeats] = useState<Seat[]>([]);
-  const [screeningData, setScreeningData] = useState<any>(null);
-  const [language, setLanguage] = useState<Language>();
-  const [HallTechnology, setHallTechnology] = useState<HallTechnology>();
-  const [screening, setScreening] = useState<Screening>();
-  const [screeningFormat, setScreeningFormat] = useState<ScreeningFormat>();
+  const {
+    screeningData,
+    selectedSeats,
+    occupiedSeats,
+    hall,
+    language,
+    hallTechnology,
+    screeningFormat,
+    setSelectedSeats,
+  } = useScreeningData(id);
 
+  const { addItem } = useCartStore();
+  const { ticketService } = useServiceStore();
 
-  const { screeningFormatService, hallTechnologyService, languageService, screeningService, hallService, seatService, ticketService } = useServiceStore();
+  const handleAddToCart = async () => {
+    if (selectedSeats.length === 0) return;
 
-  useEffect(() => {
-    const fetchData = async () => {
-      if (!id) return;
+    try {
+      const [{ number }] = await ticketService.getAll("", "number desc", 1, 1);
 
-      try {
-        const [screening] = await screeningService.getAll(`screeningId = ${id}`);
-        setScreening(screening);
-        const [fetchedHall] = await hallService.getAll(`hallId = ${screening.hallId}`, '');
-        setHall(fetchedHall);
+      selectedSeats.forEach((seat, index) => {
+        const ticket: Ticket = {
+          price: seat.isVipCategory ? 100 : 50,
+          seatId: seat.seatId,
+          screeningId: id,
+          number: number + index + 1,
+          ticketId: 0,
+        };
 
-        const allSeats = await seatService.getAll(`hallId = ${fetchedHall.hallId}`, '', 1, 1000);
-        setSeats(allSeats);
+        console.log('added ticket', ticket);
 
-        const ticketsQuery = formFilterQuery({
-          field: 'screeningId',
-          operator: 'in',
-          values: [parseInt(id)]
-        });
+        addItem("ticket", ticket); // pass the ticket, not just seat
+      });
 
-        const tickets = await ticketService.getAll(ticketsQuery, '', 1, 100000);
-        const occupiedSeatIds = new Set(tickets.map(t => t.seatId));
-        const occupied = allSeats.filter(seat => occupiedSeatIds.has(seat.seatId));
-        setOccupiedSeats(occupied);
-
-        const rows = Math.max(...allSeats.map(s => s.rowNumber), 1);
-        const columns = Math.max(...allSeats.map(s => s.seatNumber), 1);
-
-        const [hallTechnology] = await hallTechnologyService.getAll(`hallTechnologyId = ${fetchedHall?.hallTechnologyId}`);
-        setHallTechnology(hallTechnology);
-
-        const [language] = await languageService.getAll(`languageId = ${screening.languageId}`);
-        setLanguage(language);
-
-        const [screeningFormat] = await screeningFormatService.getAll(`screeningFormatId = ${screening.screeningFormatId}`);
-        setScreeningFormat(screeningFormat)
-
-        setScreeningData({
-          movieTitle: "Movie Title",
-          date: new Date().toLocaleDateString(),
-          availableTickets: allSeats.length - occupied.length,
-          rows,
-          columns,
-          occupiedSeats: occupied,
-          allSeats
-        });
-      } catch (err) {
-        console.error("Error loading screening data:", err);
-      }
-    };
-
-    fetchData();
-  }, [id]);
+      toast.success("Tickets added to cart!");
+    } catch (error) {
+      console.error("Failed to add tickets:", error);
+      toast.error("Something went wrong. Please try again.");
+    }
+  };
 
   const handleSeatClick = (seat: Seat) => {
-    setSelectedSeats(prev =>
-      prev.some(s => s.rowNumber === seat.rowNumber && s.seatNumber === seat.seatNumber)
-        ? prev.filter(s => !(s.rowNumber === seat.rowNumber && s.seatNumber === seat.seatNumber))
+    setSelectedSeats((prev) =>
+      prev.some(
+        (s) => s.rowNumber === seat.rowNumber && s.seatNumber === seat.seatNumber
+      )
+        ? prev.filter(
+          (s) => !(s.rowNumber === seat.rowNumber && s.seatNumber === seat.seatNumber)
+        )
         : [...prev, seat]
     );
   };
@@ -93,35 +66,50 @@ const ScreeningTickets: React.FC = () => {
   return (
     <div className="p-4">
       <h2 className="text-xl font-bold mb-4">Screening Tickets for ID: {id}</h2>
+      <button
+        onClick={handleAddToCart}
+        className={`rounded-xl p-1.5 btn btn-ghost ${selectedSeats.length === 0
+          ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+          : "bg-gray-900 text-white"
+          }`}
+        disabled={selectedSeats.length === 0}
+      >
+        Add to cart
+      </button>
 
       {screeningData ? (
         <>
-          <p><strong>Movie:</strong> {screeningData.movieTitle}</p>
-          <p><strong>Date:</strong> {screeningData.date}</p>
-          <p><strong>Language:</strong> {language?.language1}</p>
-          <p><strong>ScreeningFormat</strong> {screeningFormat?.screeningFormat1}</p>
-          <p><strong>Hall technology</strong> {HallTechnology?.hallTechnology1}</p>
-          <p><strong>Starts:</strong> {`${screening?.startDate}, ${screening?.startTime}`}</p>
+          <p>
+            <strong>Movie:</strong> {screeningData.movieTitle}
+          </p>
+          <p>
+            <strong>Date:</strong> {screeningData.date}
+          </p>
+          <p>
+            <strong>Language:</strong> {language?.language1}
+          </p>
+          <p>
+            <strong>Screening Format:</strong> {screeningFormat?.screeningFormat1}
+          </p>
+          <p>
+            <strong>Hall technology:</strong> {hallTechnology?.hallTechnology1}
+          </p>
+          <p>
+            <strong>Starts:</strong> {`${screeningData.startDate}, ${screeningData.startTime}`}
+          </p>
 
-          <p><strong>Ends:</strong> {
-            (() => {
-              if (!screening) return null;
+          <h3 className="mt-6 mb-2 font-semibold">Select Seats:</h3>
 
-              const startDateTime = new Date(`${screening.startDate}T${screening.startTime}`);
-              const endDateTime = new Date(`${screening.startDate}T${screening.endTime}`);
+          <SeatColorLegend
+            title="Seat Types"
+            price={50}
+            priceVip={100}
+            colors={[
+              { color: "bg-green-400", label: "Regular" },
+              { color: "bg-fuchsia-400", label: "VIP" },
+            ]}
+          />
 
-              // If end time is before start time (e.g., starts at 22:00, ends at 01:00)
-              if (endDateTime <= startDateTime) {
-                endDateTime.setDate(endDateTime.getDate() + 1); // move to next day
-              }
-
-              return `${endDateTime.toLocaleDateString()}, ${screening.endTime}`;
-            })()
-          }</p>
-
-
-
-          <h3 className="mt-6 mb-2 font-semibold ">Select Seats:</h3>
           <SeatTable
             rows={screeningData.rows}
             columns={screeningData.columns}

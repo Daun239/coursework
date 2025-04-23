@@ -12,7 +12,7 @@ import RangeSlider from "./RangeSlider"
 import Sidebar from './Sidebar';
 import formFilterQuery from '../Lib/formFilterQuery';
 import Pagination from './Pagination';
-
+import { Screening } from '../Types/Screening';
 
 
 
@@ -22,7 +22,7 @@ function handleSelectionChange<T>(selected: T[], setState: React.Dispatch<React.
 }
 
 const MovieList = () => {
-    const { movieService, genreService, moviesGenreService, languageService, countryService, publisherService, ageRestrictionService } = useServiceStore();
+    const { screeningService, movieService, genreService, moviesGenreService, languageService, countryService, publisherService, ageRestrictionService } = useServiceStore();
     const [movies, setMovies] = useState<Movie[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -46,9 +46,9 @@ const MovieList = () => {
     const [pageSize, setPageSize] = useState<number>(10);
     const [currentPage, setCurrentPage] = useState<number>(1);
     const [pagesCount, setPagesCount] = useState<number>(10);
-
-
     const [moviesCount, setMoviesCount] = useState<number>(0);
+
+    const [screenings, setScreenings] = useState<Screening[]>([]);
 
 
     // ---------
@@ -77,9 +77,6 @@ const MovieList = () => {
             return { min: null, max: null };
         }
     }
-
-
-
 
 
     useEffect(() => {
@@ -112,7 +109,9 @@ const MovieList = () => {
 
 
                 const filterQuery = formFilterQuery(
+                    "AND",
                     {
+
                         field: 'movieId',
                         values: movieIds,
                         operator: 'in' // 'in' for multiple values
@@ -120,19 +119,20 @@ const MovieList = () => {
                     {
                         field: 'title',
                         values: title ? [title] : [], // Use title only if it's non-empty
-                        operator: 'contains' // 'contains' for partial matching
+                        operator: "contains" // 'contains' for partial matching
                     },
                     {
                         field: 'budget',
-                        values: [selectedBudgetRange[0], selectedBudgetRange[1]].filter(v => v !== 0), // Exclude zero values for budget
+                        values: selectedBudgetRange.map(v => v.toString()).filter(v => v !== '0'), // Ensure they are strings
                         operator: 'range' // 'range' for numeric ranges like budget or runtime
                     },
                     {
                         field: 'runtime',
-                        values: [selectedRuntimeRange[0], selectedRuntimeRange[1]].filter(v => v !== 0), // Exclude zero values for runtime
+                        values: selectedRuntimeRange.map(v => v.toString()).filter(v => v !== '0'), // Ensure they are strings
                         operator: 'range'
                     }
                 );
+
 
                 // Make sure the filter query isn't empty before sending the request
                 if (filterQuery) {
@@ -143,6 +143,15 @@ const MovieList = () => {
                     console.log("data", data);
                     setMovies(data);
                 }
+
+                const screeningsQuery = formFilterQuery("AND", {
+                    field: 'movieId',
+                    operator: "in",
+                    values: movies.map(m => m.movieId),
+                })
+                const screenings = await screeningService.getAll(screeningsQuery, "", 1, 1000);
+
+                console.log('fetched screenings', screenings);
 
             } catch (error) {
                 console.error('Failed to fetch movies:', error);
@@ -191,11 +200,6 @@ const MovieList = () => {
             <Sidebar width={320} tabPosition="middle" tabColor="bg-primary">
                 <div className="filters-container">
                     <h2 className="font-semibold text-xl mb-4">{movies.length} movies found</h2>
-
-
-
-
-
 
                     <DropdownList
                         listName="Filter by age restrictions"

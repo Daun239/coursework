@@ -1,14 +1,24 @@
-import React from "react"
+import React from "react";
 
-const SeatColorLegend = ({ title, colors, price }: { title: string, colors: { color: string, label: string }[], price: number | null }) => (
+const SeatColorLegend = ({
+  title,
+  colors,
+  price,
+  priceVip,
+}: {
+  title: string;
+  colors: { color: string; label: string }[];
+  price: number | null;
+  priceVip: number | null;
+}) => (
   <div>
     <h2 className="font-semibold mb-2">{title}</h2>
-    <h3 className="font-semibold mb2">Price per ticket</h3>
-    {price ?
-      <h4 className="font-semibold mb-2">{price}</h4>
-      :
-      <h4 className="font-semibold mb-2">No data</h4>
-    }
+
+    <div className="mb-4">
+      <h3 className="font-semibold">Price per ticket</h3>
+      <p>Regular: {price !== null ? `${price}` : "No data"}</p>
+      <p>VIP: {priceVip !== null ? `${priceVip}` : "No data"}</p>
+    </div>
 
     {colors.map(({ color, label }) => (
       <div className="flex items-center gap-2 mb-2" key={label}>
@@ -19,4 +29,4 @@ const SeatColorLegend = ({ title, colors, price }: { title: string, colors: { co
   </div>
 );
 
-export default SeatColorLegend
+export default SeatColorLegend;

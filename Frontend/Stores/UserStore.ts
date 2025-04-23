@@ -1,25 +1,45 @@
 import { create } from "zustand";
-import { User } from "../Types/User"; // Assuming your User type is already defined
+import { jwtDecode } from "jwt-decode";
+import { User } from "../Types/User";
 
 type UserStore = {
   user: User | null;
-  token: string | null; // Add the token state
-  setUser: (user: User, token: string) => void; // Set user and token
-  logOut: () => void; // Log out and clear user/token
+  token: string | null;
+  setUser: (user: User, token: string) => void;
+  logOut: () => void;
 };
 
+const getUserFromToken = (token: string): User | null => {
+  try {
+    const decoded: any = jwtDecode(token);
+    return {
+      employeeId: decoded.sub,
+      email: decoded.email,
+      name: decoded.name,
+      surname: decoded.surname,
+      cellNumber: decoded.cellNumber,
+      cinemaId: decoded.cinemaId,
+      role: decoded.role,
+    };
+  } catch {
+    return null;
+  }
+};
+
+const tokenFromStorage = localStorage.getItem("jwt");
+const userFromToken = tokenFromStorage
+  ? getUserFromToken(tokenFromStorage)
+  : null;
+
 export const useUserStore = create<UserStore>((set) => ({
-  user: null,
-  token: null, // Initial state is null for both user and token
+  user: userFromToken,
+  token: tokenFromStorage,
   setUser: (user, token) => {
-    localStorage.setItem("jwt", token); // Store JWT in localStorage
-
-    console.log("User from API:", user);
-
+    localStorage.setItem("jwt", token);
     set({ user, token });
   },
   logOut: () => {
-    localStorage.removeItem("jwt"); // Remove JWT token from localStorage
+    localStorage.removeItem("jwt");
     set({ user: null, token: null });
   },
 }));

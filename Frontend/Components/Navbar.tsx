@@ -72,7 +72,7 @@ const Navbar = () => {
                 CinemaId={user.cinemaId}
                 CellNumber={user.cellNumber}
                 Email={user.email}
-                EmployeePosition={user.employeePosition}
+                EmployeePosition={user.role}
                 Name={user.name}
                 Surname={user.surname}
                 EmployeeId={user.employeeId}
