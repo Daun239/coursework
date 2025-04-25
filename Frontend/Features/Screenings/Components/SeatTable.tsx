@@ -16,7 +16,7 @@ const SeatTable: React.FC<{
         selectedSeats.some(seat => seat.rowNumber === r && seat.seatNumber === c);
 
     return (
-        <div className="inline-block p-8 bg-base-100 rounded-lg shadow-2xl">
+        <div className="inline-block p-8 bg-base-100 rounded-lg shadow-2xl max-w-full overflow-x-auto">
             <table className="border-collapse">
                 <tbody>
                     {Array.from({ length: rows }).map((_, rowIndex) => (

@@ -1,5 +1,4 @@
 import React from "react";
-import { useParams } from "react-router-dom";
 import { useCartStore } from "../../Cart/Stores/CartState";
 import { toast } from "react-toastify";
 import SeatColorLegend from "./SeatColorLegend";
@@ -8,8 +7,12 @@ import useScreeningData from "../Hooks/useScreeningData";
 import { useServiceStore } from "../../../Stores/ServicesStore";
 import { Ticket } from "../../../Types/Ticket";
 
-const ScreeningTickets: React.FC = () => {
-  const { id } = useParams();
+// Define the props interface
+interface ScreeningTicketsProps {
+  id: number; // Add id prop as a number
+}
+
+const ScreeningTickets: React.FC<ScreeningTicketsProps> = ({ id }) => {
   const {
     screeningData,
     selectedSeats,
@@ -64,22 +67,13 @@ const ScreeningTickets: React.FC = () => {
   };
 
   return (
-    <div className="p-4">
-      <h2 className="text-xl font-bold mb-4">Screening Tickets for ID: {id}</h2>
-      <button
-        onClick={handleAddToCart}
-        className={`rounded-xl p-1.5 btn btn-ghost ${selectedSeats.length === 0
-          ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-          : "bg-gray-900 text-white"
-          }`}
-        disabled={selectedSeats.length === 0}
-      >
-        Add to cart
-      </button>
+    <div className="p-4 bg-gray-700">
+      {/* <h2 className="text-xl font-bold mb-4">Screening Tickets for ID: {id}</h2> */}
+
 
       {screeningData ? (
         <>
-          <p>
+          {/* <p>
             <strong>Movie:</strong> {screeningData.movieTitle}
           </p>
           <p>
@@ -96,19 +90,22 @@ const ScreeningTickets: React.FC = () => {
           </p>
           <p>
             <strong>Starts:</strong> {`${screeningData.startDate}, ${screeningData.startTime}`}
-          </p>
+          </p> */}
 
-          <h3 className="mt-6 mb-2 font-semibold">Select Seats:</h3>
+          {/* <h3 className="mt-6 mb-2 font-semibold">Select Seats:</h3> */}
+          {/* SeatColorLegend in the top-right corner */}
+          <div className="absolute top-4 left-2">
+            <SeatColorLegend
+              title="Seat Types"
+              price={50}
+              priceVip={100}
+            />
 
-          <SeatColorLegend
-            title="Seat Types"
-            price={50}
-            priceVip={100}
-            colors={[
-              { color: "bg-green-400", label: "Regular" },
-              { color: "bg-fuchsia-400", label: "VIP" },
-            ]}
-          />
+            <h2>Hall number</h2>
+            <h2>Language</h2>
+            <h2>HallTechnology</h2>
+            <h2></h2>
+          </div>
 
           <SeatTable
             rows={screeningData.rows}
@@ -118,6 +115,21 @@ const ScreeningTickets: React.FC = () => {
             onSelectSeat={handleSeatClick}
             allSeats={screeningData.allSeats}
           />
+
+          <div>
+
+            <button
+              onClick={handleAddToCart}
+              className={`rounded-xl p-1.5 btn btn-ghost ${selectedSeats.length === 0
+                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                : "bg-gray-900 text-white"
+                }`}
+              disabled={selectedSeats.length === 0}
+            >
+              Add to cart
+            </button>
+
+          </div>
         </>
       ) : (
         <p>Loading screening data...</p>

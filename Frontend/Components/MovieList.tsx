@@ -13,6 +13,11 @@ import Sidebar from './Sidebar';
 import formFilterQuery from '../Lib/formFilterQuery';
 import Pagination from './Pagination';
 import { Screening } from '../Types/Screening';
+import ScreeningTimeComponent from './ScreeningTimeComponent';
+import { addYears } from 'date-fns';
+import ScreeningTickets from '../Features/Screenings/Components/ScreeningTickets';
+import getMinAndMaxFromService from '../Lib/getMinAndMaxFromService';
+import { useMovieFiltersLoader } from '../Hooks/useMovieFiltersLoader';
 
 
 
@@ -22,7 +27,7 @@ function handleSelectionChange<T>(selected: T[], setState: React.Dispatch<React.
 }
 
 const MovieList = () => {
-    const { screeningService, movieService, genreService, moviesGenreService, languageService, countryService, publisherService, ageRestrictionService } = useServiceStore();
+    const { runService, screeningService, movieService, genreService, moviesGenreService, languageService, countryService, publisherService, ageRestrictionService } = useServiceStore();
     const [movies, setMovies] = useState<Movie[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -31,52 +36,38 @@ const MovieList = () => {
     const [languages, setLanguages] = useState<Language[]>([]);
     const [publishers, setPublishers] = useState<Publisher[]>([]);
     const [countries, setCountries] = useState<Country[]>([]);
-    const [minBudget, setMinBudget] = useState<number>(0);
-    const [maxBudget, setMaxBudget] = useState<number>(0);
-
-    const [selectedBudgetRange, setSelectedBudgetRange] = useState<[number, number]>([minBudget, maxBudget]);
-
-    const [minRuntime, setMinRuntime] = useState<number>(0);
-    const [maxRuntime, setMaxRuntime] = useState<number>(0);
-
-    const [selectedRuntimeRange, setSelectedRuntimeRange] = useState<[number, number]>([minRuntime, maxRuntime]);
 
     const [title, setTitle] = useState<string>("");
 
     const [pageSize, setPageSize] = useState<number>(10);
     const [currentPage, setCurrentPage] = useState<number>(1);
     const [pagesCount, setPagesCount] = useState<number>(10);
-    const [moviesCount, setMoviesCount] = useState<number>(0);
+
+    const [runs, setRuns] = useState<Run[]>([]);
+
 
     const [screenings, setScreenings] = useState<Screening[]>([]);
 
 
-    // ---------
+    const {
+        minBudget, maxBudget, selectedBudgetRange, setSelectedBudgetRange,
+        minRuntime, maxRuntime, selectedRuntimeRange, setSelectedRuntimeRange,
+        moviesCount
+    } = useMovieFiltersLoader();
 
 
 
-    //----------
+
+    const getScreeningsForMovie = (movieId: number): Screening[] => {
+        const movieRunIds = runs.filter(run => run.movieId === movieId).map(run => run.runId);
+        return screenings.filter(screening => movieRunIds.includes(screening.runId));
+    };
 
 
-    async function getMinAndMaxFromService<T>(
-        service: { getAll: (filter: string, sortBy: string, page: number, pageSize: number) => Promise<T[]> },
-        field: string
-    ): Promise<{ min: T | null; max: T | null }> {
-        try {
-            const [minArr, maxArr] = await Promise.all([
-                service.getAll("", `${field} asc`, 1, 1),
-                service.getAll("", `${field} desc`, 1, 1)
-            ]);
+    const [selectedScreening, setSelectedScreening] = useState<Screening | null>(null);
 
-            return {
-                min: minArr.length > 0 ? minArr[0] : null,
-                max: maxArr.length > 0 ? maxArr[0] : null
-            };
-        } catch (error) {
-            console.error(`Failed to get min and max for ${field}:`, error);
-            return { min: null, max: null };
-        }
-    }
+
+
 
 
     useEffect(() => {
@@ -88,14 +79,19 @@ const MovieList = () => {
 
 
 
+
     useEffect(() => {
         const fetchMovies = async () => {
             try {
-                const movieGenreQuery = formFilterQuery({
+                const movieGenreQuery = formFilterQuery(
+                    "AND", {
+
                     field: "genreId",
                     values: genres.map(g => g.genreId).filter(id => id != null), // Extract genreId and filter out null values
                     operator: 'in',
                 });
+
+
 
 
                 const correspondingMoviesByGenre = await moviesGenreService.getAll(movieGenreQuery, "", currentPage, 100000);
@@ -144,12 +140,40 @@ const MovieList = () => {
                     setMovies(data);
                 }
 
-                const screeningsQuery = formFilterQuery("AND", {
-                    field: 'movieId',
+                const runsQuery = formFilterQuery("AND",
+
+                    {
+                        field: "movieId",
+                        operator: "in",
+                        values: movies.map(m => m.movieId)
+                    }
+
+                );
+
+                const runs = await runService.getAll(runsQuery, "", 1, 100000);
+
+                setRuns(runs);
+
+                let screeningsQuery = formFilterQuery("AND", {
+                    field: 'runId',
                     operator: "in",
-                    values: movies.map(m => m.movieId),
+                    values: runs.map(r => r.movieId),
                 })
+
+
+
+                const now = new Date();
+                const tenYearsLater = addYears(now, 10);
+
+                // screeningsQuery = screeningsQuery + ' AND ' + formFilterQuery("AND", {
+                //     field: 'screeningStartDate',
+                //     operator: 'range',
+                //     values: [now.toISOString(), tenYearsLater.toISOString()],
+                // });
+
                 const screenings = await screeningService.getAll(screeningsQuery, "", 1, 1000);
+
+                setScreenings(screenings);
 
                 console.log('fetched screenings', screenings);
 
@@ -165,27 +189,6 @@ const MovieList = () => {
 
 
 
-    useEffect(() => {
-        const fetchMinMax = async () => {
-            // Fetching both budget and runtime min/max values
-            const { min: minBudget, max: maxBudget } = await getMinAndMaxFromService<Movie>(movieService, "budget");
-            const { min: minRuntime, max: maxRuntime } = await getMinAndMaxFromService<Movie>(movieService, "runtime");
-
-            // Default to 0 if min or max values are null or undefined
-            setMinBudget(minBudget?.budget ?? 0);
-            setMaxBudget(maxBudget?.budget ?? 0);
-            setSelectedBudgetRange([minBudget?.budget ?? 0, maxBudget?.budget ?? 0]);
-
-            setMinRuntime(minRuntime?.runtime ?? 0);
-            setMaxRuntime(maxRuntime?.runtime ?? 0);
-            setSelectedRuntimeRange([minRuntime?.runtime ?? 0, maxRuntime?.runtime ?? 0]);
-
-            const moviesCount = await movieService.getCount("");
-            setMoviesCount(moviesCount)
-        };
-
-        fetchMinMax();
-    }, []);
 
 
 
@@ -204,7 +207,7 @@ const MovieList = () => {
                     <DropdownList
                         listName="Filter by age restrictions"
                         service={ageRestrictionService}
-                        displayKey="ageRestriction"
+                        displayKey="ageRestriction1"
                         onSelectionChange={(selected: any[]) => handleSelectionChange(selected, setAgeRestrictions)}
                     />
 
@@ -302,16 +305,60 @@ const MovieList = () => {
                     onPageChange={setCurrentPage}
                 />
 
-
             </Sidebar>
+
+            {selectedScreening && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+                    <div className="bg-white rounded-xl shadow-xl max-w-3xl w-full relative">
+                        <button
+                            className="absolute top-3 right-3 text-gray-500 hover:text-black text-xl"
+                            onClick={() => setSelectedScreening(null)}
+                        >
+                            ×
+                        </button>
+
+                        <ScreeningTickets id={selectedScreening.screeningId} />
+                    </div>
+                </div>
+            )}
 
 
             {/* Main content */}
-            <div className="p-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {movies.map((movie, i) => (
-                        <MoviePreview key={i} movieId={movie.movieId} />
-                    ))}
+            <div className="p-6 bg-gray-50">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {movies.map((movie, i) => {
+                        const movieScreenings = getScreeningsForMovie(movie.movieId);
+                        return (
+                            <div key={i} className="bg-white rounded-xl shadow-md overflow-hidden transition-all hover:shadow-lg">
+
+
+                                <MoviePreview movieId={movie.movieId} />
+
+                                {movieScreenings.length > 0 ? (
+                                    <div className="p-4">
+                                        <h3 className="text-sm font-medium text-gray-500 mb-3 flex items-center">
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                            </svg>
+                                            Available Screenings
+                                        </h3>
+
+
+
+                                        <div className="grid grid-cols-1 gap-3">
+                                            {movieScreenings.map(screening => (
+                                                <ScreeningTimeComponent key={screening.screeningId} screening={screening} onSelect={setSelectedScreening} />
+                                            ))}
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="p-4 text-center text-gray-500 italic">
+                                        No screenings available
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
                 </div>
             </div>
 
