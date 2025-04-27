@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useServiceStore } from '../Stores/ServicesStore';
 import { Movie } from '../Types/Movie';
@@ -16,8 +17,11 @@ import { Screening } from '../Types/Screening';
 import ScreeningTimeComponent from './ScreeningTimeComponent';
 import { addYears } from 'date-fns';
 import ScreeningTickets from '../Features/Screenings/Components/ScreeningTickets';
-import getMinAndMaxFromService from '../Lib/getMinAndMaxFromService';
 import { useMovieFiltersLoader } from '../Hooks/useMovieFiltersLoader';
+
+// import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable"
+
+
 
 
 
@@ -89,7 +93,10 @@ const MovieList = () => {
                     field: "genreId",
                     values: genres.map(g => g.genreId).filter(id => id != null), // Extract genreId and filter out null values
                     operator: 'in',
-                });
+
+                }
+                    ,
+                );
 
 
 
@@ -107,7 +114,6 @@ const MovieList = () => {
                 const filterQuery = formFilterQuery(
                     "AND",
                     {
-
                         field: 'movieId',
                         values: movieIds,
                         operator: 'in' // 'in' for multiple values
@@ -126,7 +132,31 @@ const MovieList = () => {
                         field: 'runtime',
                         values: selectedRuntimeRange.map(v => v.toString()).filter(v => v !== '0'), // Ensure they are strings
                         operator: 'range'
+                    },
+
+                    {
+                        field: 'languageId',
+                        values: languages.map((l => l.languageId)),
+                        operator: 'in',
+                    },
+
+                    {
+                        field: 'ageRestrictionId',
+                        operator: 'in',
+                        values: ageRestrictions.map(a => a.ageRestrictionId),
+                    },
+                    {
+                        field: 'countryId',
+                        operator: 'in',
+                        values: countries.map(c => c.countryId),
+                    },
+
+                    {
+                        field: 'publisherId',
+                        operator: 'in',
+                        values: publishers.map(p => p.publisherId)
                     }
+
                 );
 
 
@@ -187,6 +217,15 @@ const MovieList = () => {
         fetchMovies();
     }, [movieService, genres, ageRestrictions, languages, publishers, countries, minBudget, maxBudget, selectedBudgetRange, minRuntime, maxRuntime, selectedRuntimeRange, title, pageSize]);
 
+
+
+
+
+
+
+    if (loading) {
+        <span className="loading loading-spinner loading-xl"></span>
+    }
 
 
 

@@ -101,6 +101,9 @@ builder.Services.AddScoped<ISeatRepository, SeatRepository>();
 builder.Services.AddScoped<ITicketRepository, TicketRepository>();
 
 
+builder.Services.AddScoped<IScreeningPriceRepository, ScreeningPriceRepository>();
+
+
 
 
 

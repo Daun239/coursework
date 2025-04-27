@@ -1,18 +1,7 @@
 import { jwtDecode } from "jwt-decode";
-
 import { useUserStore } from "../Stores/UserStore";
-
-type JwtPayload = {
-  sub: string; // employeeId
-  email: string;
-  name: string;
-  surname: string;
-  cellNumber: string;
-  role: string;
-  cinemaId: string;
-  exp: number;
-  iat: number;
-};
+import { useServiceStore } from "../Stores/ServicesStore"; // <== you will also need services
+import { JwtPayload } from "../Types/JwtPayload";
 
 export class LoginService {
   constructor(private baseUrl: string) {}
@@ -26,20 +15,38 @@ export class LoginService {
       });
 
       const data = await response.json();
+
       if (response.ok) {
         const token = data.token;
-
         const decoded: JwtPayload = jwtDecode(token);
 
-        console.log("decoded", decoded);
+        const { cityService, cinemaService } = useServiceStore.getState(); // <== get cinema service
+
+        let cityName = "";
+        let cinemaName = "";
+        try {
+          const [cinema] = await cinemaService.getAll(
+            `CinemaId = ${decoded.cinemaId}`
+          );
+
+          const [city] = await cityService.getAll(`CityId = ${cinema.cityId}`);
+
+          cinemaName = cinema.name; // assuming API returns { name: ... }
+          cityName = city.city1;
+        } catch (fetchCinemaError) {
+          console.error("Failed to fetch cinema name:", fetchCinemaError);
+        }
+
         const user = {
           employeeId: Number(decoded.sub),
           email: decoded.email,
           name: decoded.name,
           surname: decoded.surname,
           cellNumber: decoded.cellNumber,
-          role: decoded.role,
           cinemaId: Number(decoded.cinemaId),
+          role: decoded.role,
+          CinemaName: cinemaName, // Now filled
+          CityName: cityName,
         };
 
         console.log("user", user);

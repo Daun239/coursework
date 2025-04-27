@@ -3,35 +3,26 @@ import React, { useEffect } from 'react';
 import { useUserStore } from '../Stores/UserStore';
 import { jwtDecode } from 'jwt-decode';
 
-import Navbar from "../Components/Navbar"
+import Navbar from "../Components/Navbar";
 
 import LoginPage from "../Features/Login/LoginPage";
+import { Route, Routes, Navigate, useLocation } from "react-router-dom";
 
-import { Route, Routes } from "react-router-dom";
-
-import ScreeningTickets from "../Features/Screenings/Components/ScreeningTickets"
-
-import DecodedToken from "../Types/DecodedToken"
-
+import ScreeningTickets from "../Features/Screenings/Components/ScreeningTickets";
+import DecodedToken from "../Types/DecodedToken";
 import { User } from '../Types/User';
 import MovieList from '../Components/MovieList';
 import Profile from '../Components/Profile';
+import ProductsList from "../Features/Products/Components/ProductsList";
+import MovieFullDetail from "../Components/MovieFullDetail";
 
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-
-import ProductsList from "../Features/Products/Components/ProductsList"
-
-import MovieFullDetail from "../Components/MovieFullDetail"
-
-
-
-// Decoding the JWT and extracting user data
 const getDecodedToken = (token: string | null) => {
   if (token) {
     try {
-      return jwtDecode<DecodedToken>(token); // Decode JWT and return payload
+      return jwtDecode<DecodedToken>(token);
     } catch (error) {
       console.error("Invalid token", error);
     }
@@ -41,13 +32,12 @@ const getDecodedToken = (token: string | null) => {
 
 function App() {
   const { user, token, setUser } = useUserStore();
+  const location = useLocation();
 
   useEffect(() => {
     const storedToken = localStorage.getItem("jwt");
     if (storedToken && !token) {
       const decodedToken = getDecodedToken(storedToken);
-
-      console.log(decodedToken);
       if (decodedToken) {
         const userData: User = {
           employeeId: decodedToken.employeeId,
@@ -56,26 +46,33 @@ function App() {
           surname: decodedToken.surname,
           cellNumber: decodedToken.cellNumber,
           email: decodedToken.email,
-          employeePosition: decodedToken.role,  // Adjust this too
+          employeePosition: decodedToken.role,
         };
         setUser(userData, storedToken);
       }
     }
   }, [token, setUser]);
 
+  // Redirect logic: if no user and not on /login -> redirect to login
+  if (!user && location.pathname !== '/login') {
+    return <Navigate to="/login" replace />;
+  }
+
   return (
     <div>
+      {/* Only show Navbar if user is logged in */}
+      {user && <Navbar />}
 
-
-      <Navbar />
       <Routes>
-        <Route path="/screeningTickets/:id" element={<ScreeningTickets />} />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/movies" element={< MovieList />} />
-        <Route path="/movies/:id" element={<MovieFullDetail />} />
 
+        {/* Protected routes */}
+        <Route path="/screeningTickets/:id" element={<ScreeningTickets />} />
+        <Route path="/movies" element={<MovieList />} />
+        <Route path="/movies/:id" element={<MovieFullDetail />} />
         <Route path="/productsList" element={<ProductsList />} />
       </Routes>
+
       <ToastContainer position="top-right" autoClose={3000} />
     </div>
   );

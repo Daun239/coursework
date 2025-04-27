@@ -57,7 +57,15 @@ const ScreeningTimeComponent: React.FC<Props> = ({ screening, onSelect }) => {
                 const [hall] = await hallService.getAll(`hallId = ${screening.hallId}`, '', 1, 1);
                 const seatsInHall = await seatService.getAll(`hallId = ${hall.hallId}`, "", 1, 1000);
 
-                const availableSeats = seatsInHall.length - seats.length;
+                console.log("Tickets:", tickets);
+                console.log("Occupied Seats (seats):", seats);
+                console.log("Seats in Hall (seatsInHall):", seatsInHall);
+
+                const occupiedSeatIds = new Set(seats.map(seat => seat.seatId)); // Avoid duplicates
+                const availableSeats = seatsInHall.filter(seat => !occupiedSeatIds.has(seat.seatId)).length;
+
+                console.log("Available Seats:", availableSeats);
+
                 setTickets(tickets);
                 setSeats(seats);
                 setHalls([hall]);
@@ -71,6 +79,7 @@ const ScreeningTimeComponent: React.FC<Props> = ({ screening, onSelect }) => {
 
         fetchData();
     }, [screening, ticketService, seatService, hallService]);
+
 
     // Перевірка наявності значень перед створенням дати
     if (!startDate || !startTime || !endTime) {

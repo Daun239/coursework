@@ -17,6 +17,9 @@ import { ProductCheckDetail } from '../../../Types/ProductCheckDetail';
 
 import usePaymentMethods from "../../../Hooks/usePaymentMethods"
 import { useCartTotals } from '../Hooks/useCartTotal';
+import CartTicketItem from './CartTicketItem';
+import CartProductItem from './CartProductItem';
+import getItemId from '../../../Lib/GetItemId';
 
 
 type CartItem =
@@ -174,16 +177,16 @@ const CartModalComponent = forwardRef<HTMLDialogElement>((_, ref) => {
                 <h3 className="font-bold text-lg mb-4">Shopping Cart</h3>
                 {items.length > 0 ? (
                     items.map(({ type, data }) => (
-                        <CartItemComponent
-                            key={data.id}
-                            item={data}
-                            type={type}
-                            product={type === 'product' ? productsMap[(data as ProductsInStorage).productId] : undefined}
-                        />
+                        type === 'product' ? (
+                            <CartProductItem key={getItemId(data)} item={data as ProductsInStorage} />
+                        ) : (
+                            <CartTicketItem key={getItemId(data)} item={data as Ticket} />
+                        )
                     ))
                 ) : (
                     <p className="text-info">Your cart is empty.</p>
                 )}
+
 
 
                 <select

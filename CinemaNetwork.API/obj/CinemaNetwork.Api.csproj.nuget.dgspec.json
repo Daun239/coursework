@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "I:\\Coursework\\coursework\\CinemaNetwork.Api\\CinemaNetwork.Api.csproj": {}
+    "I:\\Coursework\\coursework\\cinemanetwork.api\\CinemaNetwork.API.csproj": {}
   },
   "projects": {
-    "I:\\Coursework\\coursework\\CinemaNetwork.Api\\CinemaNetwork.Api.csproj": {
+    "I:\\Coursework\\coursework\\cinemanetwork.api\\CinemaNetwork.API.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "I:\\Coursework\\coursework\\CinemaNetwork.Api\\CinemaNetwork.Api.csproj",
-        "projectName": "CinemaNetwork.Api",
-        "projectPath": "I:\\Coursework\\coursework\\CinemaNetwork.Api\\CinemaNetwork.Api.csproj",
+        "projectUniqueName": "I:\\Coursework\\coursework\\cinemanetwork.api\\CinemaNetwork.API.csproj",
+        "projectName": "CinemaNetwork.API",
+        "projectPath": "I:\\Coursework\\coursework\\cinemanetwork.api\\CinemaNetwork.API.csproj",
         "packagesPath": "C:\\Users\\New\\.nuget\\packages\\",
-        "outputPath": "I:\\Coursework\\coursework\\CinemaNetwork.Api\\obj\\",
+        "outputPath": "I:\\Coursework\\coursework\\cinemanetwork.api\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\New\\AppData\\Roaming\\NuGet\\NuGet.Config"

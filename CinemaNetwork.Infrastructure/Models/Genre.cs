@@ -3,9 +3,8 @@ using System.Collections.Generic;
 
 namespace CinemaNetwork.Infrastructure.Models;
 
-public partial class Genre 
+public partial class Genre
 {
-    
     public int GenreId { get; set; }
 
     public string? Genre1 { get; set; }

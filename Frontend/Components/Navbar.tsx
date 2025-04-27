@@ -8,23 +8,28 @@ const Navbar = () => {
   const { user } = useUserStore();
 
   return (
-    <div className="navbar bg-base-100 shadow-sm">
+    <div className="navbar bg-gray-950 shadow-sm">
       {/* Left side - App title */}
       <div className="flex-1">
-        <Link to="/screeningTickets/1" className="btn btn-ghost text-xl">
-          🎟 Screening Tickets
+
+        <p className=''>
+          {user?.CinemaName}
+        </p>
+        <Link to="/movies" className="btn btn-ghost text-xl">
+          🎟 Movies
         </Link>
+
+
+        <Link to="/products/" className="btn btn-ghost text-xl">
+          Products
+        </Link>
+
       </div>
 
       {/* Right side */}
       <div className="flex-none gap-2">
 
-
-
         < CartLogoOnNavbar />
-
-
-
 
         {/* Theme toggle */}
         <label className="swap swap-rotate btn btn-ghost btn-circle">
@@ -45,40 +50,27 @@ const Navbar = () => {
           >
             <path d="M21.752 15.002A9 9 0 0112 3a9.003 9.003 0 00.002 18A9.003 9.003 0 0021.752 15z" />
           </svg>
+
+
         </label>
+
+        <p>EN</p>
+
 
 
 
 
         {/* Profile dropdown */}
         {user && (
-          <div className="dropdown dropdown-end">
-            <div
-              tabIndex={0}
-              role="button"
-              className="btn btn-ghost btn-circle avatar"
-            >
-              <div className="w-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold">
-                {user.name[0]}
-                {user.surname[0]}
-              </div>
-            </div>
-
-            <ul
-              tabIndex={0}
-              className="menu menu-sm dropdown-content bg-base-100 rounded-box mt-3 w-72 p-4 shadow text-base-content"
-            >
-              <Profile
-                CinemaId={user.cinemaId}
-                CellNumber={user.cellNumber}
-                Email={user.email}
-                EmployeePosition={user.role}
-                Name={user.name}
-                Surname={user.surname}
-                EmployeeId={user.employeeId}
-              />
-            </ul>
-          </div>
+          <Profile
+            CinemaId={user.cinemaId}
+            CellNumber={user.cellNumber}
+            Email={user.email}
+            EmployeePosition={user.role}
+            Name={user.name}
+            Surname={user.surname}
+            EmployeeId={user.employeeId}
+          />
         )}
       </div>
     </div>

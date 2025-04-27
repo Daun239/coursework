@@ -6,6 +6,7 @@ import { Ticket } from '../../../Types/Ticket';
 import { ProductsInStorage } from '../../../Types/ProductsInStorage';
 import { useCartStore } from '../Stores/CartState';
 import { Product } from '../../../Types/Product';
+import React from 'react';
 
 const CartItemComponent = ({
     item,

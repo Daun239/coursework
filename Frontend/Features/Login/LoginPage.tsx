@@ -1,26 +1,42 @@
-import React from 'react'
-import { useState } from "react"
+import React, { useState } from "react";
 import { useServiceStore } from "../../Stores/ServicesStore";
 
 const LoginPage = () => {
-  const { loginService } = useServiceStore(); // Access loginService from the store
+  const { loginService } = useServiceStore();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const handleLogin = async () => {
-    console.log(email, password);
-
     await loginService.loginUser(email.trim(), password.trim());
   };
 
   return (
-    <div>
-      <input type="text" placeholder="Email" onChange = {(e => setEmail(e.target.value))}/>
-      <input type="password" placeholder="Password" onChange={(e => setPassword(e.target.value)) } /> 
-      <button onClick={handleLogin}>Login</button>
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <div className="bg-white p-8 rounded-lg shadow-lg w-80">
+        <h2 className="text-2xl font-semibold text-center text-gray-800 mb-6">Login</h2>
+        <input
+          type="text"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="w-full p-3 mb-4 border text-gray-900 border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-400"
+        />
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="w-full p-3 mb-6 border text-gray-900 border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-400"
+        />
+        <button
+          onClick={handleLogin}
+          className="w-full bg-indigo-600 text-white py-3 rounded hover:bg-indigo-700 transition-colors"
+        >
+          Login
+        </button>
+      </div>
     </div>
   );
 };
 
 export default LoginPage;
-

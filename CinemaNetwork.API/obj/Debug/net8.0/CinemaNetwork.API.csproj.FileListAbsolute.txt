@@ -556,5 +556,5 @@ I:\Coursework\coursework\CinemaNetwork.Api\bin\Debug\net8.0\MongoDB.Driver.dll
 I:\Coursework\coursework\CinemaNetwork.Api\bin\Debug\net8.0\SharpCompress.dll
 I:\Coursework\coursework\CinemaNetwork.Api\bin\Debug\net8.0\Snappier.dll
 I:\Coursework\coursework\CinemaNetwork.Api\bin\Debug\net8.0\ZstdSharp.dll
-I:\Coursework\coursework\CinemaNetwork.Api\obj\Debug\net8.0\CinemaNe.99A790F1.Up2Date
 I:\Coursework\coursework\CinemaNetwork.Api\bin\Debug\net8.0\System.Linq.Dynamic.Core.dll
+I:\Coursework\coursework\cinemanetwork.api\obj\Debug\net8.0\CinemaNe.99A790F1.Up2Date

@@ -1,6 +1,8 @@
 import { create } from "zustand";
 import { jwtDecode } from "jwt-decode";
 import { User } from "../Types/User";
+import { useServiceStore } from "./ServicesStore";
+import { Cinema } from "../Types/Cinema";
 
 type UserStore = {
   user: User | null;
@@ -19,7 +21,9 @@ const getUserFromToken = (token: string): User | null => {
       surname: decoded.surname,
       cellNumber: decoded.cellNumber,
       cinemaId: decoded.cinemaId,
-      role: decoded.role,
+      employeePosition: decoded.role,
+      CinemaName: "", // fill it later!
+      CityName: "",
     };
   } catch {
     return null;

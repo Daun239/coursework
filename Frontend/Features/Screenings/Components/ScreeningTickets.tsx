@@ -68,12 +68,12 @@ const ScreeningTickets: React.FC<ScreeningTicketsProps> = ({ id }) => {
 
   return (
     <div className="p-4 bg-gray-700">
-      {/* <h2 className="text-xl font-bold mb-4">Screening Tickets for ID: {id}</h2> */}
+      <h2 className="text-xl font-bold mb-4">Screening Tickets for ID: {id}</h2>
 
 
       {screeningData ? (
         <>
-          {/* <p>
+          <p>
             <strong>Movie:</strong> {screeningData.movieTitle}
           </p>
           <p>
@@ -90,7 +90,7 @@ const ScreeningTickets: React.FC<ScreeningTicketsProps> = ({ id }) => {
           </p>
           <p>
             <strong>Starts:</strong> {`${screeningData.startDate}, ${screeningData.startTime}`}
-          </p> */}
+          </p>
 
           {/* <h3 className="mt-6 mb-2 font-semibold">Select Seats:</h3> */}
           {/* SeatColorLegend in the top-right corner */}
