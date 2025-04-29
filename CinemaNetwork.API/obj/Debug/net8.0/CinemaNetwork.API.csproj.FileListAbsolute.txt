@@ -558,3 +558,15 @@ I:\Coursework\coursework\CinemaNetwork.Api\bin\Debug\net8.0\Snappier.dll
 I:\Coursework\coursework\CinemaNetwork.Api\bin\Debug\net8.0\ZstdSharp.dll
 I:\Coursework\coursework\CinemaNetwork.Api\bin\Debug\net8.0\System.Linq.Dynamic.Core.dll
 I:\Coursework\coursework\cinemanetwork.api\obj\Debug\net8.0\CinemaNe.99A790F1.Up2Date
+F:\Univershit\6 sem\coursework\coursework\cinemanetwork.api\bin\Debug\net8.0\CinemaNetwork.API.staticwebassets.endpoints.json
+F:\Univershit\6 sem\coursework\coursework\cinemanetwork.api\bin\Debug\net8.0\DnsClient.dll
+F:\Univershit\6 sem\coursework\coursework\cinemanetwork.api\bin\Debug\net8.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
+F:\Univershit\6 sem\coursework\coursework\cinemanetwork.api\bin\Debug\net8.0\Microsoft.AspNetCore.Identity.EntityFrameworkCore.dll
+F:\Univershit\6 sem\coursework\coursework\cinemanetwork.api\bin\Debug\net8.0\MongoDB.Bson.dll
+F:\Univershit\6 sem\coursework\coursework\cinemanetwork.api\bin\Debug\net8.0\MongoDB.Driver.dll
+F:\Univershit\6 sem\coursework\coursework\cinemanetwork.api\bin\Debug\net8.0\SharpCompress.dll
+F:\Univershit\6 sem\coursework\coursework\cinemanetwork.api\bin\Debug\net8.0\Snappier.dll
+F:\Univershit\6 sem\coursework\coursework\cinemanetwork.api\bin\Debug\net8.0\System.Linq.Dynamic.Core.dll
+F:\Univershit\6 sem\coursework\coursework\cinemanetwork.api\bin\Debug\net8.0\ZstdSharp.dll
+F:\Univershit\6 sem\coursework\coursework\cinemanetwork.api\obj\Debug\net8.0\staticwebassets.build.endpoints.json
+F:\Univershit\6 sem\coursework\coursework\cinemanetwork.api\obj\Debug\net8.0\staticwebassets\msbuild.CinemaNetwork.API.Microsoft.AspNetCore.StaticWebAssetEndpoints.props

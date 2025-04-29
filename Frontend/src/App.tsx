@@ -13,6 +13,7 @@ import DecodedToken from './Types/DecodedToken';
 import { User } from './Types/User';
 import { Toaster } from 'sonner';
 import ProductsList from './Features/Products/Components/ProductsList';
+import { ExpandableTable } from './Features/DeliveryOrders/Components/DeliveryOrder';
 
 
 const getDecodedToken = (token: string | null) => {
@@ -74,6 +75,7 @@ function App() {
         {/* Protected routes */}
         <Route path="/movies" element={<MovieList />} />
         <Route path="/products" element={<ProductsList />} />
+        {/* <Route path= "/deliveryOrders" element = { <ExpandableTable/>} /> */}
       </Routes>
 
       {/* <ToastContainer position="top-right" autoClose={3000} /> */}

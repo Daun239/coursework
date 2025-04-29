@@ -88,6 +88,7 @@ const ProductsList = () => {
     useEffect(() => {
         const fetchProducts = async () => {
             try {
+                
                 const initialProductsInStorage = await productsInStorageService.getAll(`cinemaId = ${user?.cinemaId}`);
 
 
