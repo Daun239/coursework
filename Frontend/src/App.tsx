@@ -1,23 +1,19 @@
 import './App.css';
 import React, { useEffect } from 'react';
-import { useUserStore } from '../Stores/UserStore';
 import { jwtDecode } from 'jwt-decode';
 
-import Navbar from "../Components/Navbar";
+import Navbar from "./components/Navbar";
 
-import LoginPage from "../Features/Login/LoginPage";
+import LoginPage from "./Features/Login/LoginPage";
 import { Route, Routes, Navigate, useLocation } from "react-router-dom";
+import { ThemeProvider } from './components/ThemeProvider';
+import MovieList from './Features/Movie/Components/MovieList';
+import { useUserStore } from './Stores/UserStore';
+import DecodedToken from './Types/DecodedToken';
+import { User } from './Types/User';
+import { Toaster } from 'sonner';
+import ProductsList from './Features/Products/Components/ProductsList';
 
-import ScreeningTickets from "../Features/Screenings/Components/ScreeningTickets";
-import DecodedToken from "../Types/DecodedToken";
-import { User } from '../Types/User';
-import MovieList from '../Components/MovieList';
-import Profile from '../Components/Profile';
-import ProductsList from "../Features/Products/Components/ProductsList";
-import MovieFullDetail from "../Components/MovieFullDetail";
-
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 
 const getDecodedToken = (token: string | null) => {
   if (token) {
@@ -33,6 +29,13 @@ const getDecodedToken = (token: string | null) => {
 function App() {
   const { user, token, setUser } = useUserStore();
   const location = useLocation();
+
+
+  useEffect(() => {
+    console.log('MovieList component rendered');
+  }, []);
+
+
 
   useEffect(() => {
     const storedToken = localStorage.getItem("jwt");
@@ -59,7 +62,9 @@ function App() {
   }
 
   return (
-    <div>
+
+    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+
       {/* Only show Navbar if user is logged in */}
       {user && <Navbar />}
 
@@ -67,14 +72,14 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
 
         {/* Protected routes */}
-        <Route path="/screeningTickets/:id" element={<ScreeningTickets />} />
         <Route path="/movies" element={<MovieList />} />
-        <Route path="/movies/:id" element={<MovieFullDetail />} />
-        <Route path="/productsList" element={<ProductsList />} />
+        <Route path="/products" element={<ProductsList />} />
       </Routes>
 
-      <ToastContainer position="top-right" autoClose={3000} />
-    </div>
+      {/* <ToastContainer position="top-right" autoClose={3000} /> */}
+
+      <Toaster />
+    </ ThemeProvider>
   );
 }
 
