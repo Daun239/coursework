@@ -20,6 +20,12 @@ const Navbar = () => {
         <Link to="/products/" className="btn btn-ghost text-xl  hover:bg-gray-700">
           Products
         </Link>
+
+
+        <Link to="/deliveryOrders/" className="btn btn-ghost text-xl  hover:bg-gray-700">
+          DeliveryOrders
+        </Link>
+
       </div>
 
       {/* Right side */}

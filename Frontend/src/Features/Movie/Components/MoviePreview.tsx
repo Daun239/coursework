@@ -4,6 +4,18 @@ import React from "react";
 import { Genre } from "@/Types/Genre";
 import { Run } from "@/Types/Run";
 
+
+
+import { Button } from "@/components/ui/button"
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card"
+import fetchPosterFromTMDb from "@/Utils/fetchPosterFromImdb";
+
+
+
 type Props = {
   movieId: number;
 };
@@ -25,20 +37,6 @@ const MoviePreview = ({ movieId }: Props) => {
   const [posterUrl, setPosterUrl] = useState<string | null>(null);
 
 
-  const fetchPosterFromTMDb = async (movieName: string) => {
-    const apiKey = '2e91b821519813db6f632ab7c32d176a';
-    const response = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${encodeURIComponent(movieName)}`);
-    const data = await response.json();
-
-    if (data.results && data.results.length > 0) {
-      const posterPath = data.results[0].poster_path;
-      if (posterPath) {
-        return `https://image.tmdb.org/t/p/w500${posterPath}`;
-      }
-    }
-
-    return null;
-  };
 
 
 
@@ -210,16 +208,25 @@ const MoviePreview = ({ movieId }: Props) => {
           </div>
 
           {movieData.description && (
-            <div className="mb-3">
-              <h3 className="text-base font-semibold text-gray-800 dark:text-white mb-1">
-                Description
-              </h3>
-              <p
-                className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed line-clamp-3"
-              >
+
+
+            <HoverCard>
+              <HoverCardTrigger>
+                <div className="mb-3">
+                  <h3 className="text-base font-semibold text-gray-800 dark:text-white mb-1 hover:bg-blue-900">
+                    Description
+                  </h3>
+                  <p
+                    className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed line-clamp-3"
+                  >
+                    {movieData.description}
+                  </p>
+                </div>
+              </HoverCardTrigger>
+              <HoverCardContent className="shadow-xl">
                 {movieData.description}
-              </p>
-            </div>
+              </HoverCardContent>
+            </HoverCard>
           )}
 
 

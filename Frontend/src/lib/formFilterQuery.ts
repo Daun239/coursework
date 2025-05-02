@@ -17,7 +17,7 @@ const formFilterQuery = (
       // Handle 'in' operator (for arrays of values)
       if (operator === "in") {
         const formattedValues = values
-          .map((v) => (typeof v === "string" ? `'${v}'` : v))
+          .map((v) => (typeof v === "string" ? `"${v}"` : v))
           .join(",");
         return `${field} IN (${formattedValues})`;
       }

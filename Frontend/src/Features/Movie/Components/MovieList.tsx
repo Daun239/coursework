@@ -60,6 +60,30 @@ const MovieList = () => {
     };
 
 
+    useEffect(() => {
+        const down = (e: KeyboardEvent) => {
+            if (e.key === "f" && (e.metaKey || e.ctrlKey) && e.altKey) {
+                e.preventDefault()
+                toggleSidebar();
+            }
+        }
+        document.addEventListener("keydown", down)
+        return () => document.removeEventListener("keydown", down)
+    }, [])
+
+
+
+    const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter') {
+            // Perform the search action here
+            const searchTerm = e.target.value;
+            console.log('Search for:', searchTerm); // Replace with actual search logic]
+            setTitle(searchTerm);
+        }
+    };
+
+
+
 
     const {
         minBudget, maxBudget, selectedBudgetRange, setSelectedBudgetRange,
@@ -94,20 +118,16 @@ const MovieList = () => {
 
 
 
+    // Fixed useEffect to properly fetch screenings when currentPage changes
     useEffect(() => {
         const fetchMovies = async () => {
             try {
                 const movieGenreQuery = formFilterQuery(
                     "AND", {
-
                     field: "genreId",
-                    values: genres.map(g => g.genreId).filter(id => id != null), // Extract genreId and filter out null values
+                    values: genres.map(g => g.genreId).filter(id => id != null),
                     operator: 'in',
-
-                }
-                    ,
-                );
-
+                });
 
                 const correspondingMoviesByGenre = await moviesGenreService.getAll(movieGenreQuery, "", currentPage, 100000);
 
@@ -117,37 +137,28 @@ const MovieList = () => {
 
                 const movieIds = uniqueMovies.map(m => m.movieId);
 
-
-
-                const filterQuery = formFilterQuery(
+                let filterQuery = formFilterQuery(
                     "AND",
                     {
                         field: 'movieId',
                         values: movieIds,
-                        operator: 'in' // 'in' for multiple values
-                    },
-                    {
-                        field: 'title',
-                        values: title ? [title] : [], // Use title only if it's non-empty
-                        operator: "contains" // 'contains' for partial matching
+                        operator: 'in'
                     },
                     {
                         field: 'budget',
-                        values: selectedBudgetRange.map(v => v.toString()).filter(v => v !== '0'), // Ensure they are strings
-                        operator: 'range' // 'range' for numeric ranges like budget or runtime
+                        values: selectedBudgetRange.map(v => v.toString()).filter(v => v !== '0'),
+                        operator: 'range'
                     },
                     {
                         field: 'runtime',
-                        values: selectedRuntimeRange.map(v => v.toString()).filter(v => v !== '0'), // Ensure they are strings
+                        values: selectedRuntimeRange.map(v => v.toString()).filter(v => v !== '0'),
                         operator: 'range'
                     },
-
                     {
                         field: 'languageId',
                         values: languages.map((l => l.languageId)),
                         operator: 'in',
                     },
-
                     {
                         field: 'ageRestrictionId',
                         operator: 'in',
@@ -158,63 +169,66 @@ const MovieList = () => {
                         operator: 'in',
                         values: countries.map(c => c.countryId),
                     },
-
                     {
                         field: 'publisherId',
                         operator: 'in',
                         values: publishers.map(p => p.publisherId)
                     }
-
                 );
 
-
-                // Make sure the filter query isn't empty before sending the request
-                if (filterQuery) {
-                    console.log('Filter Query:', filterQuery);
-
-                    const data = await movieService.getAll(filterQuery, "", currentPage, pageSize); // any page/pageSize
-
-                    console.log("data", data);
-                    setMovies(data);
+                if (title) {
+                    filterQuery = filterQuery + ` AND ` + formFilterQuery("OR",
+                        {
+                            field: 'name',
+                            values: title ? [title] : [],
+                            operator: "contains"
+                        },
+                        {
+                            field: 'description',
+                            values: title ? [title] : [],
+                            operator: "contains"
+                        }
+                    );
                 }
 
-                const runsQuery = formFilterQuery("AND",
 
-                    {
+                if (filterQuery) {
+                    console.log('Filter Query:', filterQuery);
+                    const data = await movieService.getAll(filterQuery, "", currentPage, pageSize);
+                    console.log("data", data);
+                    setMovies(data);
+
+                    // Fetch runs AFTER movies are fetched, using the fetched movie IDs directly
+                    const moviesFromResponse = data; // Use the data response directly
+                    const movieIdsFromResponse = moviesFromResponse.map(m => m.movieId);
+
+                    const runsQuery = formFilterQuery("AND", {
                         field: "movieId",
                         operator: "in",
-                        values: movies.map(m => m.movieId)
+                        values: movieIdsFromResponse
+                    });
+
+                    const fetchedRuns = await runService.getAll(runsQuery, "", 1, 100000);
+                    setRuns(fetchedRuns);
+
+                    // Use the correct field (runId) from the fetched runs for the screenings query
+                    if (fetchedRuns.length > 0) {
+                        const runIds = fetchedRuns.map(r => r.runId);
+
+                        let screeningsQuery = formFilterQuery("AND", {
+                            field: 'runId',
+                            operator: "in",
+                            values: runIds, // Fixed: using runId instead of movieId
+                        });
+
+                        const fetchedScreenings = await screeningService.getAll(screeningsQuery, "startDate asc", 1, 1000);
+                        console.log('Fetched screenings:', fetchedScreenings);
+                        setScreenings(fetchedScreenings);
+                    } else {
+                        // If no runs found, set empty screenings array
+                        setScreenings([]);
                     }
-
-                );
-
-                const runs = await runService.getAll(runsQuery, "", 1, 100000);
-
-                setRuns(runs);
-
-                let screeningsQuery = formFilterQuery("AND", {
-                    field: 'runId',
-                    operator: "in",
-                    values: runs.map(r => r.movieId),
-                })
-
-
-
-                // const now = new Date();
-                // const tenYearsLater = addYears(now, 10);
-
-                // screeningsQuery = screeningsQuery + ' AND ' + formFilterQuery("AND", {
-                //     field: 'screeningStartDate',
-                //     operator: 'range',
-                //     values: [now.toISOString(), tenYearsLater.toISOString()],
-                // });
-
-                const screenings = await screeningService.getAll(screeningsQuery, "startDate asc", 1, 1000);
-
-                setScreenings(screenings);
-
-                console.log('fetched screenings', screenings);
-
+                }
             } catch (error) {
                 console.error('Failed to fetch movies:', error);
             } finally {
@@ -223,8 +237,7 @@ const MovieList = () => {
         };
 
         fetchMovies();
-    }, [movieService, genres, ageRestrictions, languages, publishers, countries, minBudget, maxBudget, selectedBudgetRange, minRuntime, maxRuntime, selectedRuntimeRange, title, pageSize]);
-
+    }, [currentPage, movieService, genres, ageRestrictions, languages, publishers, countries, minBudget, maxBudget, selectedBudgetRange, minRuntime, maxRuntime, selectedRuntimeRange, title, pageSize]);
 
     if (loading) {
         <span className="loading loading-spinner loading-xl"></span>
@@ -300,7 +313,7 @@ const MovieList = () => {
                             type="search"
                             required
                             placeholder="Search movie title or description"
-                            onChange={(e) => setTitle(e.target.value)}
+                            onKeyDown={handleSearch}
                             className="pl-6"
                         />
                     </label>
@@ -363,7 +376,7 @@ const MovieList = () => {
 
             {selectedScreening && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-                    <div className="rounded-xl shadow-xl max-w-3xl w-full relative bg-white">
+                    <div className="rounded-xl shadow-xl max-w-5xl w-full relative bg-white">
                         <button
                             className="cursor-pointer absolute p-3 top-3 right-3 text-gray-500 hover:text-black text-4xl"
                             onClick={() => setSelectedScreening(null)}

@@ -1,3 +1,4 @@
+import { useCartStore } from "@/Features/Cart/Stores/CartState";
 import formFilterQuery from "@/lib/formFilterQuery";
 import { RunService } from "@/lib/Run";
 import { useServiceStore } from "@/Stores/ServicesStore";
@@ -5,6 +6,7 @@ import { Hall } from "@/Types/Hall";
 import { HallTechnology } from "@/Types/HallTechnology";
 import { Language } from "@/Types/Language";
 import { ScreeningFormat } from "@/Types/ScreeningFormat";
+import { ScreeningPrice } from "@/Types/ScreeningPrice";
 import { Seat } from "@/Types/Seat";
 import { useState, useEffect } from "react";
 
@@ -17,8 +19,14 @@ const useScreeningData = (id: string | number | undefined) => {
   const [hallTechnology, setHallTechnology] = useState<HallTechnology | null>(
     null
   );
+
+  const { cart } = useCartStore();
+
+  const [purchasedSeats, setPurchasedSeats] = useState<Seat[]>();
   const [screeningFormat, setScreeningFormat] =
     useState<ScreeningFormat | null>(null);
+
+  const [screeningPrices, setScreeningPrices] = useState<number[]>([]);
 
   const {
     screeningFormatService,
@@ -30,15 +38,25 @@ const useScreeningData = (id: string | number | undefined) => {
     ticketService,
     runService,
     movieService,
+    screeningPriceService,
   } = useServiceStore();
 
   useEffect(() => {
+    console.log("TRYING TO FETCH SCREENING DATA, ", id);
     const fetchData = async () => {
       if (!id) return;
 
       try {
         // Convert id to number if it's a string
         const screeningId = typeof id === "string" ? parseInt(id) : id;
+
+        const screeningPrices: ScreeningPrice =
+          await screeningPriceService.getAll(`screeningId = ${screeningId}`);
+
+        setScreeningPrices([
+          screeningPrices[0].ticketPrice,
+          screeningPrices[0].vipTicketPrice,
+        ]);
 
         // Fetch screening data
         const [screening] = await screeningService.getAll(
@@ -95,6 +113,18 @@ const useScreeningData = (id: string | number | undefined) => {
           occupiedSeatIds.has(seat.seatId)
         );
 
+        const purchasedSeatsFromCart = cart.ticket;
+
+        const purchasedSeatIds = new Set(
+          purchasedSeatsFromCart.map((s) => s.seatId)
+        );
+
+        const purchasedSeats = allSeats.filter((seat) =>
+          purchasedSeatIds.has(seat.seatId)
+        );
+
+        setPurchasedSeats(purchasedSeats);
+
         console.log(`After filtering, found ${occupied.length} occupied seats`);
 
         // Calculate rows and columns for seating layout
@@ -126,6 +156,7 @@ const useScreeningData = (id: string | number | undefined) => {
           date: new Date(screening.startDate).toLocaleDateString(),
           startDate: screening.startDate,
           startTime: screening.startTime,
+          endTime: screening.endTime,
           availableTickets: allSeats.length - occupied.length,
           rows,
           columns,
@@ -153,16 +184,19 @@ const useScreeningData = (id: string | number | undefined) => {
     hallTechnologyService,
     languageService,
     screeningFormatService,
+    cart,
   ]);
 
   return {
     screeningData,
     selectedSeats,
     occupiedSeats,
+    purchasedSeats,
     hall,
     language,
     hallTechnology,
     screeningFormat,
+    screeningPrices,
     setSelectedSeats,
   };
 };

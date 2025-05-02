@@ -1,8 +1,8 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { Ticket } from "../../../../Types/Ticket";
-import { ProductsInStorage } from "../../../../Types/ProductsInStorage";
 import getItemId from "../../../lib/GetItemId";
+import { ProductsInStorage } from "@/Types/ProductsInStorage";
+import { Ticket } from "@/Types/Ticket";
 
 type CartState = {
   cart: {
@@ -26,17 +26,23 @@ export const useCartStore = create(
       },
       addItem: (type, item) =>
         set((state) => {
-          const exists = state.cart[type].some(
-            (i) =>
-              i.seatId === item.seatId && i.screeningId === item.screeningId
+          const updated = [...state.cart[type]];
+          const index = updated.findIndex(
+            (i) => getItemId(i) === getItemId(item)
           );
 
-          if (exists) return state;
+          if (index >= 0) {
+            // update existing
+            updated[index] = item;
+          } else {
+            // add new
+            updated.push(item);
+          }
 
           return {
             cart: {
               ...state.cart,
-              [type]: [...state.cart[type], item],
+              [type]: updated,
             },
           };
         }),

@@ -1,6 +1,6 @@
-import React, { useRef } from 'react'
-import CartModalComponent from './CartModalComponent'
-import { useCartTotals } from "../Hooks/useCartTotal"
+import React, { useRef, useEffect, useState } from 'react';
+import CartModalComponent from './CartModalComponent';
+import { useCartTotals } from "../Hooks/useCartTotal";
 
 import {
     DropdownMenu,
@@ -9,17 +9,50 @@ import {
     DropdownMenuItem,
     DropdownMenuLabel,
     DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu" // adjust path if needed
+} from "@/components/ui/dropdown-menu";
 
 const CartLogoOnNavbar = () => {
-    const modalRef = useRef<HTMLDialogElement>(null)
+
+    const [isOpen, setIsOpen] = useState<boolean>(false);
+    const modalRef = useRef<HTMLDialogElement>(null);
     const {
         productsTotalQuantity,
         productsTotalPrice,
         ticketsTotalQuantity,
         ticketsTotalPrice,
         totalItems,
-    } = useCartTotals()
+    } = useCartTotals();
+
+    useEffect(() => {
+        const down = (e: KeyboardEvent) => {
+            if (e.key === "c" && (e.metaKey || e.ctrlKey) && e.altKey) {
+                e.preventDefault();
+                setIsOpen(prevState => !prevState);
+            }
+            else if (e.key === 'Escape') {
+                modalRef.current?.close();
+            }
+
+        };
+
+        document.addEventListener("keydown", down);
+
+        return () => {
+            document.removeEventListener("keydown", down);
+        };
+    }, []);
+
+
+    useEffect(() => {
+        if (isOpen && modalRef.current) {
+            modalRef.current.showModal();
+            document.body.style.overflow = "";  // Disable scroll when modal is open
+        } else if (modalRef.current) {
+            modalRef.current.close();
+            document.body.style.overflow = "auto";  // Re-enable scroll when modal is closed
+        }
+    }, [isOpen]); // Dependency on isOpen ensures the modal is only toggled when isOpen changes
+
 
     return (
         <>
@@ -81,7 +114,7 @@ const CartLogoOnNavbar = () => {
 
             <CartModalComponent ref={modalRef} />
         </>
-    )
-}
+    );
+};
 
-export default CartLogoOnNavbar
+export default CartLogoOnNavbar;

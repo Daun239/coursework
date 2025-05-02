@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface PaginationProps {
     currentPage: number;
@@ -13,9 +13,33 @@ const Pagination: React.FC<PaginationProps> = ({
     onPageChange,
     className = '',
 }) => {
+    const [inputPage, setInputPage] = useState(currentPage); // Local state for the input field
+
+    // Sync inputPage with currentPage when currentPage changes
+    useEffect(() => {
+        setInputPage(currentPage);
+    }, [currentPage]);
+
     // Calculate if we can navigate to previous/next pages
     const canGoPrev = currentPage > 1; // Check if current page > 1
     const canGoNext = currentPage < totalPages; // Check if current page < totalPages
+
+    const handlePageInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        // Allow only numbers and handle empty input
+        if (value === '' || /^[1-9]\d*$/.test(value)) {
+            setInputPage(Number(value));
+        }
+    };
+
+    const handlePageSubmit = () => {
+        // Only update if the page number is valid
+        if (inputPage >= 1 && inputPage <= totalPages) {
+            onPageChange(inputPage);
+        } else {
+            setInputPage(currentPage); // Revert if invalid
+        }
+    };
 
     return (
         <div className={`flex items-center justify-between gap-2 mt-4 ${className}`}>
@@ -28,10 +52,22 @@ const Pagination: React.FC<PaginationProps> = ({
                 Prev
             </button>
 
-            {/* Page Info */}
-            <span className="text-sm">
-                Page <strong>{currentPage}</strong> of {totalPages}
-            </span>
+            {/* Page Info with Input */}
+            <div className="flex items-center gap-2">
+                <span className="text-sm">
+                    Page
+                    <input
+                        type="number"
+                        value={inputPage}
+                        onChange={handlePageInput}
+                        onBlur={handlePageSubmit} // Submit on blur to confirm the page
+                        className="w-16 text-center border p-1"
+                        min="1"
+                        max={totalPages}
+                    />
+                    of {totalPages}
+                </span>
+            </div>
 
             {/* Next Button */}
             <button

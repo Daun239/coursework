@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useCartStore } from "../../Cart/Stores/CartState";
 import SeatColorLegend from "./SeatColorLegend";
 import SeatTable from "./SeatTable";
@@ -45,18 +45,32 @@ const ScreeningTickets: React.FC<ScreeningTicketsProps> = ({ id, theme = 'light'
     screeningData,
     selectedSeats,
     occupiedSeats,
+    purchasedSeats,
     hall,
+    screeningPrices,
     language,
     hallTechnology,
     screeningFormat,
     setSelectedSeats,
   } = screeningDataResult;
 
-  const { addItem } = useCartStore();
+  const { addItem, cart } = useCartStore();
   const { ticketService } = useServiceStore();
+
+  const [ticketPrices, setTicketPrices] = useState<number[]>([]);
 
   const totalPrice = selectedSeats?.reduce((sum, seat) =>
     sum + (seat.isVipCategory ? 100 : 50), 0) || 0;
+
+
+
+  const handleClear = () => {
+    selectedSeats.length = 0;
+  }
+
+  const handleFilterSelected = (seat: Seat) => {
+    setSelectedSeats(prev => prev.filter(s => s.seatId !== seat.seatId));
+  };
 
   const handleAddToCart = async () => {
     if (!selectedSeats || selectedSeats.length === 0) return;
@@ -69,18 +83,23 @@ const ScreeningTickets: React.FC<ScreeningTicketsProps> = ({ id, theme = 'light'
 
       const { number } = ticketsResult[0];
 
+      const ticketsInCart = cart.ticket;
+
       selectedSeats.forEach((seat, index) => {
         const ticket: Ticket = {
           price: seat.isVipCategory ? 100 : 50,
           seatId: seat.seatId,
           screeningId: id,
-          number: number + index + 1,
-          ticketId: 0,
+          number: number + index + 1 + ticketsInCart.length,
+          ticketId: ticketsInCart.length + index,
         };
+
 
         addItem("ticket", ticket);
       });
 
+
+      handleClear();
       toast.success('Tickets added to cart successfully!')
 
     } catch (error) {
@@ -110,11 +129,15 @@ const ScreeningTickets: React.FC<ScreeningTicketsProps> = ({ id, theme = 'light'
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-4 p-3 rounded-xl bg-gray-100 dark:bg-gray-700">
             {[
-              { label: "Movie", value: screeningData.movieTitle },
+              { label: "🎬 Movie", value: screeningData.movieTitle },
               { label: "Language", value: language?.language1 },
-              { label: "Format", value: screeningFormat?.screeningFormat1 },
-              { label: "Technology", value: hallTechnology?.hallTechnology1 },
-              { label: "Show Time", value: `${screeningData.startDate || 'N/A'}, ${screeningData.startTime || 'N/A'}` },
+              { label: "Screening Format", value: screeningFormat?.screeningFormat1 },
+              { label: "Hall Technology", value: hallTechnology?.hallTechnology1 },
+              { label: "🏛 Hall Number", value: hall?.hallNumber },
+              { label: "Show Time", value: `📅 ${new Date(screeningData.startDate).toLocaleDateString()} 🕒 ${screeningData?.startTime.slice(0, 5)} - ${screeningData?.endTime.slice(0, 5)}` },
+
+
+
             ].map(({ label, value }, index) => (
               <div key={index} className="flex flex-col space-y-0.5">
                 <span className="text-sm font-medium text-gray-600 dark:text-gray-300">{label}</span>
@@ -126,6 +149,10 @@ const ScreeningTickets: React.FC<ScreeningTicketsProps> = ({ id, theme = 'light'
           <div className="flex flex-col md:flex-row gap-6">
             <div className="p-4 rounded-xl bg-gray-50 dark:bg-gray-700 flex-grow">
               <h3 className="text-lg font-semibold text-gray-800 dark:text-white">Select Seats</h3>
+
+              <div className="ml-8 my-4">
+                <SeatColorLegend title="Pricing" price={screeningPrices[0]} priceVip={screeningPrices[1]} />
+              </div>
 
               {/* <div className="mb-4">
                 <SeatColorLegend
@@ -143,8 +170,11 @@ const ScreeningTickets: React.FC<ScreeningTicketsProps> = ({ id, theme = 'light'
                     columns={screeningData.columns}
                     occupiedSeats={screeningData.occupiedSeats || []}
                     selectedSeats={selectedSeats || []}
+                    purchasedSeats={purchasedSeats}
                     onSelectSeat={handleSeatClick}
                     allSeats={screeningData.allSeats}
+                    handleClear={handleClear}
+                    handleFilterSelected={handleFilterSelected}
                   />
                 ) : (
                   <p className="text-center text-gray-500 dark:text-gray-400">Seat data not available</p>
@@ -191,9 +221,9 @@ const ScreeningTickets: React.FC<ScreeningTicketsProps> = ({ id, theme = 'light'
                 >
                   Add to cart
                 </button>
-              </div>
-            </div>
-          </div>
+              </div >
+            </div >
+          </div >
         </>
       ) : (
         <div className="flex items-center justify-center h-64 text-gray-600 dark:text-gray-300">
@@ -202,8 +232,9 @@ const ScreeningTickets: React.FC<ScreeningTicketsProps> = ({ id, theme = 'light'
             <p>Loading screening data...</p>
           </div>
         </div>
-      )}
-    </div>
+      )
+      }
+    </div >
   );
 };
 

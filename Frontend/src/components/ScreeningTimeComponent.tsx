@@ -6,6 +6,7 @@ import { Seat } from "@/Types/Seat";
 import { Ticket } from "@/Types/Ticket";
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
+import { useCartStore } from "@/Features/Cart/Stores/CartState";
 
 
 interface Props {
@@ -40,6 +41,7 @@ const ScreeningTimeComponent: React.FC<Props> = ({ screening, onSelect }) => {
     const [halls, setHalls] = useState<Hall[]>([]);
     const [availableSeats, setAvailableSeats] = useState<number>(0);
     const [isLoading, setIsLoading] = useState<boolean>(true);
+    const { cart } = useCartStore();
 
     useEffect(() => {
         const fetchData = async () => {
@@ -79,7 +81,7 @@ const ScreeningTimeComponent: React.FC<Props> = ({ screening, onSelect }) => {
         };
 
         fetchData();
-    }, [screening, ticketService, seatService, hallService]);
+    }, [screening, ticketService, seatService, hallService, cart.ticket]);
 
 
     // Перевірка наявності значень перед створенням дати

@@ -33,7 +33,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     <>
       {/* Sidebar tab */}
       <div
-        className={`fixed ${getTabPositionClass()} w-8 h-32 bg-gray-500 dark:bg-gray-900 rounded-r-lg shadow-xl flex items-center justify-center cursor-pointer z-40 transition-transform duration-300 [transition-timing-function:cubic-bezier(0.4,0,0.2,1)]`}
+        className={`fixed ${getTabPositionClass()} w-8 h-32 bg-gray-400 dark:bg-gray-900 rounded-r-lg shadow-xl flex items-center justify-center cursor-pointer z-40 transition-transform duration-300 [transition-timing-function:cubic-bezier(0.4,0,0.2,1)]`}
         onClick={toggleSidebar}
         style={{
           transform: isOpen ? `translateX(${width}px)` : 'translateX(0)',

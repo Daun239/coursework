@@ -1,87 +1,62 @@
-import getItemId from "@/lib/GetItemId";
-import { useServiceStore } from "@/Stores/ServicesStore";
-import { Hall } from "@/Types/Hall";
-import { Movie } from "@/Types/Movie";
-import { Screening } from "@/Types/Screening";
-import { Seat } from "@/Types/Seat";
-import { Ticket } from "@/Types/Ticket";
-import { useState, useEffect } from "react";
-import { BsTrash } from "react-icons/bs";
+import { useMemo } from "react";
+import useScreeningData from "@/Features/Screenings/Hooks/UseScreeningData";
 import { useCartStore } from "../Stores/CartState";
+import { Button } from "@/components/ui/button";
+import { Ticket } from "@/Types/Ticket";
 
-const CartTicketComponent = ({
-    item
-}: {
-    item: Ticket;
-}) => {
-    const id = getItemId(item);
+const CartTicketPreview = ({ ticket }: { ticket: Ticket }) => {
+    const { screeningData } = useScreeningData(ticket.screeningId);
 
-    const cart = useCartStore((state) => state.cart['ticket']);
-    const cartItem = cart.find((i) => getItemId(i) === id);
+    const { removeItem } = useCartStore();
 
-    const removeItem = useCartStore((state) => state.removeItem);
 
-    if (!cartItem) return null; // якщо елемент видалено
+    const handleRemoveTicket = () => {
+        console.log(`removign ticket`)
+        removeItem('ticket', ticket.ticketId);
+    }
 
-    const handleRemoveItem = () => {
-        removeItem('ticket', id);
-    };
 
-    const [movie, setMovie] = useState<Movie | null>(null);
-    const [screening, setScreening] = useState<Screening | null>(null);
-    const [seat, setSeat] = useState<Seat | null>(null);
-    const [hall, setHall] = useState<Hall | null>(null);
 
-    const { runService, movieService, screeningService, seatService, hallService } = useServiceStore();
+    const highlightedSeat = useMemo(() => {
+        if (!screeningData) return [];
+        return screeningData.allSeats.filter(seat => seat.seatId === ticket.seatId);
+    }, [screeningData, ticket.seatId]);
 
-    useEffect(() => {
-        const fetchData = async () => {
-            // Fetch screening
-            const [screeningData] = await screeningService.getAll(`screeningId = ${item.screeningId}`, '', 1, 1);
-            setScreening(screeningData);
+    const seat = screeningData?.allSeats.find(s => s.seatId === ticket.seatId);
 
-            if (screeningData) {
-                // Fetch run data
-                const [runData] = await runService.getAll(`runId = ${screeningData.runId}`);
-                if (runData) {
-                    // Fetch movie data
-                    const [movieData] = await movieService.getAll(`movieId = ${runData.movieId}`);
-                    setMovie(movieData);
-                }
+    // console.log('SEAT IN CART TICKET', seat);
 
-                // Fetch seat data
-                const [seatData] = await seatService.getAll(`seatId = ${item.seatId}`);
-                setSeat(seatData);
-
-                // Fetch hall data
-                const [hallData] = await hallService.getAll(`hallId = ${screeningData.hallId}`);
-                setHall(hallData);
-            }
-        };
-
-        fetchData();
-    }, [item, screeningService, runService, movieService, seatService, hallService]);
+    if (!screeningData || !seat) return <p>Loading...</p>;
 
     return (
-        <div className="rounded-lg bg-gray-50 dark:bg-gray-700/50 p-4 mb-4 shadow-sm border border-gray-200 dark:border-gray-700">
-            <h4 className="font-bold text-gray-800 dark:text-gray-100 mb-2">
-                {movie?.title || 'Unnamed ticket'}
-            </h4>
-            <p className="text-gray-600 dark:text-gray-300 mb-2">
-                Seat: <span className="font-medium">{seat?.rowNumber}-{seat?.seatNumber}</span>
-            </p>
-            <p className="text-gray-600 dark:text-gray-300 mb-3">
-                Price: <span className="font-medium text-gray-800 dark:text-gray-100">${cartItem.price}</span>
-            </p>
+        <div className="space-y-4">
 
-            <button
-                onClick={handleRemoveItem}
-                className="flex items-center text-sm text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors"
-            >
-                <BsTrash className="mr-1" /> Remove
-            </button>
+            {/* Commented out SeatTable and just displaying seat info */}
+
+
+            <div className="mt-4 border p-3 rounded-md flex justify-between items-center">
+                <div>
+                    <p className="font-medium">
+                        Row: {seat.rowNumber}, Seat: {seat.seatNumber}, Price: {ticket.price}₴, VIP:{" "}
+                        <span className={seat.isVipCategory ? "text-purple-600 font-semibold" : "text-gray-500"}>
+                            {seat.isVipCategory ? "Yes" : "No"}
+                        </span>
+                    </p>
+
+
+                </div>
+                <Button
+                    className="cursor-pointer"
+                    size="sm"
+                    variant="destructive"
+                    onClick={() => handleRemoveTicket()}
+
+                >
+                    Remove
+                </Button>
+            </div>
         </div>
     );
 };
 
-export default CartTicketComponent;
+export default CartTicketPreview;

@@ -27,12 +27,12 @@ const ProductComponent: React.FC<Props> = ({ productInStorageId }) => {
     const [productInStorage, setProductInStorage] = useState<ProductsInStorage>();
     const [availableQuality, setAvailableQuality] = useState<number>(0);
 
-    const fetchProductImage = async (productName: string) => {
+    const fetchProductImage = async (productName: string, retry = false) => {
         setIsImageLoading(true);
         const formattedName = productName.split('(')[0].trim();
         const cachedImage = localStorage.getItem(formattedName);
 
-        if (cachedImage) {
+        if (cachedImage && !retry) {
             setProductImage(cachedImage);
             setIsImageLoading(false);
             return;
@@ -58,6 +58,7 @@ const ProductComponent: React.FC<Props> = ({ productInStorageId }) => {
         }
     };
 
+
     function handleProductsNumberChange(newNumber: number) {
         if (
             newNumber >= 0 &&
@@ -73,11 +74,15 @@ const ProductComponent: React.FC<Props> = ({ productInStorageId }) => {
 
             removeItem('product', productInStorage.productInStorageId);
 
+
+            console.log('removing product', productInStorage.productInStorageId)
             if (newNumber > 0) {
-                addItem('product', productInStorageCopy);
+                const updatedItem = { ...productInStorage, quantity: newNumber };
+                addItem('product', updatedItem);
             } else {
-                setHasBeenAddedToCart(false);
+                removeItem('product', productInStorage.productInStorageId);
             }
+
         }
     }
 
@@ -127,6 +132,42 @@ const ProductComponent: React.FC<Props> = ({ productInStorageId }) => {
         }
     }, [productInStorageId]);
 
+    useEffect(() => {
+        const itemInCart = cart.product.find(
+            (p) => p.productInStorageId === productInStorageId
+        );
+
+        if (productInStorage) {
+            if (itemInCart != null && itemInCart.quantity != null) {
+                setAvailableQuality(productInStorage.quantity - itemInCart.quantity);
+                setOrderedProductsNumber(itemInCart.quantity);
+                setHasBeenAddedToCart(true);
+            } else {
+                setAvailableQuality(productInStorage.quantity);
+                setOrderedProductsNumber(0);
+                setHasBeenAddedToCart(false);
+            }
+        }
+    }, [cart.product, productInStorage, productInStorageId]);
+
+
+    useEffect(() => {
+        const fetchUpdatedProductInStorage = async () => {
+            const [updated] = await productsInStorageService.getAll(
+                `productInStorageId = ${productInStorageId}`
+            );
+            setProductInStorage(updated);
+        };
+
+        if (cart.product.length === 0) {
+            fetchUpdatedProductInStorage();
+        }
+    }, [cart.product.length]);
+
+
+
+
+
     return (
         <div className="rounded-lg overflow-hidden bg-white dark:bg-gray-800 shadow-xl transition duration-300 hover:shadow-2xl flex flex-col h-full">
             {/* Product Image */}
@@ -142,9 +183,16 @@ const ProductComponent: React.FC<Props> = ({ productInStorageId }) => {
                         className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
                         onError={(e) => {
                             e.currentTarget.onerror = null;
-                            e.currentTarget.src = 'https://placehold.co/300x200?text=No+Image';
+                            const formattedName = product?.name?.split('(')[0].trim();
+                            if (formattedName) {
+                                localStorage.removeItem(formattedName);
+                                fetchProductImage(formattedName, true); // Retry with forced fetch
+                            } else {
+                                e.currentTarget.src = 'https://placehold.co/300x200?text=No+Image';
+                            }
                         }}
                     />
+
                 ) : (
                     <div className="flex items-center justify-center h-full bg-gray-200 dark:bg-gray-700">
                         <BsImage className="text-gray-400 dark:text-gray-500 text-4xl" />

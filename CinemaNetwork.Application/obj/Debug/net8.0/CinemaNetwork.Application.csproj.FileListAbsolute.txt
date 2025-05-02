@@ -13,22 +13,6 @@ F:\Univershit\5 sem\kpz\CinemaNetwork\CinemaNetwork.Application\obj\Debug\net8.0
 F:\Univershit\5 sem\kpz\CinemaNetwork\CinemaNetwork.Application\obj\Debug\net8.0\CinemaNetwork.Application.pdb
 F:\Univershit\5 sem\kpz\CinemaNetwork\CinemaNetwork.Application\obj\Debug\net8.0\ref\CinemaNetwork.Application.dll
 F:\Univershit\5 sem\kpz\CinemaNetwork\CinemaNetwork.Application\obj\Debug\net8.0\CinemaNe.88DAA25F.Up2Date
-I:\Coursework\coursework\CinemaNetwork.Application\bin\Debug\net8.0\CinemaNetwork.Application.deps.json
-I:\Coursework\coursework\CinemaNetwork.Application\bin\Debug\net8.0\CinemaNetwork.Application.dll
-I:\Coursework\coursework\CinemaNetwork.Application\bin\Debug\net8.0\CinemaNetwork.Application.pdb
-I:\Coursework\coursework\CinemaNetwork.Application\bin\Debug\net8.0\CinemaNetwork.Infrastructure.dll
-I:\Coursework\coursework\CinemaNetwork.Application\bin\Debug\net8.0\CinemaNetwork.Infrastructure.pdb
-I:\Coursework\coursework\CinemaNetwork.Application\obj\Debug\net8.0\CinemaNetwork.Application.csproj.AssemblyReference.cache
-I:\Coursework\coursework\CinemaNetwork.Application\obj\Debug\net8.0\CinemaNetwork.Application.GeneratedMSBuildEditorConfig.editorconfig
-I:\Coursework\coursework\CinemaNetwork.Application\obj\Debug\net8.0\CinemaNetwork.Application.AssemblyInfoInputs.cache
-I:\Coursework\coursework\CinemaNetwork.Application\obj\Debug\net8.0\CinemaNetwork.Application.AssemblyInfo.cs
-I:\Coursework\coursework\CinemaNetwork.Application\obj\Debug\net8.0\CinemaNetwork.Application.csproj.CoreCompileInputs.cache
-I:\Coursework\coursework\CinemaNetwork.Application\obj\Debug\net8.0\CinemaNetwork.Application.sourcelink.json
-I:\Coursework\coursework\CinemaNetwork.Application\obj\Debug\net8.0\CinemaNe.88DAA25F.Up2Date
-I:\Coursework\coursework\CinemaNetwork.Application\obj\Debug\net8.0\CinemaNetwork.Application.dll
-I:\Coursework\coursework\CinemaNetwork.Application\obj\Debug\net8.0\refint\CinemaNetwork.Application.dll
-I:\Coursework\coursework\CinemaNetwork.Application\obj\Debug\net8.0\CinemaNetwork.Application.pdb
-I:\Coursework\coursework\CinemaNetwork.Application\obj\Debug\net8.0\ref\CinemaNetwork.Application.dll
 F:\Univershit\6 sem\coursework\coursework\CinemaNetwork.Application\bin\Debug\net8.0\CinemaNetwork.Application.deps.json
 F:\Univershit\6 sem\coursework\coursework\CinemaNetwork.Application\bin\Debug\net8.0\CinemaNetwork.Application.dll
 F:\Univershit\6 sem\coursework\coursework\CinemaNetwork.Application\bin\Debug\net8.0\CinemaNetwork.Application.pdb
@@ -45,3 +29,19 @@ F:\Univershit\6 sem\coursework\coursework\CinemaNetwork.Application\obj\Debug\ne
 F:\Univershit\6 sem\coursework\coursework\CinemaNetwork.Application\obj\Debug\net8.0\refint\CinemaNetwork.Application.dll
 F:\Univershit\6 sem\coursework\coursework\CinemaNetwork.Application\obj\Debug\net8.0\CinemaNetwork.Application.pdb
 F:\Univershit\6 sem\coursework\coursework\CinemaNetwork.Application\obj\Debug\net8.0\ref\CinemaNetwork.Application.dll
+I:\Coursework\coursework\CinemaNetwork.Application\bin\Debug\net8.0\CinemaNetwork.Application.deps.json
+I:\Coursework\coursework\CinemaNetwork.Application\bin\Debug\net8.0\CinemaNetwork.Application.dll
+I:\Coursework\coursework\CinemaNetwork.Application\bin\Debug\net8.0\CinemaNetwork.Application.pdb
+I:\Coursework\coursework\CinemaNetwork.Application\bin\Debug\net8.0\CinemaNetwork.Infrastructure.dll
+I:\Coursework\coursework\CinemaNetwork.Application\bin\Debug\net8.0\CinemaNetwork.Infrastructure.pdb
+I:\Coursework\coursework\CinemaNetwork.Application\obj\Debug\net8.0\CinemaNetwork.Application.csproj.AssemblyReference.cache
+I:\Coursework\coursework\CinemaNetwork.Application\obj\Debug\net8.0\CinemaNetwork.Application.GeneratedMSBuildEditorConfig.editorconfig
+I:\Coursework\coursework\CinemaNetwork.Application\obj\Debug\net8.0\CinemaNetwork.Application.AssemblyInfoInputs.cache
+I:\Coursework\coursework\CinemaNetwork.Application\obj\Debug\net8.0\CinemaNetwork.Application.AssemblyInfo.cs
+I:\Coursework\coursework\CinemaNetwork.Application\obj\Debug\net8.0\CinemaNetwork.Application.csproj.CoreCompileInputs.cache
+I:\Coursework\coursework\CinemaNetwork.Application\obj\Debug\net8.0\CinemaNetwork.Application.sourcelink.json
+I:\Coursework\coursework\CinemaNetwork.Application\obj\Debug\net8.0\CinemaNe.88DAA25F.Up2Date
+I:\Coursework\coursework\CinemaNetwork.Application\obj\Debug\net8.0\CinemaNetwork.Application.dll
+I:\Coursework\coursework\CinemaNetwork.Application\obj\Debug\net8.0\refint\CinemaNetwork.Application.dll
+I:\Coursework\coursework\CinemaNetwork.Application\obj\Debug\net8.0\CinemaNetwork.Application.pdb
+I:\Coursework\coursework\CinemaNetwork.Application\obj\Debug\net8.0\ref\CinemaNetwork.Application.dll

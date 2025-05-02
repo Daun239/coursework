@@ -6,13 +6,14 @@ import Navbar from "./components/Navbar";
 
 import LoginPage from "./Features/Login/LoginPage";
 import { Route, Routes, Navigate, useLocation } from "react-router-dom";
-import { ThemeProvider } from './components/ThemeProvider';
+import { ThemeProvider, useTheme } from './components/ThemeProvider';
 import MovieList from './Features/Movie/Components/MovieList';
 import { useUserStore } from './Stores/UserStore';
 import DecodedToken from './Types/DecodedToken';
 import { User } from './Types/User';
 import { Toaster } from 'sonner';
 import ProductsList from './Features/Products/Components/ProductsList';
+import DeliveryOrder from './Features/DeliveryOrder/Components/DeliveryOrder';
 
 
 const getDecodedToken = (token: string | null) => {
@@ -31,10 +32,25 @@ function App() {
   const location = useLocation();
 
 
-  useEffect(() => {
-    console.log('MovieList component rendered');
-  }, []);
 
+  const { setTheme, theme } = useTheme(); // Access setTheme and current theme from context
+
+  useEffect(() => {
+    const down = (e: KeyboardEvent) => {
+      if (e.key === "t" && (e.metaKey || e.ctrlKey) && e.altKey) {
+        e.preventDefault();
+        console.log('THEME SWITCH');
+        const theme1 = theme === 'dark' ? 'light' : 'dark';
+        setTheme(theme1);
+      }
+    };
+    document.addEventListener("keydown", down);
+
+    // Cleanup the event listener when the component unmounts
+    return () => {
+      document.removeEventListener("keydown", down);
+    };
+  }, [theme, setTheme]); // Add theme and setTheme as dependencies
 
 
   useEffect(() => {
@@ -70,10 +86,10 @@ function App() {
 
       <Routes>
         <Route path="/login" element={<LoginPage />} />
-
         {/* Protected routes */}
         <Route path="/movies" element={<MovieList />} />
         <Route path="/products" element={<ProductsList />} />
+        <Route path="/deliveryOrders" element={<DeliveryOrder />} />
       </Routes>
 
       {/* <ToastContainer position="top-right" autoClose={3000} /> */}

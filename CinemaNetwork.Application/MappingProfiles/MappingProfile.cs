@@ -39,5 +39,7 @@ public class MappingProfile : Profile
         CreateMap<Seat, SeatDto>().ReverseMap();
         CreateMap<Supplier, SupplierDto>().ReverseMap();
         CreateMap<Ticket, TicketDto>().ReverseMap();
+
+        CreateMap<ScreeningPrice, ScreeningPriceDto>().ReverseMap();
     }
 }

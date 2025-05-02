@@ -2,7 +2,8 @@ import React from "react";
 import SeatComponent from "./SeatComponent";
 import { useEffect } from "react";
 import { Seat } from "@/Types/Seat";
-import SeatColorLegend from "./SeatColorLegend";
+import NormalSeatComponent from "./SeatComponent";
+import PurchasedSeatComponent from "./PurchasedSeatComponent";
 
 const SeatTable: React.FC<{
     screeningId: number,
@@ -10,9 +11,12 @@ const SeatTable: React.FC<{
     columns: number;
     occupiedSeats?: Seat[];
     selectedSeats?: Seat[];
+    purchasedSeats?: Seat[];
     allSeats: Seat[];
     onSelectSeat: (seat: Seat) => void;
-}> = ({ screeningId, allSeats, rows, columns, occupiedSeats = [], selectedSeats = [], onSelectSeat }) => {
+    handleFilterSelected: (seat: Seat) => void;
+    handleFilter: () => void;
+}> = ({ screeningId, allSeats, rows, columns, occupiedSeats = [], selectedSeats = [], purchasedSeats = [], onSelectSeat, handleFilter, handleFilterSelected }) => {
 
     // Debug logging
     useEffect(() => {
@@ -43,15 +47,11 @@ const SeatTable: React.FC<{
             selSeat.seatId === seat.seatId
         );
 
+    const isPurchased = (seat: Seat) =>
+        purchasedSeats.some(highltSeat => highltSeat.seatId === seat.seatId);
+
     return (
-
         <div className="inline-block p-4 rounded-lg shadow-2xl max-w-full overflow-x-auto">
-
-            <div className="mb-4">
-                <SeatColorLegend title="Pricing" price={50} priceVip={100} />
-            </div>
-
-
             <table className="border-collapse">
                 <tbody>
                     {Array.from({ length: rows }).map((_, rowIndex) => (
@@ -64,21 +64,37 @@ const SeatTable: React.FC<{
                                     s => s.rowNumber === rowNumber && s.seatNumber === seatNumber
                                 );
 
-                                if (!seat) return <td key={colIndex}><div className="w-10 h-10" /></td>;
+                                if (!seat) {
+                                    return (
+                                        <td key={colIndex}>
+                                            <div className="w-10 h-10" />
+                                        </td>
+                                    );
+                                }
 
                                 const occupied = isOccupied(seat);
                                 const selected = isSelected(seat);
+                                const purchased = isPurchased(seat);
 
-                                return (
-                                    <td key={colIndex}>
-                                        <SeatComponent
-                                            screeningId={screeningId}
-                                            seat={seat}
-                                            isOccupied={occupied}
-                                            isSelected={selected}
-                                            onSelectSeat={onSelectSeat}
-                                        />
-                                    </td>
+                                // ✅ Ensure that both components return a <td>
+                                return !purchased ? (
+                                    <NormalSeatComponent
+                                        key={colIndex}
+                                        screeningId={screeningId}
+                                        seat={seat}
+                                        isOccupied={occupied}
+                                        isSelected={selected}
+                                        isPurchased={purchased}
+                                        onSelectSeat={onSelectSeat}
+                                    />
+                                ) : (
+                                    <PurchasedSeatComponent
+                                        key={colIndex}
+                                        seat={seat}
+                                        screeningId={screeningId}
+                                        handleFilterSelected={handleFilterSelected}
+                                        handleFilter={handleFilter}
+                                    />
                                 );
                             })}
                         </tr>
@@ -87,6 +103,7 @@ const SeatTable: React.FC<{
             </table>
         </div>
     );
+
 };
 
 export default SeatTable;

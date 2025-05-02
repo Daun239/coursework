@@ -101,9 +101,21 @@ builder.Services.AddScoped<ISeatRepository, SeatRepository>();
 builder.Services.AddScoped<ITicketRepository, TicketRepository>();
 
 
+
+builder.Services.AddScoped<IDeliveryOrderRepository, DeliveryOrderRepository>();
+
+
+builder.Services.AddScoped<IDeliveryOrderStatusRepository, DeliveryOrderStatusRepository>();
+
+
 builder.Services.AddScoped<IScreeningPriceRepository, ScreeningPriceRepository>();
 
 
+
+builder.Services.AddScoped<IDeliveryOrderService, DeliveryOrderService>();
+
+
+builder.Services.AddScoped<IDeliveryOrderStatusService, DeliveryOrderStatusService>();
 
 
 
