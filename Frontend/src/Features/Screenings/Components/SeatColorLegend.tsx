@@ -8,24 +8,42 @@ const SeatColorLegend = ({
   title: string;
   price: number | null;
   priceVip: number | null;
-}) => (
-  <div className="flex items-center gap-8">
+}) => {
+  const translations = {
+    en: {
+      regular: "Regular",
+      vip: "VIP",
+      noData: "No data",
+    },
+    ua: {
+      regular: "Звичайне",
+      vip: "VIP",
+      noData: "Немає даних",
+    },
+  };
 
-    {/* Regular seat */}
-    <div className="flex items-center gap-2">
-      <div className="w-6 h-6 border rounded bg-green-600" />
-      <span>Regular</span>
-      <span className="ml-2">{price !== null ? `${price} ₴` : "No data"}</span>
+  // Assume language is coming from context or props, default to 'en'
+  const language = "ua"; // For example, 'ua'
+  const t = translations[language] ?? translations["en"];
+
+  return (
+    <div className="flex items-center gap-8">
+      {/* Regular seat */}
+      <div className="flex items-center gap-2">
+        <div className="w-6 h-6 border rounded bg-green-600" />
+        <span>{t.regular}</span>
+        <span className="ml-2">{price !== null ? `${price} ₴` : t.noData}</span>
+      </div>
+
+      {priceVip && (
+        <div className="flex items-center gap-2">
+          <div className="w-6 h-6 border rounded bg-fuchsia-400" />
+          <span>{t.vip}</span>
+          <span className="ml-2">{priceVip !== null ? `${priceVip} ₴` : t.noData}</span>
+        </div>
+      )}
     </div>
-
-    {priceVip && <div className="flex items-center gap-2">
-      <div className="w-6 h-6 border rounded bg-fuchsia-400" />
-      <span>VIP</span>
-      <span className="ml-2">{priceVip !== null ? `${priceVip} ₴` : "No data"}</span>
-    </div>}
-    {/* VIP seat */}
-
-  </div>
-);
+  );
+};
 
 export default SeatColorLegend;

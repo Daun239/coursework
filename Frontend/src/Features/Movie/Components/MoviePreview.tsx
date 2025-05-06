@@ -1,26 +1,22 @@
 import { useEffect, useState } from "react";
-import { useServiceStore } from "../../../Stores/ServicesStore"
-import React from "react";
+import { useServiceStore } from "../../../Stores/ServicesStore";
 import { Genre } from "@/Types/Genre";
 import { Run } from "@/Types/Run";
 
-
-
-import { Button } from "@/components/ui/button"
 import {
   HoverCard,
   HoverCardContent,
   HoverCardTrigger,
-} from "@/components/ui/hover-card"
+} from "@/components/ui/hover-card";
 import fetchPosterFromTMDb from "@/Utils/fetchPosterFromImdb";
-
-
+import { useTranslation } from "../Hooks/useTranslation";
 
 type Props = {
   movieId: number;
 };
 
 const MoviePreview = ({ movieId }: Props) => {
+  const { t } = useTranslation(); // Use the translation hook
   const { movieService, ageRestrictionService, publisherService, languageService, countryService, moviesGenreService, genreService, runService } = useServiceStore();
   const [movieData, setMovieData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -33,13 +29,7 @@ const MoviePreview = ({ movieId }: Props) => {
   const [genres, setGenres] = useState<Genre[]>([]);
   const [run, setRun] = useState<Run>();
 
-
   const [posterUrl, setPosterUrl] = useState<string | null>(null);
-
-
-
-
-
 
   useEffect(() => {
     const fetchPoster = async () => {
@@ -53,9 +43,6 @@ const MoviePreview = ({ movieId }: Props) => {
 
     fetchPoster();
   }, [movieData]);
-
-
-
 
   useEffect(() => {
     const fetchMovieAndClassifiers = async () => {
@@ -97,7 +84,6 @@ const MoviePreview = ({ movieId }: Props) => {
               `LanguageId = ${movie.languageId}`, "", 1, 1
             );
             setLanguage(languageData.language1 || languageData.language1 || String(movie.languageId));
-
           }
 
           // Fetch country data if available
@@ -119,12 +105,10 @@ const MoviePreview = ({ movieId }: Props) => {
 
           setGenres(genres);
 
-
           const run = await runService.getAll(`movieId = ${movieId}`);
           if (run) {
             setRun(run[0]);
           }
-
         }
       } catch (error) {
         console.error("Error fetching movie and classifiers:", error);
@@ -147,14 +131,13 @@ const MoviePreview = ({ movieId }: Props) => {
   if (!movieData) {
     return (
       <div className="p-5 bg-gray-100 rounded-lg text-red-500 text-center">
-        Movie not found
+        {t('movie.notFound')}
       </div>
     );
   }
 
   return (
     <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden w-full max-w-md my-4 hover:scale-101">
-
       {/* Blurred and darkened background */}
       {posterUrl && (
         <div className="absolute inset-0 overflow-hidden">
@@ -170,16 +153,15 @@ const MoviePreview = ({ movieId }: Props) => {
         {posterUrl && (
           <img
             src={posterUrl}
-            alt={`${movieData.name || 'Movie'} poster`}
+            alt={`${movieData.name || t('movie.untitled')} poster`}
             className="w-full h-64 object-cover rounded-t-lg shadow-xl"
           />
         )}
 
         <div className="p-4">
           <div className="flex justify-between items-start mb-2">
-
             <h2 className="text-xl font-bold text-gray-800 dark:text-white leading-tight">
-              {movieData.name || 'Untitled Movie'}
+              {movieData.name || t('movie.untitled')}
             </h2>
 
             {ageRestriction && (
@@ -192,29 +174,27 @@ const MoviePreview = ({ movieId }: Props) => {
           <div className="flex flex-wrap gap-2 mb-3">
             {publisher && (
               <span className="text-sm  bg-gray-200 dark:bg-gray-700  px-2 py-1 rounded">
-                <strong>Publisher:</strong> {publisher}
+                <strong>{t('movie.publisher')}:</strong> {publisher}
               </span>
             )}
             {language && (
               <span className="text-sm  bg-gray-200 dark:bg-gray-700 px-2 py-1 rounded">
-                <strong>Language:</strong> {language}
+                <strong>{t('movie.language')}:</strong> {language}
               </span>
             )}
             {country && (
               <span className="text-sm  bg-gray-200 dark:bg-gray-700  px-2 py-1 rounded">
-                <strong>Country:</strong> {country}
+                <strong>{t('movie.country')}:</strong> {country}
               </span>
             )}
           </div>
 
           {movieData.description && (
-
-
             <HoverCard>
               <HoverCardTrigger>
                 <div className="mb-3">
                   <h3 className="text-base font-semibold text-gray-800 dark:text-white mb-1 hover:bg-blue-900">
-                    Description
+                    {t('movie.description')}
                   </h3>
                   <p
                     className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed line-clamp-3"
@@ -228,8 +208,6 @@ const MoviePreview = ({ movieId }: Props) => {
               </HoverCardContent>
             </HoverCard>
           )}
-
-
 
           {genres && genres.length > 0 && (
             <div className="flex flex-wrap gap-2 mb-3">
@@ -246,23 +224,22 @@ const MoviePreview = ({ movieId }: Props) => {
 
           <div className="grid grid-cols-2 gap-2 text-sm text-gray-800 dark:text-gray-200 bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
             <div>
-              <strong>Budget:</strong> {movieData.budget || 'N/A'}
+              <strong>{t('movie.budget')}:</strong> {movieData.budget || t('movie.notAvailable')}
             </div>
             <div>
-              <strong>Runtime:</strong> {movieData.runtime || 'N/A'}
+              <strong>{t('movie.runtime')}:</strong> {movieData.runtime || t('movie.notAvailable')}
             </div>
             <div>
-              <strong>Start Date:</strong> {run?.startDate || 'N/A'}
+              <strong>{t('movie.startDate')}:</strong> {run?.startDate || t('movie.notAvailable')}
             </div>
             <div>
-              <strong>End Date:</strong> {run?.endDate || 'N/A'}
+              <strong>{t('movie.endDate')}:</strong> {run?.endDate || t('movie.notAvailable')}
             </div>
           </div>
         </div>
       </div>
     </div>
   );
-
 };
 
 export default MoviePreview;

@@ -557,4 +557,4 @@ I:\Coursework\coursework\cinemanetwork.api\obj\Debug\net8.0\refint\CinemaNetwork
 I:\Coursework\coursework\cinemanetwork.api\obj\Debug\net8.0\CinemaNetwork.API.pdb
 I:\Coursework\coursework\cinemanetwork.api\obj\Debug\net8.0\CinemaNetwork.API.genruntimeconfig.cache
 I:\Coursework\coursework\cinemanetwork.api\obj\Debug\net8.0\ref\CinemaNetwork.API.dll
-I:\Coursework\coursework\CinemaNetwork.Api\obj\Debug\net8.0\CinemaNe.28EF096C.Up2Date
+I:\Coursework\coursework\cinemanetwork.api\obj\Debug\net8.0\CinemaNe.99A790F1.Up2Date

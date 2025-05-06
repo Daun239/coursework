@@ -6,7 +6,7 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v8.0": {
-      "CinemaNetwork.Api/1.0.0": {
+      "CinemaNetwork.API/1.0.0": {
         "dependencies": {
           "AutoMapper.Extensions.Microsoft.DependencyInjection": "12.0.1",
           "CinemaNetwork.Application": "1.0.0",
@@ -25,7 +25,7 @@
           "System.Linq.Dynamic.Core": "1.6.0.2"
         },
         "runtime": {
-          "CinemaNetwork.Api.dll": {}
+          "CinemaNetwork.API.dll": {}
         }
       },
       "AutoMapper/12.0.1": {
@@ -1393,7 +1393,7 @@
     }
   },
   "libraries": {
-    "CinemaNetwork.Api/1.0.0": {
+    "CinemaNetwork.API/1.0.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""

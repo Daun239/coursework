@@ -5,12 +5,11 @@ import { ProductsInStorage } from "@/Types/ProductsInStorage";
 import { ProductType } from "@/Types/ProductType";
 import axios from "axios";
 import { useState, useEffect } from "react";
+import { useProductImage } from "./useProductImage";
 
 const useProductData = (productInStorageId: number) => {
   const [hasBeenAddedToCart, setHasBeenAddedToCart] = useState(false);
   const [orderedProductsNumber, setOrderedProductsNumber] = useState(0);
-  const [productImage, setProductImage] = useState<string>("");
-  const [isImageLoading, setIsImageLoading] = useState(true);
   const [product, setProduct] = useState<Product | null>(null);
   const [productType, setProductType] = useState<ProductType | null>(null);
   const [productInStorage, setProductInStorage] =
@@ -20,37 +19,6 @@ const useProductData = (productInStorageId: number) => {
   const { cart, addItem, removeItem } = useCartStore();
   const { productService, productTypeService, productsInStorageService } =
     useServiceStore();
-
-  const fetchProductImage = async (productName: string, retry = false) => {
-    setIsImageLoading(true);
-    const formattedName = productName.split("(")[0].trim();
-    const cachedImage = localStorage.getItem(formattedName);
-
-    if (cachedImage && !retry) {
-      setProductImage(cachedImage);
-      setIsImageLoading(false);
-      return;
-    }
-
-    const apiKey = "49973365-59bc8663d0ad71ccfe57714b9";
-    const url = `https://pixabay.com/api/?key=${apiKey}&q=${formattedName}&image_type=illustration`;
-
-    try {
-      const response = await axios.get(url);
-      if (response.data.hits.length > 0) {
-        const imageUrl = response.data.hits[0].webformatURL;
-        setProductImage(imageUrl);
-        localStorage.setItem(formattedName, imageUrl);
-      } else {
-        setProductImage("");
-      }
-    } catch (error) {
-      console.error("Error fetching product image:", error);
-      setProductImage("");
-    } finally {
-      setIsImageLoading(false);
-    }
-  };
 
   const handleProductsNumberChange = (newNumber: number) => {
     if (
@@ -66,6 +34,12 @@ const useProductData = (productInStorageId: number) => {
       addItem("product", updatedItem);
     }
   };
+
+  const { productImage, isImageLoading, fetchProductImage } = useProductImage();
+
+  useEffect(() => {
+    fetchProductImage("Apple Juice");
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {

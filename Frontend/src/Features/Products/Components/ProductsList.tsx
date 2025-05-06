@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/popover"
 import { useProductRange } from '../Hooks/useProductRange';
 import cleanInClauses from '@/lib/cleanInClauses';
+import { useLanguageStore } from '@/Stores/useLanguageStore';
 
 
 
@@ -51,7 +52,7 @@ const ProductsList = () => {
 
 
     const [currentPage, setCurrentPage] = useState<number>(1);
-    const [pageSize, setPageSize] = useState<number>(50);
+    const [pageSize, setPageSize] = useState<number>(10);
     const [pagesCount, setPagesCount] = useState<number>(1);
 
     const [productNames, setProductNames] = useState<Product[]>([]);
@@ -261,196 +262,260 @@ const ProductsList = () => {
 
     }, [currentPage, isPageReset]);
 
+
+    const { language } = useLanguageStore(); // <-- use language from store
+
+    const t = {
+        en: {
+            sidebar: {
+                open: 'Open Sidebar',
+                close: 'Close Sidebar',
+            },
+            filters: {
+                productsFound: 'products found',
+                filterByProductNames: 'Filter by product names',
+                filterByProductTypes: 'Filter by product types',
+                productPrice: 'Product price',
+                productQuantity: 'Product quantity',
+                productionDate: 'Production date',
+                expirationDate: 'Expiration date',
+                itemsPerPage: 'Items per page:',
+            },
+            pagination: {
+                nextPage: 'Next page',
+                previousPage: 'Previous page',
+            },
+            noResults: {
+                title: 'No products found. Please try changing your filters or check back later.',
+                subtitle: "Oops, we couldn't find any products matching your criteria.",
+                suggestion: 'Try adjusting your filters or search parameters.',
+            },
+            buttons: {
+                toggleSidebar: 'Toggle Sidebar',
+                pickDate: 'Pick a date',
+            },
+            loading: 'Loading...',
+            product: {
+                noProducts: 'No products found.',
+                tryAgain: 'Please try changing your filters or check back later.',
+            },
+            productsList: 'Products List' // Added missing key
+        },
+        ua: {
+            sidebar: {
+                open: 'Відкрити бічну панель',
+                close: 'Закрити бічну панель',
+            },
+            filters: {
+                productsFound: 'знайдено продуктів',
+                filterByProductNames: 'Фільтрувати за назвами продуктів',
+                filterByProductTypes: 'Фільтрувати за типами продуктів',
+                productPrice: 'Ціна продукту',
+                productQuantity: 'Кількість продуктів',
+                productionDate: 'Дата виробництва',
+                expirationDate: 'Дата закінчення терміну',
+                itemsPerPage: 'Продуктів на сторінку:',
+            },
+            pagination: {
+                nextPage: 'Наступна сторінка',
+                previousPage: 'Попередня сторінка',
+            },
+            noResults: {
+                title: 'Не знайдено продуктів. Будь ласка, спробуйте змінити фільтри або поверніться пізніше.',
+                subtitle: 'Ой, не вдалося знайти продукти, що відповідають вашим критеріям.',
+                suggestion: 'Спробуйте налаштувати фільтри або параметри пошуку.',
+            },
+            buttons: {
+                toggleSidebar: 'Перемкнути бічну панель',
+                pickDate: 'Вибрати дату',
+            },
+            loading: 'Завантаження...',
+            product: {
+                noProducts: 'Продуктів не знайдено.',
+                tryAgain: 'Будь ласка, спробуйте змінити фільтри або перевірте пізніше.',
+            },
+            productsList: 'Список продуктів' // Added missing key
+        }
+    };
+
+
+
     return (
-        <div className="p-4 h-full">
-
-
-
-
+        <div className="flex h-screen overflow-hidden mt-16">
             {/* Sidebar with filters */}
-            <Sidebar
-                width={320}
-                tabPosition="middle"
-                tabColor="bg-primary"
-                isOpen={isSidebarOpen}
-                toggleSidebar={toggleSidebar}
-            >
-
-                <div className="filters-container">
-
-                    {productsInStorage.length && <h2 className="font-semibold text-xl mb-4">{productsInStorage.length} products found</h2>}
-
-
-                    {<DropdownList
-                        listName="Filter by product names"
-                        service={productService}
-                        displayKey="name"
-                        onSelectionChange={(selected: any[]) => handleSelectionChange(selected, setProductNames)}
-                    />
-                    }
-
-                    {<DropdownList
-                        listName="Filter by product types"
-                        service={productTypeService}
-                        displayKey="productType1"
-                        onSelectionChange={(selected: any[]) => handleSelectionChange(selected, setProductTypes)}
-                    />}
-
-                    {/* <label className="input input-bordered flex items-center gap-2 bg-gray-200 dark:bg-gray-800 my-4 rounded px-3 py-2">
-                        <svg className="h-5 w-5 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                            <g
-                                strokeLinejoin="round"
-                                strokeLinecap="round"
-                                strokeWidth="2.5"
-                                fill="none"
-                                stroke="currentColor"
-                            >
-                                <circle cx="11" cy="11" r="8"></circle>
-                                <path d="m21 21-4.3-4.3"></path>
-                            </g>
-                        </svg>
-                        <input onKeyDown={e => handleKeyDown(e)} type="text" placeholder="Search by product name..." className="bg-transparent outline-none flex-1" />
-                    </label> */}
-
-
-                    {/* Range Sliders */}
-                    <RangeSlider
-                        min={minProductPrice}
-                        max={maxProductPrice}
-                        onRangeCommit={(range) => setSelectedProductPriceRange(range)}
-                        sliderName="Product price"
-                        currency="$"
-                    />
-
-                    <RangeSlider
-                        min={minProductQuantity}
-                        max={maxProductQuantity}
-                        onRangeCommit={(range) => setSelectedProductQuantityRange(range)}
-                        sliderName="Product quantity"
-                        currency=""
-                    />
-                </div>
-
-
-                <div className='my-2'>Production date</div>
-
-
-                <Popover>
-                    <PopoverTrigger asChild>
-                        <Button
-                            variant={"outline"}
-                            className={cn(
-                                "w-[280px] justify-start text-left font-normal",
-                                !productionDate && "text-muted-foreground"
-                            )}
-                        >
-                            <CalendarIcon />
-                            {productionDate ? format(productionDate, "PPP") : <span>Pick a date</span>}
-                        </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                        <Calendar
-                            mode="single"
-                            selected={productionDate}
-                            onSelect={setProductionDate}
-                            initialFocus
-                        />
-                    </PopoverContent>
-                </Popover>
-
-
-                <div className='my-2'>Expiration date</div>
-                <Popover>
-                    <PopoverTrigger asChild>
-                        <Button
-                            variant={"outline"}
-                            className={cn(
-                                "w-[280px] justify-start text-left font-normal",
-                                !productionDate && "text-muted-foreground"
-                            )}
-                        >
-                            <CalendarIcon />
-                            {expirationDate ? format(expirationDate, "PPP") : <span>Pick a date</span>}
-                        </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                        <Calendar
-                            mode="single"
-                            selected={expirationDate}
-                            onSelect={setExpirationDate}
-                            initialFocus
-                        />
-                    </PopoverContent>
-                </Popover>
-
-                <div className="mt-2">
-                    <label className="block font-medium mb-4">Items per page:</label>
-                    <select
-                        value={pageSize}
-                        onChange={(e) => {
-                            const value = Number(e.target.value);
-                            setPageSize(value);
-                            setCurrentPage(1); // Reset to the first page when size changes
-                        }}
-                        className="bg-gray-200 dark:bg-gray-800 input input-bordered w-full"
-                    >
-                        <option value={5}>5</option>
-                        <option value={10}>10</option>
-                        <option value={20}>20</option>
-                        <option value={50}>50</option>
-                    </select>
-                </div>
-
-
-
-                {/* Pagination component inside sidebar */}
-                <Pagination
-                    currentPage={currentPage}
-                    totalPages={pagesCount}
-                    onPageChange={setCurrentPage}
-                />
-
-
-            </Sidebar>
-
             <div
                 className={`
-    fixed inset-0 z-10 flex items-center justify-center bg-black/50
-    transition-opacity duration-300
-    ${isSidebarOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}
-  `}
-            ></div>
+                    transition-all duration-300 ease-in-out h-screen overflow-auto
+                    ${isSidebarOpen ? 'w-80' : 'w-0'}
+                `}
+            >
+                <div className="w-80 h-full bg-white dark:bg-gray-900 p-4 shadow-lg">
+                    <div className="filters-container">
+                        {productsInStorage.length > 0 && <h2 className="font-semibold text-xl mb-4">{productsInStorage.length} {t[language].filters.productsFound}</h2>}
 
-            <h2 className="text-2xl font-bold my-8">Products List</h2>
+                        {<DropdownList
+                            listName={t[language].filters.filterByProductNames}
+                            service={productService}
+                            displayKey="name"
+                            onSelectionChange={(selected: any[]) => handleSelectionChange(selected, setProductNames)}
+                        />}
 
-            {loading && <p>Loading...</p>}
+                        {<DropdownList
+                            listName={t[language].filters.filterByProductTypes}
+                            service={productTypeService}
+                            displayKey="productType1"
+                            onSelectionChange={(selected: any[]) => handleSelectionChange(selected, setProductTypes)}
+                        />}
 
-            {/* Show message when no products are found */}
-            {!loading && products.length === 0 && (
-                <div className="flex flex-col items-center justify-center text-center my-8">
-                    <div className="text-4xl text-gray-400">
-                        <i className="fas fa-box-open"></i> {/* You can use a product-related icon */}
+                        {/* Range Sliders */}
+                        <RangeSlider
+                            min={minProductPrice}
+                            max={maxProductPrice}
+                            onRangeCommit={(range) => setSelectedProductPriceRange(range)}
+                            sliderName={t[language].filters.productPrice}
+                            currency="$"
+                        />
+
+                        <RangeSlider
+                            min={minProductQuantity}
+                            max={maxProductQuantity}
+                            onRangeCommit={(range) => setSelectedProductQuantityRange(range)}
+                            sliderName={t[language].filters.productQuantity}
+                            currency=""
+                        />
+
+                        <div className='my-2'>{t[language].filters.productionDate}</div>
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button
+                                    variant={"outline"}
+                                    className={cn(
+                                        "w-[280px] justify-start text-left font-normal",
+                                        !productionDate && "text-muted-foreground"
+                                    )}
+                                >
+                                    <CalendarIcon />
+                                    {productionDate ? format(productionDate, "PPP") : <span>{t[language].buttons.pickDate}</span>}
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0">
+                                <Calendar
+                                    mode="single"
+                                    selected={productionDate}
+                                    onSelect={setProductionDate}
+                                    initialFocus
+                                />
+                            </PopoverContent>
+                        </Popover>
+
+                        <div className='my-2'>{t[language].filters.expirationDate}</div>
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button
+                                    variant={"outline"}
+                                    className={cn(
+                                        "w-[280px] justify-start text-left font-normal",
+                                        !expirationDate && "text-muted-foreground"
+                                    )}
+                                >
+                                    <CalendarIcon />
+                                    {expirationDate ? format(expirationDate, "PPP") : <span>{t[language].buttons.pickDate}</span>}
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0">
+                                <Calendar
+                                    mode="single"
+                                    selected={expirationDate}
+                                    onSelect={setExpirationDate}
+                                    initialFocus
+                                />
+                            </PopoverContent>
+                        </Popover>
+
+                        <div className="mt-2">
+                            <label className="block font-medium mb-4">{t[language].filters.itemsPerPage}</label>
+                            <select
+                                value={pageSize}
+                                onChange={(e) => {
+                                    const value = Number(e.target.value);
+                                    setPageSize(value);
+                                    setCurrentPage(1); // Reset to the first page when size changes
+                                }}
+                                className="bg-gray-200 dark:bg-gray-800 input input-bordered w-full"
+                            >
+                                <option value={5}>5</option>
+                                <option value={10}>10</option>
+                                <option value={20}>20</option>
+                                <option value={50}>50</option>
+                            </select>
+                        </div>
+
+                        {/* Pagination component inside sidebar */}
+                        <Pagination
+                            currentPage={currentPage}
+                            totalPages={pagesCount}
+                            onPageChange={setCurrentPage}
+                        />
                     </div>
-                    <p className="text-lg text-gray-600 mt-4">Oops, we couldn't find any products matching your criteria.</p>
-                    <p className="text-sm text-gray-500 mt-2">Try adjusting your filters or search parameters.</p>
                 </div>
-            )}
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {productsInStorage.length > 0 && productsInStorage.map(product => (
-                    <ProductComponent key={product.productInStorageId} productInStorageId={product.productInStorageId} />
-                ))}
-
-                {/* Handle case when productsInStorage is empty */}
-                {productsInStorage.length === 0 && !loading && (
-                    <div className="col-span-full text-center py-8 text-gray-500">
-                        No products found. Please try changing your filters or check back later.
-                    </div>
-                )}
             </div>
 
+            {/* Main content area */}
+            <div className="flex-1 flex flex-col h-screen overflow-auto p-6">
+                {/* Toggle sidebar button and header */}
+                <div className="flex items-center mb-6">
+                    <button
+                        onClick={toggleSidebar}
+                        className="p-2 rounded-md cursor-pointer bg-gray-500 dark:bg-gray-900 text-white hover:bg-primary-dark transition-colors mr-4"
+                    >
+                        {isSidebarOpen ? (
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+                            </svg>
+                        ) : (
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                            </svg>
+                        )}
+                    </button>
+                    <h2 className="text-2xl font-bold">{t[language].productsList}</h2>
+                </div>
+
+                {/* Loading state */}
+                {loading && (
+                    <div className="flex justify-center items-center h-40">
+                        <p>{t[language].loading}</p>
+                    </div>
+                )}
+
+                {/* No products found message */}
+                {!loading && products.length === 0 && (
+                    <div className="flex flex-col items-center justify-center text-center my-8">
+                        <div className="text-4xl text-gray-400">
+                            <i className="fas fa-box-open"></i>
+                        </div>
+                        <p className="text-lg text-gray-600 mt-4">{t[language].noResults.subtitle}</p>
+                        <p className="text-sm text-gray-500 mt-2">{t[language].noResults.suggestion}</p>
+                    </div>
+                )}
+
+                {/* Products grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-12">
+                    {productsInStorage.length > 0 && productsInStorage.map(product => (
+                        <ProductComponent key={product.productInStorageId} productInStorageId={product.productInStorageId} />
+                    ))}
+
+                    {/* Empty state within grid */}
+                    {productsInStorage.length === 0 && !loading && (
+                        <div className="col-span-full text-center py-8 text-gray-500">
+                            {t[language].product.noProducts}
+                        </div>
+                    )}
+                </div>
+            </div>
         </div>
     );
+
 };
 
 export default ProductsList;

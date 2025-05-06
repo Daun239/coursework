@@ -31,6 +31,12 @@ function App() {
   const { user, token, setUser } = useUserStore();
   const location = useLocation();
 
+  // console.log('user', user);
+
+  useEffect(() => {
+    console.log("user store:", useUserStore.getState());
+  }, []);
+
 
 
   const { setTheme, theme } = useTheme(); // Access setTheme and current theme from context
@@ -79,18 +85,23 @@ function App() {
 
   return (
 
+
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
 
       {/* Only show Navbar if user is logged in */}
       {user && <Navbar />}
 
-      <Routes>
-        <Route path="/login" element={<LoginPage />} />
-        {/* Protected routes */}
-        <Route path="/movies" element={<MovieList />} />
-        <Route path="/products" element={<ProductsList />} />
-        <Route path="/deliveryOrders" element={<DeliveryOrder />} />
-      </Routes>
+      <div className="w-full bg-white dark:bg-gray-800 m-0 p-0">
+
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          {/* Protected routes */}
+          <Route path="/movies" element={<MovieList />} />
+          <Route path="/products" element={<ProductsList />} />
+          <Route path="/deliveryOrders" element={<DeliveryOrder />} />
+        </Routes>
+
+      </div>
 
       {/* <ToastContainer position="top-right" autoClose={3000} /> */}
 

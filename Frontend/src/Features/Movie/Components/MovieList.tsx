@@ -1,5 +1,3 @@
-// import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable"
-
 import DropdownList from "@/components/DropdownList";
 import Pagination from "@/components/Pagination";
 import RangeSlider from "@/components/RangeSlider";
@@ -15,7 +13,6 @@ import { Movie } from "@/Types/Movie";
 import { Publisher } from "@/Types/Publisher";
 import { Run } from "@/Types/Run";
 import { Screening } from "@/Types/Screening";
-import Sidebar from "@/components/Sidebar"
 import { useState, useEffect } from "react";
 import { useMovieFiltersLoader } from "../Hooks/useMovieFiltersLoader";
 import MoviePreview from "./MoviePreview";
@@ -25,6 +22,7 @@ import {
     AccordionItem,
     AccordionTrigger,
 } from "@/components/ui/accordion"
+import { useTranslation } from "../Hooks/useTranslation";
 
 
 function handleSelectionChange<T>(selected: T[], setState: React.Dispatch<React.SetStateAction<T[]>>) {
@@ -32,6 +30,7 @@ function handleSelectionChange<T>(selected: T[], setState: React.Dispatch<React.
 }
 
 const MovieList = () => {
+    const { t } = useTranslation();
     const { runService, screeningService, movieService, genreService, moviesGenreService, languageService, countryService, publisherService, ageRestrictionService } = useServiceStore();
     const [movies, setMovies] = useState<Movie[]>([]);
     const [loading, setLoading] = useState(true);
@@ -244,135 +243,180 @@ const MovieList = () => {
     }
 
     return (
-        <div className="relative w-full">
+        <div className="flex h-screen overflow-hidden mt-16">
             {/* Sidebar with filters */}
-            <Sidebar
-                width={320}
-                tabPosition="middle"
-                tabColor="bg-primary"
-                isOpen={isSidebarOpen}
-                toggleSidebar={toggleSidebar}
-            >
-
-                <div className="filters-container">
-
-                    {movies.length && <h2 className="font-semibold text-xl mb-4">{movies.length} movies found</h2>}
-
-
-
-
-                    <DropdownList
-                        listName="Filter by age restrictions"
-                        service={ageRestrictionService}
-                        displayKey="ageRestriction1"
-                        onSelectionChange={(selected: any[]) => handleSelectionChange(selected, setAgeRestrictions)}
-                    />
-
-                    <DropdownList
-                        listName="Filter by genres"
-                        service={genreService}
-                        displayKey="genre1"
-                        onSelectionChange={(selected: any[]) => handleSelectionChange(selected, setGenres)}
-                    />
-
-                    <DropdownList
-                        listName="Filter by countries"
-                        service={countryService}
-                        displayKey="country1"
-                        onSelectionChange={(selected: any[]) => handleSelectionChange(selected, setCountries)}
-                    />
-
-                    <DropdownList
-                        listName="Filter by publishers"
-                        service={publisherService}
-                        displayKey="publisher1"
-                        onSelectionChange={(selected: any[]) => handleSelectionChange(selected, setPublishers)}
-                    />
-
-                    <DropdownList
-                        listName="Filter by original language"
-                        service={languageService}
-                        displayKey="language1"
-                        onSelectionChange={(selected: any[]) => handleSelectionChange(selected, setLanguages)}
-                    />
-
-                    <label className="input bg-gray-200 dark:bg-gray-800 my-4">
-                        <svg className="h-[1em] opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                            <g
-                                strokeLinejoin="round"
-                                strokeLinecap="round"
-                                strokeWidth="2.5"
-                                fill="none"
-                                stroke="currentColor"
-                            >
-                                <circle cx="11" cy="11" r="8"></circle>
-                                <path d="m21 21-4.3-4.3"></path>
-                            </g>
-                        </svg>
-                        <input
-                            type="search"
-                            required
-                            placeholder="Search movie title or description"
-                            onKeyDown={handleSearch}
-                            className="pl-6"
-                        />
-                    </label>
-
-                    {/* Range Sliders */}
-                    <RangeSlider
-                        min={minBudget}
-                        max={maxBudget}
-                        onRangeCommit={(range) => setSelectedBudgetRange(range)}
-                        sliderName="Budget"
-                        currency="$"
-                    />
-
-                    <RangeSlider
-                        min={minRuntime}
-                        max={maxRuntime}
-                        onRangeCommit={(range) => setSelectedRuntimeRange(range)}
-                        sliderName="Runtime"
-                        currency="minutes"
-                    />
-                </div>
-
-
-
-                <div className="mt-2">
-                    <label className="block font-medium mb-4">Items per page:</label>
-                    <select
-                        value={pageSize}
-                        onChange={(e) => {
-                            setPageSize(Number(e.target.value));
-                            setCurrentPage(1); // Reset to first page when size changes
-                        }}
-                        className=" bg-gray-200 dark:bg-gray-800 select select-bordered w-full"
-                    >
-                        <option value={5}>5</option>
-                        <option value={10}>10</option>
-                        <option value={20}>20</option>
-                        <option value={50}>50</option>
-                    </select>
-                </div>
-
-                {/* Pagination component inside sidebar */}
-                <Pagination
-                    currentPage={currentPage}
-                    totalPages={pagesCount}
-                    onPageChange={setCurrentPage}
-                />
-
-            </Sidebar>
-
-
             <div
                 className={`
-    fixed inset-0 z-10 flex items-center justify-center bg-black/50
-    transition-opacity duration-300
-    ${isSidebarOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}
-  `}
-            ></div>
+                    transition-all duration-300 ease-in-out h-screen overflow-auto
+                    ${isSidebarOpen ? 'w-80' : 'w-0'}
+                `}
+            >
+                <div className="w-80 h-full bg-white dark:bg-gray-900 p-4 shadow-lg">
 
+                    <div className="filters-container">
+                        {movies.length && <h2 className="font-semibold text-xl mb-4">{movies.length} {t('movieList.moviesFound')}</h2>}
+
+                        <DropdownList
+                            listName={t('movieList.filterByAgeRestrictions')}
+                            service={ageRestrictionService}
+                            displayKey="ageRestriction1"
+                            onSelectionChange={(selected: any[]) => handleSelectionChange(selected, setAgeRestrictions)}
+                        />
+
+                        <DropdownList
+                            listName={t('movieList.filterByGenres')}
+                            service={genreService}
+                            displayKey="genre1"
+                            onSelectionChange={(selected: any[]) => handleSelectionChange(selected, setGenres)}
+                        />
+
+                        <DropdownList
+                            listName={t('movieList.filterByCountries')}
+                            service={countryService}
+                            displayKey="country1"
+                            onSelectionChange={(selected: any[]) => handleSelectionChange(selected, setCountries)}
+                        />
+
+                        <DropdownList
+                            listName={t('movieList.filterByPublishers')}
+                            service={publisherService}
+                            displayKey="publisher1"
+                            onSelectionChange={(selected: any[]) => handleSelectionChange(selected, setPublishers)}
+                        />
+
+                        <DropdownList
+                            listName={t('movieList.filterByLanguage')}
+                            service={languageService}
+                            displayKey="language1"
+                            onSelectionChange={(selected: any[]) => handleSelectionChange(selected, setLanguages)}
+                        />
+
+                        <label className="input bg-gray-200 dark:bg-gray-800 my-4">
+                            <svg className="h-[1em] opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                                <g
+                                    strokeLinejoin="round"
+                                    strokeLinecap="round"
+                                    strokeWidth="2.5"
+                                    fill="none"
+                                    stroke="currentColor"
+                                >
+                                    <circle cx="11" cy="11" r="8"></circle>
+                                    <path d="m21 21-4.3-4.3"></path>
+                                </g>
+                            </svg>
+                            <input
+                                type="search"
+                                required
+                                placeholder={t('movieList.searchPlaceholder')}
+                                onKeyDown={handleSearch}
+                                className="pl-6"
+                            />
+                        </label>
+
+                        {/* Range Sliders */}
+                        <RangeSlider
+                            min={minBudget}
+                            max={maxBudget}
+                            onRangeCommit={(range) => setSelectedBudgetRange(range)}
+                            sliderName={t('movieList.budget')}
+                            currency="$"
+                        />
+
+                        <RangeSlider
+                            min={minRuntime}
+                            max={maxRuntime}
+                            onRangeCommit={(range) => setSelectedRuntimeRange(range)}
+                            sliderName={t('movieList.runtime')}
+                            currency={t('movieList.minutes')}
+                        />
+                    </div>
+
+                    <div className="mt-2">
+                        <label className="block font-medium mb-4">{t('movieList.itemsPerPage')}</label>
+                        <select
+                            value={pageSize}
+                            onChange={(e) => {
+                                setPageSize(Number(e.target.value));
+                                setCurrentPage(1); // Reset to first page when size changes
+                            }}
+                            className="bg-gray-200 dark:bg-gray-800 select select-bordered w-full"
+                        >
+                            <option value={5}>5</option>
+                            <option value={10}>10</option>
+                            <option value={20}>20</option>
+                            <option value={50}>50</option>
+                        </select>
+                    </div>
+
+                    {/* Pagination component inside sidebar */}
+                    <Pagination
+                        currentPage={currentPage}
+                        totalPages={pagesCount}
+                        onPageChange={setCurrentPage}
+                    />
+                </div>
+            </div>
+
+            {/* Main content */}
+            <div className="flex-1 flex flex-col h-screen overflow-auto">
+                {/* Toggle sidebar button */}
+                <div className="p-4 flex justify-between items-center">
+                    <button
+                        onClick={toggleSidebar}
+                        className="p-2 rounded-md dark:bg-gray-900 bg-gray-400 text-white hover:bg-primary-dark transition-colors"
+                    >
+                        {isSidebarOpen ? (
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+                            </svg>
+                        ) : (
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                            </svg>
+                        )}
+                    </button>
+
+                </div>
+
+                <div className="p-6 flex-1">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 w-full">
+                        {movies.map((movie, i) => {
+                            const movieScreenings = getScreeningsForMovie(movie.movieId);
+                            return (
+                                <div key={i} className="rounded-xl shadow-md overflow-hidden transition-all hover:shadow-lg">
+                                    <MoviePreview movieId={movie.movieId} />
+
+                                    {movieScreenings && movieScreenings.length > 0 ? (
+                                        <div className="p-4">
+                                            <Accordion type="single" collapsible>
+                                                <AccordionItem value="item-1">
+                                                    <AccordionTrigger className="flex items-center gap-2 py-2 cursor-pointer">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                        </svg>
+                                                        <div className="flex">
+                                                            <h3 className="text-sm font-medium">{t('movieList.availableScreenings')} ({movieScreenings.length})</h3>
+                                                        </div>
+                                                    </AccordionTrigger>
+                                                    <AccordionContent className="grid grid-cols-1 gap-3">
+                                                        {movieScreenings.map(screening => (
+                                                            <ScreeningTimeComponent key={screening.screeningId} screening={screening} onSelect={setSelectedScreening} />
+                                                        ))}
+                                                    </AccordionContent>
+                                                </AccordionItem>
+                                            </Accordion>
+                                        </div>
+                                    ) : (
+                                        <div className="p-4 text-center text-gray-500 italic">
+                                            {t('movieList.noScreenings')}
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            </div>
 
             {selectedScreening && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
@@ -387,51 +431,6 @@ const MovieList = () => {
                     </div>
                 </div>
             )}
-
-            {/* Main content */}
-            <div className="p-6  w-full">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
-                    {movies.map((movie, i) => {
-                        const movieScreenings = getScreeningsForMovie(movie.movieId);
-                        return (
-                            <div key={i} className="rounded-xl shadow-md overflow-hidden transition-all hover:shadow-lg">
-
-
-                                <MoviePreview movieId={movie.movieId} />
-
-                                {movieScreenings && movieScreenings.length > 0 ? (
-                                    <div className="p-4">
-
-                                        <Accordion type="single" collapsible>
-                                            <AccordionItem value="item-1">
-                                                <AccordionTrigger className="flex items-center gap-2 py-2 cursor-pointer">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                                    </svg>
-                                                    <div className="flex">
-                                                        <h3 className="text-sm font-medium">Available Screenings ({movieScreenings.length})</h3>
-                                                    </div>
-                                                </AccordionTrigger>
-                                                <AccordionContent className="grid grid-cols-1 gap-3">
-                                                    {movieScreenings.map(screening => (
-                                                        <ScreeningTimeComponent key={screening.screeningId} screening={screening} onSelect={setSelectedScreening} />
-                                                    ))}
-                                                </AccordionContent>
-                                            </AccordionItem>
-                                        </Accordion>
-
-                                    </div>
-                                ) : (
-                                    <div className="p-4 text-center text-gray-500 italic">
-                                        No screenings available
-                                    </div>
-                                )}
-                            </div>
-                        );
-                    })}
-                </div>
-            </div>
-
         </div>
     );
 };

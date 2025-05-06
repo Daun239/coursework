@@ -1,5 +1,6 @@
 import { useCartStore } from "@/Features/Cart/Stores/CartState";
 import { useServiceStore } from "@/Stores/ServicesStore";
+import { useLanguageStore } from "@/Stores/useLanguageStore";
 import { useUserStore } from "@/Stores/UserStore";
 import { Product } from "@/Types/Product";
 import { ProductsInStorage } from "@/Types/ProductsInStorage";
@@ -13,6 +14,31 @@ interface Props {
 }
 
 const ProductComponent: React.FC<Props> = ({ productInStorageId }) => {
+
+
+
+    const { language } = useLanguageStore(); // <-- use language from store
+
+    const t = {
+        en: {
+            addToCart: "Add to cart",
+            inCart: "In cart",
+            expires: "Expires: ",
+            produced: "Produced: ",
+            units: "Units",
+            inStock: "In stock"
+        },
+        ua: {
+            addToCart: "Додати до кошика",
+            inCart: "В кошику",
+            expires: "Кінець терміну дії: ",
+            produced: "Виготовлено: ",
+            units: "Одиниць",
+            inStock: "Доступно"
+        },
+    };
+
+
     const [hasBeenAddedToCart, setHasBeenAddedToCart] = useState(false);
     const [orderedProductsNumber, setOrderedProductsNumber] = useState(0);
     const [productImage, setProductImage] = useState<string>('');
@@ -224,28 +250,28 @@ const ProductComponent: React.FC<Props> = ({ productInStorageId }) => {
                     <div className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
                         {productInStorage && (
                             <div className="flex items-center justify-between">
-                                <span>In stock:</span>
+                                <span>{t[language].inStock}:</span> {/* Translated */}
                                 <span className={`font-medium ${availableQuality > 10
                                     ? 'text-green-600 dark:text-green-400'
                                     : availableQuality > 0
                                         ? 'text-yellow-600 dark:text-yellow-400'
                                         : 'text-red-600 dark:text-red-400'
                                     }`}>
-                                    {availableQuality} units
+                                    {availableQuality} {t[language].units} {/* Translated */}
                                 </span>
                             </div>
                         )}
 
                         {productInStorage?.productionDate && (
                             <div className="flex items-center justify-between">
-                                <span>Produced:</span>
+                                <span>{t[language].produced}</span> {/* Translated */}
                                 <span>{new Date(productInStorage.productionDate).toLocaleDateString()}</span>
                             </div>
                         )}
 
                         {productInStorage?.expirationDate && (
                             <div className="flex items-center justify-between">
-                                <span>Expires:</span>
+                                <span>{t[language].expires}</span> {/* Translated */}
                                 <span className={`font-medium ${new Date(productInStorage.expirationDate) > new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
                                     ? 'text-green-600 dark:text-green-400'
                                     : new Date(productInStorage.expirationDate) > new Date()
@@ -285,7 +311,7 @@ const ProductComponent: React.FC<Props> = ({ productInStorageId }) => {
                             </button>
                             <div className="ml-auto flex items-center">
                                 <BsCartCheckFill className="text-green-600 dark:text-green-400 text-xl mr-2" />
-                                <span className="text-green-600 dark:text-green-400 font-medium">In cart</span>
+                                <span className="text-green-600 dark:text-green-400 font-medium">{t[language].inCart}</span> {/* Translated */}
                             </div>
                         </div>
                     ) : (
@@ -298,12 +324,13 @@ const ProductComponent: React.FC<Props> = ({ productInStorageId }) => {
                             disabled={!productInStorage || productInStorage.quantity <= 0}
                         >
                             <BsCart2 className="mr-2" />
-                            Add to Cart
+                            {t[language].addToCart} {/* Translated */}
                         </button>
                     )}
                 </div>
             </div>
-        </div>
+
+        </div >
     );
 };
 

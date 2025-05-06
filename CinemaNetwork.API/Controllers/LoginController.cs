@@ -29,11 +29,13 @@ namespace CinemaNetwork.API.Controllers
         [HttpPost]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
-            // Find Employee by Email and join with EmployeePosition to get the role (position)
             var employee = await _context.Employees
-                .Include(e => e.EmployeePosition)
-                .FirstOrDefaultAsync(e => e.Email == request.Email);
-            
+    .Include(e => e.EmployeePosition)
+    .Include(e => e.Cinema)
+        .ThenInclude(c => c.City)
+    .FirstOrDefaultAsync(e => e.Email == request.Email);
+
+
             if (employee == null)
             {
                 return Unauthorized("Invalid email or password.");
@@ -61,7 +63,10 @@ namespace CinemaNetwork.API.Controllers
                 employee.Name,
                 employee.Surname,
                 employee.CellNumber,
-                employee.CinemaId.ToString()
+                employee.CinemaId.ToString(),
+                employee.Cinema.Name,
+                employee.EmployeePosition.EmployeePosition1.ToString(),
+                employee.Cinema.City.City1.ToString()
             );
 
             // Return token and user info
@@ -80,7 +85,7 @@ namespace CinemaNetwork.API.Controllers
             });
         }
 
-        private string GenerateToken(string userId, string email, string role, string name, string surname, string phone, string cinemaId)
+        private string GenerateToken(string userId, string email, string role, string name, string surname, string phone, string cinemaId, string cinemaName, string employeePosition, string cityName)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.UTF8.GetBytes(_configuration["JWTSettings:Key"]);
@@ -94,7 +99,10 @@ namespace CinemaNetwork.API.Controllers
                 new("name", name),
                 new("surname", surname),
                 new("cellNumber", phone),
-                new("cinemaId", cinemaId)
+                new("cinemaId", cinemaId),
+                new ("cinemaName", cinemaName),
+                new ("employeePosition", employeePosition),
+                new ("cityName", cityName),
             };
 
             var tokenDescriptor = new SecurityTokenDescriptor

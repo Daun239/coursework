@@ -1,3 +1,4 @@
+import { useLanguageStore } from '@/Stores/useLanguageStore';
 import React, { useState, useEffect } from 'react';
 
 interface PaginationProps {
@@ -41,6 +42,28 @@ const Pagination: React.FC<PaginationProps> = ({
         }
     };
 
+
+    const { language } = useLanguageStore(); // <-- use language from store
+
+    const t = {
+        en: {
+            prev: "Prev",
+            page: "Page",
+            of: "of",
+            next: "Next"
+        },
+
+        ua:
+        {
+            prev: "Назад",
+            page: "Сторінка",
+            of: "з",
+            next: "Вперед"
+        }
+    };
+
+
+
     return (
         <div className={`flex items-center justify-between gap-2 mt-4 ${className}`}>
             {/* Prev Button */}
@@ -49,24 +72,31 @@ const Pagination: React.FC<PaginationProps> = ({
                 disabled={!canGoPrev}
                 onClick={() => onPageChange(currentPage - 1)}
             >
-                Prev
+                {t[language].prev}
             </button>
 
             {/* Page Info with Input */}
             <div className="flex items-center gap-2">
                 <span className="text-sm">
-                    Page
-                    <input
-                        type="number"
-                        value={inputPage}
-                        onChange={handlePageInput}
-                        onBlur={handlePageSubmit} // Submit on blur to confirm the page
-                        className="w-16 text-center border p-1"
-                        min="1"
-                        max={totalPages}
-                    />
-                    of {totalPages}
                 </span>
+                {t[language].page}
+                <input
+                    type="number"
+                    value={inputPage}
+                    onChange={handlePageInput}
+                    onBlur={handlePageSubmit} // Submit on blur to confirm the page
+                    className="w-16 text-center border p-1"
+                    min="1"
+                    max={totalPages}
+                />
+
+
+
+                <span>
+                    {t[language].of}
+                    <span className="ml-1">{totalPages}</span>
+                </span>
+
             </div>
 
             {/* Next Button */}
@@ -75,7 +105,7 @@ const Pagination: React.FC<PaginationProps> = ({
                 disabled={!canGoNext}
                 onClick={() => onPageChange(currentPage + 1)}
             >
-                Next
+                {t[language].next}
             </button>
         </div>
     );

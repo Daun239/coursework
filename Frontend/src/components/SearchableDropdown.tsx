@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import formFilterQuery from '../lib/formFilterQuery';
+import { useLanguageStore } from '@/Stores/useLanguageStore';
 
 const SearchableDropdown = ({
     onChange,
@@ -62,19 +63,33 @@ const SearchableDropdown = ({
         setFilteredOptions([]);           // Clear list
     };
 
+
+    const { language } = useLanguageStore();
+
+    const t = {
+        en: {
+            searchBy: "Search by",
+            loading: "Loading...",
+        },
+        ua: {
+            searchBy: "Пошук за",
+            loading: "Завантаження...",
+        },
+    };
+
     return (
         <div className="relative w-full">
             <input
                 type="text"
                 value={inputValue}
                 onChange={(e) => onInputChange(e.target.value)}
-                placeholder={`Search by ${searchFields.join('/')}`}
+                placeholder={`${t[language].searchBy} ${searchFields.join('/')}`}
                 className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200"
             />
 
             {loading && (
                 <div className="absolute left-0 right-0 bottom-20 mt-1 px-4 py-2 text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md">
-                    Loading...
+                    {t[language].loading}
                 </div>
             )}
 
@@ -93,6 +108,7 @@ const SearchableDropdown = ({
             )}
         </div>
     );
+
 };
 
 export default SearchableDropdown;

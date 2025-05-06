@@ -178,7 +178,7 @@ export default function DeliveryOrder() {
     useEffect(() => {
         const fetchData = async () => {
 
-            const deliveryOrders = await deliveryOrderService.getAll("", "", 1, 1000000);
+            const deliveryOrders = await deliveryOrderService.getAll("", "", 1, 10);
 
             setDeliveryOrders(deliveryOrders);
             const [suppliers] = await supplierService.getAll("", "", 1, 100000);
@@ -192,17 +192,27 @@ export default function DeliveryOrder() {
     }, [])
     return (
 
-        <div>
-            <Progress />
-            <table className="mt-12">
+        <div className="mt-16 w-full">
+            <table className="mt-12 w-[95%] mx-auto table-auto border-collapse">
+                <thead>
+                    <tr className="bg-gray-100 text-left text-sm text-gray-700">
+                        <th className="py-3 px-4">№</th>
+                        <th className="py-3 px-4">Status</th>
+                        <th className="py-3 px-4">Supplier</th>
+                        <th className="py-3 px-4">Employee</th>
+                        <th className="py-3 px-4">Order Date</th>
+                        <th className="py-3 px-4">End Date</th>
+                        <th className="py-3 px-4">Total</th>
+                        <th className="py-3 px-4">Progress</th>
+                    </tr>
+                </thead>
                 <tbody>
-
-                    {deliveryOrders.map(d => {
-                        return <CustomRow deliveryOrderId={d.deliveryOrderId} key={d.deliveryOrderId} />
-                    })}
-
+                    {deliveryOrders.map(d => (
+                        <CustomRow deliveryOrderId={d.deliveryOrderId} key={d.deliveryOrderId} />
+                    ))}
                 </tbody>
             </table>
         </div>
+
     )
 }

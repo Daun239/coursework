@@ -128,3 +128,9 @@ body {
   overflow-y: scroll; /* or auto */
   scrollbar-gutter: stable;
 }
+
+body,
+html {
+  margin: 0;
+  padding: 0;
+}

@@ -1,4 +1,5 @@
 import { GenericService } from "@/lib/GenericService";
+import { useLanguageStore } from "@/Stores/useLanguageStore";
 import { useEffect, useState } from "react";
 import { HiChevronDown, HiChevronUp, HiSearch, HiX } from "react-icons/hi";
 
@@ -21,6 +22,7 @@ const DropdownList = <T,>({
   const [searchTerm, setSearchTerm] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const { language } = useLanguageStore();
 
   const handleCheckboxChange = (item: T, checked: boolean) => {
     const newSelected = checked
@@ -67,6 +69,33 @@ const DropdownList = <T,>({
   const isItemSelected = (item: T) =>
     selectedItems.some((i) => String(i[displayKey]) === String(item[displayKey]));
 
+  // Translations with function to handle pluralization
+  const getItemsSelectedText = (count: number) => {
+    if (language === 'ua') {
+      if (count === 1) return `${count} елемент обрано`;
+      else if (count >= 2 && count <= 4) return `${count} елементи обрано`;
+      else return `${count} елементів обрано`;
+    } else {
+      return `${count} item${count !== 1 ? "s" : ""} selected`;
+    }
+  };
+
+  const t = {
+    ua: {
+      search: "Пошук",
+      reset: "Скинути",
+      noItems: "Нічого не знайдено"
+    },
+    en: {
+      search: "Search",
+      reset: "Reset",
+      noItems: "No items found"
+    }
+  };
+
+  // Default to English if the language isn't found
+  const currentLang = t[language as keyof typeof t] || t.en;
+
   return (
     <div className="mb-4 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 transition-all duration-200">
       {/* Header */}
@@ -101,7 +130,7 @@ const DropdownList = <T,>({
               <div className="relative flex-1">
                 <input
                   type="text"
-                  placeholder="Search"
+                  placeholder={currentLang.search}
                   value={searchTerm}
                   onChange={(e) => handleSearch(e.target.value)}
                   className="w-full pl-9 pr-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent transition-colors"
@@ -127,7 +156,7 @@ const DropdownList = <T,>({
               }}
               className="px-3 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-md text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900"
             >
-              Reset
+              {currentLang.reset}
             </button>
           </div>
 
@@ -138,7 +167,7 @@ const DropdownList = <T,>({
             </div>
           ) : filteredItems.length === 0 ? (
             <div className="py-3 text-center text-gray-500 dark:text-gray-400 italic">
-              No items found
+              {currentLang.noItems}
             </div>
           ) : (
             <div className="max-h-60 overflow-y-auto pr-1 custom-scrollbar">
@@ -171,7 +200,7 @@ const DropdownList = <T,>({
           {selectedItems.length > 0 && (
             <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
               <div className="text-xs text-gray-500 dark:text-gray-400">
-                {selectedItems.length} item{selectedItems.length !== 1 ? "s" : ""} selected
+                {getItemsSelectedText(selectedItems.length)}
               </div>
             </div>
           )}
