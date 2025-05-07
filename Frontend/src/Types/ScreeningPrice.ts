@@ -1,9 +1,9 @@
 export interface ScreeningPrice {
-  ScreeningPricingId: number;
+  screeningPriceId: number;
 
-  TicketPrice: number;
+  ticketPrice: number;
 
-  VipTicketPrice: number;
+  screeningId: number;
 
-  ScreeningId: number;
+  seatCategoryId: number;
 }

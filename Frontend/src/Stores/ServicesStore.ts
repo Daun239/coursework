@@ -37,6 +37,7 @@ import { SupplierService } from "../lib/Supplier";
 import { TicketService } from "../lib/Ticket";
 import { LoginService } from "../lib/LoginService";
 import { ScreeningPriceService } from "@/lib/ScreeningPrice";
+import { SeatCategoryService } from "@/lib/SeatCategory";
 
 // You can create a base URL here and reuse it if needed
 const baseUrl = import.meta.env.VITE_API_URL;
@@ -78,6 +79,7 @@ type ServiceStore = {
   ticketService: TicketService;
   loginService: LoginService;
   screeningPriceService: ScreeningPriceService;
+  seatCategoryService: SeatCategoryService;
 };
 
 export const useServiceStore = create<ServiceStore>(() => ({
@@ -131,4 +133,6 @@ export const useServiceStore = create<ServiceStore>(() => ({
   ticketService: new TicketService(`${baseUrl}/ticket`),
   loginService: new LoginService(`${baseUrl}/login`),
   screeningPriceService: new ScreeningPriceService(`${baseUrl}/screeningPrice`),
+
+  seatCategoryService: new SeatCategoryService(`${baseUrl}/seatCategory`),
 }));

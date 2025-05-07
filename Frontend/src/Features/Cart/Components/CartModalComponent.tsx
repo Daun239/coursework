@@ -17,10 +17,9 @@ import { BsCartX, BsCreditCard2Front, BsPersonCircle, BsEnvelope, BsPhone } from
 import { useCartTotals } from "../Hooks/useCartTotal";
 import { useCartStore } from "../Stores/CartState";
 import CartProductItem from "./CartProductItem";
-import GroupedTicketsSection from "./GroupedTicketsSection"
+import GroupedTicketsSection from "./GroupedTicketsSection";
 
 import { toast } from "sonner";
-import { clear } from "console";
 import { Popover, PopoverTrigger, PopoverContent } from "@radix-ui/react-popover";
 import ScreeningTickets from "@/Features/Screenings/Components/ScreeningTickets";
 import { Screening } from "@/Types/Screening";
@@ -31,7 +30,7 @@ type CartItem =
 
 const CartModalComponent = forwardRef<HTMLDialogElement>((_, ref) => {
     const { cart, clearCart } = useCartStore();
-    const { productCheckService, productCheckDetailService, checkTicketService, ticketService, checkService, clientService, productService, productsInStorageService } = useServiceStore();
+    const { screeningPriceService, productCheckService, productCheckDetailService, checkTicketService, ticketService, checkService, clientService, productService, productsInStorageService } = useServiceStore();
     const [productsMap, setProductsMap] = useState<Record<number, Product>>({});
     const [selectedClient, setSelectedClient] = useState<Client | null>(null);
 
@@ -50,16 +49,16 @@ const CartModalComponent = forwardRef<HTMLDialogElement>((_, ref) => {
 
     const [showConfirm, setShowConfirm] = useState(false);
 
+    const [groupedTicketsByScreening, setGroupedTicketsByScreening] = useState({});
 
-
-    const [selectedScreeningId, setSelectedScreeningId] = useState<number>();
+    const [selectedScreeningId, setSelectedScreeningId] = useState<number | undefined>();
 
     const {
         productsTotalQuantity,
         productsTotalPrice,
         ticketsTotalQuantity,
         ticketsTotalPrice,
-    } = useCartTotals()
+    } = useCartTotals();
 
     const totalPrice = productsTotalPrice + ticketsTotalPrice;
 
@@ -83,11 +82,11 @@ const CartModalComponent = forwardRef<HTMLDialogElement>((_, ref) => {
         }
 
         // Otherwise fetch the client
-        const [client] = await clientService.getAll(`clientId = ${option.value}`)
+        const [client] = await clientService.getAll(`clientId = ${option.value}`);
         if (client) {
             setSelectedClient(client);
             console.log("Selected client:", client);
-            toast.success(`Client selected!`);
+            toast.success("Client selected!");
         }
     };
 
@@ -169,7 +168,7 @@ const CartModalComponent = forwardRef<HTMLDialogElement>((_, ref) => {
                     const [{ number }] = await productCheckService.getAll("", "number desc", 1, 1);
 
                     console.log('user', user);
-                    console.log('selected payment method', selectedPaymentMethod)
+                    console.log('selected payment method', selectedPaymentMethod);
 
                     const productCheck: ProductCheck = {
                         buyTime: new Date(),
@@ -245,23 +244,38 @@ const CartModalComponent = forwardRef<HTMLDialogElement>((_, ref) => {
         fetchProducts();
     }, [cart.product, productService, productsMap]);
 
-    const groupedTickets = items
-        .filter(({ type }) => type === 'ticket')
-        .reduce((acc, { data }) => {
-            const ticket = data as Ticket;
-            const screeningId = ticket.screeningId;
-            if (!acc[screeningId]) acc[screeningId] = [];
-            acc[screeningId].push(ticket);
-            return acc;
-        }, {} as Record<number, Ticket[]>);
+    useEffect(() => {
+        const fetchData = async () => {
+            const groupedTickets = await Promise.all(
+                items
+                    .filter(({ type }) => type === 'ticket')
+                    .map(async ({ data }) => {
+                        const ticket = data as Ticket;
+                        const [screeningPrice] = await screeningPriceService.getAll(`screeningPriceId = ${ticket.screeningPriceId}`);
+
+                        const screeningId = screeningPrice.screeningId;
+
+                        return { ticket, screeningId }; // Return ticket and screeningId pair
+                    })
+            );
+
+            // Now reduce the result to group the tickets by screeningId
+            const groupedTicketsByScreening = groupedTickets.reduce((acc, { ticket, screeningId }) => {
+                if (!acc[screeningId]) acc[screeningId] = [];
+                acc[screeningId].push(ticket);
+                return acc;
+            }, {} as Record<number, Ticket[]>);
+
+            setGroupedTicketsByScreening(groupedTicketsByScreening);
+        };
+
+        if (cart.ticket && cart.ticket.length > 0) {
+            fetchData();
+        }
+    }, [cart.ticket]);
 
     return (
-
-
-
         <div>
-
-
             <dialog ref={ref} id="my_modal_3" className="modal w-full z-10">
                 <div className="modal-box bg-white dark:bg-gray-800 shadow-xl max-w-4xl w-11/12 mx-auto">
                     <form method="dialog">
@@ -273,14 +287,12 @@ const CartModalComponent = forwardRef<HTMLDialogElement>((_, ref) => {
                         Shopping Cart
                     </h3>
 
-
-
                     {selectedScreeningId && (
                         <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/50">
                             <div className="rounded-xl shadow-xl max-w-5xl w-full relative bg-white">
                                 <button
                                     className="cursor-pointer absolute p-3 top-3 right-3 text-gray-500 hover:text-black text-4xl"
-                                    onClick={() => setSelectedScreeningId(null)}
+                                    onClick={() => setSelectedScreeningId(undefined)}
                                 >
                                     ×
                                 </button>
@@ -289,15 +301,13 @@ const CartModalComponent = forwardRef<HTMLDialogElement>((_, ref) => {
                         </div>
                     )}
 
-
-
                     <div className="max-h-[28rem] overflow-y-auto pr-2">
                         {items.length > 0 ? (
                             <div className="space-y-4">
                                 <div className="space-y-4">
 
                                     {/* Grouped tickets */}
-                                    {Object.entries(groupedTickets).map(([screeningId, tickets]) => (
+                                    {Object.entries(groupedTicketsByScreening).map(([screeningId, tickets]) => (
                                         <GroupedTicketsSection onClick={handleOpenScreeningTickets} key={screeningId} screeningId={+screeningId} tickets={tickets} />
                                     ))}
 
@@ -432,7 +442,6 @@ const CartModalComponent = forwardRef<HTMLDialogElement>((_, ref) => {
                             </div>
                         </div>
 
-
                         {selectedClient && (
                             <div className="mt-2 p-2 bg-gray-100 dark:bg-gray-700 rounded-md">
                                 <div className="text-xs text-gray-600 dark:text-gray-400">
@@ -481,8 +490,6 @@ const CartModalComponent = forwardRef<HTMLDialogElement>((_, ref) => {
                             </button>
                         )}
                     </div>
-
-
                 </div>
             </dialog>
         </div>

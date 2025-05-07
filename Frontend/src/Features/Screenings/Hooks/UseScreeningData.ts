@@ -26,7 +26,7 @@ const useScreeningData = (id: string | number | undefined) => {
   const [screeningFormat, setScreeningFormat] =
     useState<ScreeningFormat | null>(null);
 
-  const [screeningPrices, setScreeningPrices] = useState<number[]>([]);
+  const [screeningPrices, setScreeningPrices] = useState<ScreeningPrice[]>([]);
 
   const {
     screeningFormatService,
@@ -50,13 +50,12 @@ const useScreeningData = (id: string | number | undefined) => {
         // Convert id to number if it's a string
         const screeningId = typeof id === "string" ? parseInt(id) : id;
 
-        const screeningPrices: ScreeningPrice =
+        const screeningPrices: ScreeningPrice[] =
           await screeningPriceService.getAll(`screeningId = ${screeningId}`);
 
-        setScreeningPrices([
-          screeningPrices[0].ticketPrice,
-          screeningPrices[0].vipTicketPrice,
-        ]);
+        console.log(`screeningPrices`, screeningPrices);
+
+        setScreeningPrices(screeningPrices);
 
         // Fetch screening data
         const [screening] = await screeningService.getAll(
@@ -89,9 +88,9 @@ const useScreeningData = (id: string | number | undefined) => {
 
         // Fetch tickets for this screening
         const ticketsQuery = formFilterQuery("AND", {
-          field: "screeningId",
+          field: "screeningPriceId",
           operator: "in",
-          values: [screeningId],
+          values: screeningPrices.map((s) => s.screeningPriceId),
         });
 
         const tickets = await ticketService.getAll(ticketsQuery, "", 1, 100000);

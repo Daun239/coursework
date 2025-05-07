@@ -7,7 +7,7 @@ public partial class Employee
 {
     public int EmployeeId { get; set; }
 
-    public int CinemaId { get; set; }
+    public int? CinemaId { get; set; }
 
     public int EmployeePositionId { get; set; }
 
@@ -27,7 +27,7 @@ public partial class Employee
 
     public virtual ICollection<Check> Checks { get; set; } = new List<Check>();
 
-    public virtual Cinema Cinema { get; set; } = null!;
+    public virtual Cinema? Cinema { get; set; }
 
     public virtual ICollection<DeliveryOrder> DeliveryOrders { get; set; } = new List<DeliveryOrder>();
 

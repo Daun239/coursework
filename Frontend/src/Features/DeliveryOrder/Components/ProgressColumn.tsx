@@ -122,7 +122,7 @@ const ProgressColumn = ({ deliveryOrderId }: ProgressColumnProps) => {
     };
 
     return (
-        <td className='w-full'>
+        <td className='w-full overflow-clip'>
             {isDetailsOpen ?
                 < ChevronUp className='cursor-pointer' onClick={() => setIsDetailsOpen(prev => !prev)} />
                 :

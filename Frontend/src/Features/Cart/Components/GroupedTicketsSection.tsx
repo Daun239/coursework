@@ -41,6 +41,8 @@ const GroupedTicketsSection = ({
 
 
     useEffect(() => {
+
+        console.log('tickets in grouped tickets section!!!', tickets);
         const fetchData = async () => {
             const [screeningData] = await screeningService.getAll(`screeningId = ${screeningId}`);
             setScreening(screeningData);

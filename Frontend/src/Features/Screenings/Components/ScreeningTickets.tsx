@@ -148,9 +148,8 @@ const ScreeningTickets: React.FC<ScreeningTicketsProps> = ({ id, theme = 'light'
 
       selectedSeats.forEach((seat, index) => {
         const ticket: Ticket = {
-          price: seat.isVipCategory ? 100 : 50,
           seatId: seat.seatId,
-          screeningId: id,
+          screeningPriceId: seat.seatCategoryId === 2 ? screeningPrices[1].screeningPriceId : screeningPrices[0].screeningPriceId,
           number: number + index + 1 + ticketsInCart.length,
           ticketId: ticketsInCart.length + index,
         };
@@ -212,7 +211,7 @@ const ScreeningTickets: React.FC<ScreeningTicketsProps> = ({ id, theme = 'light'
               <h3 className="text-lg font-semibold text-gray-800 dark:text-white">{languagetranslated.selectSeats}</h3>
 
               <div className="ml-8 my-4">
-                <SeatColorLegend title="Pricing" price={screeningPrices[0]} priceVip={screeningPrices[1]} />
+                <SeatColorLegend title="Pricing" price={screeningPrices[0].ticketPrice} priceVip={screeningPrices[1]?.ticketPrice ?? null} />
               </div>
 
               <div className="flex justify-center">

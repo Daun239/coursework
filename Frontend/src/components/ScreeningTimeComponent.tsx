@@ -51,7 +51,7 @@ const SeatIcon = () => (
 
 const ScreeningTimeComponent: React.FC<Props> = ({ screening, onSelect }) => {
     const { startDate, startTime, endTime } = screening;
-    const { ticketService, seatService, hallService } = useServiceStore();
+    const { ticketService, seatService, hallService, screeningPriceService } = useServiceStore();
     const [tickets, setTickets] = useState<Ticket[]>([]);
     const [availableSeats, setAvailableSeats] = useState<number>(0);
     const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -63,7 +63,17 @@ const ScreeningTimeComponent: React.FC<Props> = ({ screening, onSelect }) => {
         const fetchData = async () => {
             try {
                 setIsLoading(true);
-                const tickets = await ticketService.getAll(`screeningId = ${screening.screeningId}`, "", 1, 1000);
+
+                const screeningPrices = await screeningPriceService.getAll(`screeningId = ${screening.screeningId}`);
+
+
+                const ticketsQuery = formFilterQuery("AND", {
+                    field: "screeningPriceId",
+                    operator: "in",
+                    values: screeningPrices.map((p) => p.screeningPriceId)
+                })
+
+                const tickets = await ticketService.getAll(ticketsQuery, "", 1, 1000);
                 const seatQuery = formFilterQuery("OR", {
                     field: 'seatId',
                     operator: 'in',

@@ -1,3 +1,4 @@
+import { useLanguageStore } from "@/Stores/useLanguageStore";
 import React from "react";
 
 const SeatColorLegend = ({
@@ -23,7 +24,7 @@ const SeatColorLegend = ({
   };
 
   // Assume language is coming from context or props, default to 'en'
-  const language = "ua"; // For example, 'ua'
+  const { language } = useLanguageStore();
   const t = translations[language] ?? translations["en"];
 
   return (

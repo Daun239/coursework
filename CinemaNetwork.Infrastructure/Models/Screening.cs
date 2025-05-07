@@ -34,6 +34,4 @@ public partial class Screening
     public virtual ScreeningFormat? ScreeningFormat { get; set; }
 
     public virtual ICollection<ScreeningPrice> ScreeningPrices { get; set; } = new List<ScreeningPrice>();
-
-    public virtual ICollection<Ticket> Tickets { get; set; } = new List<Ticket>();
 }

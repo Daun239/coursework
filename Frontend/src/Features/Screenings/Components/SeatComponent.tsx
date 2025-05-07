@@ -41,7 +41,7 @@ const NormalSeatComponent: React.FC<{
 
     let bgColor: string;
 
-    if (seat.isVipCategory) {
+    if (seat.seatCategoryId === 2) {
         if (isOccupied) bgColor = "dark:bg-fuchsia-800 bg-fuchsia-600";
         else if (isSelected) bgColor = "bg-fuchsia-400 dark:bg-fuchsia-700";
         else bgColor = "bg-fuchsia-200 dark:bg-fuchsia-500";

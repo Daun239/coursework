@@ -9,9 +9,7 @@ public partial class Ticket
 
     public int SeatId { get; set; }
 
-    public int ScreeningId { get; set; }
-
-    public int? Price { get; set; }
+    public int ScreeningPriceId { get; set; }
 
     public int? Number { get; set; }
 
@@ -21,7 +19,7 @@ public partial class Ticket
 
     public virtual CheckTicket? CheckTicket { get; set; }
 
-    public virtual Screening Screening { get; set; } = null!;
+    public virtual ScreeningPrice ScreeningPrice { get; set; } = null!;
 
     public virtual Seat Seat { get; set; } = null!;
 }
