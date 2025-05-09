@@ -33,6 +33,9 @@ type TranslationKeys = {
     availableScreenings: string;
     noScreenings: string;
     minutes: string;
+    addScreening: string;
+    addMovie: string;
+    showNoScreeningsMovies: string;
   };
 };
 
@@ -67,6 +70,9 @@ const translations: Record<"en" | "ua", TranslationKeys> = {
       availableScreenings: "Available Screenings",
       noScreenings: "No screenings available",
       minutes: "minutes",
+      addScreening: "Add screening",
+      addMovie: "Add movie",
+      showNoScreeningsMovies: "Show movies with no screenings",
     },
   },
   ua: {
@@ -98,6 +104,9 @@ const translations: Record<"en" | "ua", TranslationKeys> = {
       availableScreenings: "Доступні сеанси",
       noScreenings: "Немає доступних сеансів",
       minutes: "хвилин",
+      addScreening: "Додати сеанс",
+      addMovie: "Додати фільм",
+      showNoScreeningsMovies: "Показувати фільми без сеансів",
     },
   },
 };

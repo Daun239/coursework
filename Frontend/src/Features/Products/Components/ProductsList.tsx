@@ -26,6 +26,9 @@ import {
 import { useProductRange } from '../Hooks/useProductRange';
 import cleanInClauses from '@/lib/cleanInClauses';
 import { useLanguageStore } from '@/Stores/useLanguageStore';
+import { t } from '../Utils/useTranslation';
+import CreateOrUpdateProduct from './CreateOrUpdateProduct';
+import { exportProductsData } from '../Utils/exportProductsData';
 
 
 
@@ -81,14 +84,27 @@ const ProductsList = () => {
 
     const [productsInStorageCount, setProductsInStorageCount] = useState<number>(1);
 
+
+    const handleSelectProduct = (productId: number) => {
+        setSelectedProductId(productId);
+        setCreateProductOpen(true);
+    };
+
+
+
+
     useEffect(() => {
         const down = (e: KeyboardEvent) => {
-            if (e.key === "f" && (e.metaKey || e.ctrlKey) && e.altKey) {
-                e.preventDefault()
+            // Handle both 'f' (English) and 'ф' (Ukrainian) for switching sidebar
+            const ukrainianFKey = e.key === "а" || e.key === "f";
+
+            if (ukrainianFKey && (e.metaKey || e.ctrlKey) && e.altKey) {
+                e.preventDefault();
                 toggleSidebar();
             }
-        }
-        document.addEventListener("keydown", down)
+        };
+
+        document.addEventListener("keydown", down);
         return () => document.removeEventListener("keydown", down)
     }, [])
 
@@ -265,78 +281,12 @@ const ProductsList = () => {
 
     const { language } = useLanguageStore(); // <-- use language from store
 
-    const t = {
-        en: {
-            sidebar: {
-                open: 'Open Sidebar',
-                close: 'Close Sidebar',
-            },
-            filters: {
-                productsFound: 'products found',
-                filterByProductNames: 'Filter by product names',
-                filterByProductTypes: 'Filter by product types',
-                productPrice: 'Product price',
-                productQuantity: 'Product quantity',
-                productionDate: 'Production date',
-                expirationDate: 'Expiration date',
-                itemsPerPage: 'Items per page:',
-            },
-            pagination: {
-                nextPage: 'Next page',
-                previousPage: 'Previous page',
-            },
-            noResults: {
-                title: 'No products found. Please try changing your filters or check back later.',
-                subtitle: "Oops, we couldn't find any products matching your criteria.",
-                suggestion: 'Try adjusting your filters or search parameters.',
-            },
-            buttons: {
-                toggleSidebar: 'Toggle Sidebar',
-                pickDate: 'Pick a date',
-            },
-            loading: 'Loading...',
-            product: {
-                noProducts: 'No products found.',
-                tryAgain: 'Please try changing your filters or check back later.',
-            },
-            productsList: 'Products List' // Added missing key
-        },
-        ua: {
-            sidebar: {
-                open: 'Відкрити бічну панель',
-                close: 'Закрити бічну панель',
-            },
-            filters: {
-                productsFound: 'знайдено продуктів',
-                filterByProductNames: 'Фільтрувати за назвами продуктів',
-                filterByProductTypes: 'Фільтрувати за типами продуктів',
-                productPrice: 'Ціна продукту',
-                productQuantity: 'Кількість продуктів',
-                productionDate: 'Дата виробництва',
-                expirationDate: 'Дата закінчення терміну',
-                itemsPerPage: 'Продуктів на сторінку:',
-            },
-            pagination: {
-                nextPage: 'Наступна сторінка',
-                previousPage: 'Попередня сторінка',
-            },
-            noResults: {
-                title: 'Не знайдено продуктів. Будь ласка, спробуйте змінити фільтри або поверніться пізніше.',
-                subtitle: 'Ой, не вдалося знайти продукти, що відповідають вашим критеріям.',
-                suggestion: 'Спробуйте налаштувати фільтри або параметри пошуку.',
-            },
-            buttons: {
-                toggleSidebar: 'Перемкнути бічну панель',
-                pickDate: 'Вибрати дату',
-            },
-            loading: 'Завантаження...',
-            product: {
-                noProducts: 'Продуктів не знайдено.',
-                tryAgain: 'Будь ласка, спробуйте змінити фільтри або перевірте пізніше.',
-            },
-            productsList: 'Список продуктів' // Added missing key
-        }
-    };
+
+    const [createProductOpen, setCreateProductOpen] = useState<boolean>(false);
+
+
+
+    const [selectedProductId, setSelectedProductId] = useState<number>(null);
 
 
 
@@ -481,6 +431,50 @@ const ProductsList = () => {
                     <h2 className="text-2xl font-bold">{t[language].productsList}</h2>
                 </div>
 
+
+                <div className="flex items-center mb-6">
+                    <button
+                        onClick={() => setCreateProductOpen(prev => !prev)}
+                        className="p-2 rounded-md cursor-pointer bg-gray-500 dark:bg-gray-900 text-white hover:bg-primary-dark transition-colors mr-4"
+                    >
+                        {t[language].addProduct}
+                    </button>
+                </div>
+
+
+
+                {createProductOpen && <div className="fixed inset-0 z-50 flex items-center justify-center ">
+                    <div className="bg-white dark:bg-gray-900 rounded-lg shadow-2xl w-full max-w-2xl relative">
+                        <button
+                            onClick={() => {
+                                setCreateProductOpen(false);
+                                setSelectedProductId(null);
+                            }}
+                            className="absolute top-2 right-2 text-gray-500 hover:text-gray-800 dark:hover:text-white"
+                        >
+                            ✕
+                        </button>
+
+                        <CreateOrUpdateProduct productId={selectedProductId} />
+                    </div>
+                </div>}
+
+
+                <button onClick={() => exportProductsData(productsInStorage, 'csv')}>
+                    Export as CSV
+                </button>
+
+                <button onClick={() => exportProductsData(productsInStorage, 'json')}>
+                    Export as JSON
+                </button>
+
+                <button onClick={() => exportProductsData(productsInStorage, 'pdf')}>
+                    Export as PDF
+                </button>
+
+
+
+
                 {/* Loading state */}
                 {loading && (
                     <div className="flex justify-center items-center h-40">
@@ -502,7 +496,7 @@ const ProductsList = () => {
                 {/* Products grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-12">
                     {productsInStorage.length > 0 && productsInStorage.map(product => (
-                        <ProductComponent key={product.productInStorageId} productInStorageId={product.productInStorageId} />
+                        <ProductComponent onSelecProductId={handleSelectProduct} key={product.productInStorageId} productInStorageId={product.productInStorageId} />
                     ))}
 
                     {/* Empty state within grid */}

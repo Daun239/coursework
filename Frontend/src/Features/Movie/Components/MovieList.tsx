@@ -23,6 +23,9 @@ import {
     AccordionTrigger,
 } from "@/components/ui/accordion"
 import { useTranslation } from "../Hooks/useTranslation";
+import CreateOrUpdateMovie from "./CreateOrUpdateMovie";
+import CreateOrUpdateScreening from "./CreateOrUpdateScreening";
+import { useUserStore } from "@/Stores/UserStore";
 
 
 function handleSelectionChange<T>(selected: T[], setState: React.Dispatch<React.SetStateAction<T[]>>) {
@@ -31,7 +34,7 @@ function handleSelectionChange<T>(selected: T[], setState: React.Dispatch<React.
 
 const MovieList = () => {
     const { t } = useTranslation();
-    const { runService, screeningService, movieService, genreService, moviesGenreService, languageService, countryService, publisherService, ageRestrictionService } = useServiceStore();
+    const { hallService, runService, screeningService, movieService, genreService, moviesGenreService, languageService, countryService, publisherService, ageRestrictionService } = useServiceStore();
     const [movies, setMovies] = useState<Movie[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -58,10 +61,45 @@ const MovieList = () => {
         setIsSidebarOpen(prev => !prev);
     };
 
+    const [rerender, setRerender] = useState<boolean>(false);
+
+    const handleRerender = () => {
+        setRerender(prev => !prev);
+    }
+
+
+    const { user } = useUserStore();
+
+    const handleAddMovie = () => {
+
+        if (createMovieOpen === true)
+            setSelectedMovieId(null);
+
+
+        setCreateMovieOpen(prev => !prev);
+
+    }
+
+
+
+    const handleAddScreening = () => {
+
+        if (createMovieOpen === true)
+            setSelectedScreeningId(null);
+
+
+        setCreateScreeningOpen(prev => !prev);
+
+    }
+
+    const [createScreeningOpen, setCreateScreeningOpen] = useState(false);
+
+    const [selectedScreeningId, setSelectedScreeningId] = useState<number>(null)
+
 
     useEffect(() => {
         const down = (e: KeyboardEvent) => {
-            if (e.key === "f" && (e.metaKey || e.ctrlKey) && e.altKey) {
+            if ((e.key === "f" || e.key === 'а') && (e.metaKey || e.ctrlKey) && e.altKey) {
                 e.preventDefault()
                 toggleSidebar();
             }
@@ -115,6 +153,27 @@ const MovieList = () => {
 
 
 
+
+    const [createMovieOpen, setCreateMovieOpen] = useState<boolean>(false);
+
+
+
+    const [selectedMovieId, setSelectedMovieId] = useState<number>(undefined);
+
+    const handleSelectMovie = (movieId: number) => {
+        setSelectedMovieId(movieId);
+        setCreateMovieOpen(true);
+        window.scrollTo({ top: 0, behavior: 'smooth' }); // scrolls to top
+    };
+
+    const handleSelectScreening = (screeningId: number) => {
+        setSelectedScreeningId(screeningId);
+        setCreateScreeningOpen(true);
+        window.scrollTo({ top: 0, behavior: 'smooth' }); // scrolls to top
+    };
+
+
+    const [showMoviesNoScreenings, setShowMoviesNoScreenings] = useState<boolean>(false);
 
 
     // Fixed useEffect to properly fetch screenings when currentPage changes
@@ -214,13 +273,31 @@ const MovieList = () => {
                     if (fetchedRuns.length > 0) {
                         const runIds = fetchedRuns.map(r => r.runId);
 
+
+                        const halls = await hallService.getAll(`cinemaId = ${user?.cinemaId}`, "", 1, 10000);
+
+
+
                         let screeningsQuery = formFilterQuery("AND", {
                             field: 'runId',
                             operator: "in",
                             values: runIds, // Fixed: using runId instead of movieId
-                        });
+                        }
+                            ,
+                            {
+                                field: "hallId",
+                                operator: "in",
+                                values: halls.map(h => h.hallId)
+                            }
+                        );
 
-                        const fetchedScreenings = await screeningService.getAll(screeningsQuery, "startDate asc", 1, 1000);
+                        // const now = new Date();
+                        // const formattedDate = now.toISOString().split('T')[0]; // "2025-05-09"
+
+                        // screeningsQuery += ` AND startDate >= '${formattedDate}'`;
+
+
+                        const fetchedScreenings = await screeningService.getAll(screeningsQuery, "startDate desc", 1, 1000);
                         console.log('Fetched screenings:', fetchedScreenings);
                         setScreenings(fetchedScreenings);
                     } else {
@@ -236,7 +313,7 @@ const MovieList = () => {
         };
 
         fetchMovies();
-    }, [currentPage, movieService, genres, ageRestrictions, languages, publishers, countries, minBudget, maxBudget, selectedBudgetRange, minRuntime, maxRuntime, selectedRuntimeRange, title, pageSize]);
+    }, [rerender, currentPage, movieService, genres, ageRestrictions, languages, publishers, countries, minBudget, maxBudget, selectedBudgetRange, minRuntime, maxRuntime, selectedRuntimeRange, title, pageSize]);
 
     if (loading) {
         <span className="loading loading-spinner loading-xl"></span>
@@ -329,6 +406,15 @@ const MovieList = () => {
                             sliderName={t('movieList.runtime')}
                             currency={t('movieList.minutes')}
                         />
+
+                        <label className="flex items-center gap-2 mt-4">
+                            <input
+                                type="checkbox"
+                                onChange={() => setShowMoviesNoScreenings(prev => !prev)}
+                            />
+                            {t('movieList.showNoScreeningsMovies')}
+                        </label>
+
                     </div>
 
                     <div className="mt-2">
@@ -378,59 +464,152 @@ const MovieList = () => {
 
                 </div>
 
-                <div className="p-6 flex-1">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 w-full">
-                        {movies.map((movie, i) => {
-                            const movieScreenings = getScreeningsForMovie(movie.movieId);
-                            return (
-                                <div key={i} className="rounded-xl shadow-md overflow-hidden transition-all hover:shadow-lg">
-                                    <MoviePreview movieId={movie.movieId} />
 
-                                    {movieScreenings && movieScreenings.length > 0 ? (
-                                        <div className="p-4">
-                                            <Accordion type="single" collapsible>
-                                                <AccordionItem value="item-1">
-                                                    <AccordionTrigger className="flex items-center gap-2 py-2 cursor-pointer">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                                        </svg>
-                                                        <div className="flex">
-                                                            <h3 className="text-sm font-medium">{t('movieList.availableScreenings')} ({movieScreenings.length})</h3>
-                                                        </div>
-                                                    </AccordionTrigger>
-                                                    <AccordionContent className="grid grid-cols-1 gap-3">
-                                                        {movieScreenings.map(screening => (
-                                                            <ScreeningTimeComponent key={screening.screeningId} screening={screening} onSelect={setSelectedScreening} />
-                                                        ))}
-                                                    </AccordionContent>
-                                                </AccordionItem>
-                                            </Accordion>
-                                        </div>
-                                    ) : (
-                                        <div className="p-4 text-center text-gray-500 italic">
-                                            {t('movieList.noScreenings')}
-                                        </div>
-                                    )}
-                                </div>
-                            );
-                        })}
-                    </div>
-                </div>
-            </div>
 
-            {selectedScreening && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-                    <div className="rounded-xl shadow-xl max-w-5xl w-full relative bg-white">
+                <div className="flex-1 flex flex-col h-screen overflow-auto">
+                    {/* Toggle sidebar button */}
+                    <div className="p-4 flex justify-between items-center">
                         <button
-                            className="cursor-pointer absolute p-3 top-3 right-3 text-gray-500 hover:text-black text-4xl"
-                            onClick={() => setSelectedScreening(null)}
+                            onClick={handleAddMovie}
+                            className="p-2 rounded-md dark:bg-gray-900 bg-gray-400 text-white hover:bg-primary-dark transition-colors"
                         >
-                            ×
+
+                            {t('movieList.addMovie')}
                         </button>
-                        <ScreeningTickets id={selectedScreening.screeningId} />
+
+                    </div>
+
+
+
+                    <div className="p-4 flex justify-between items-center">
+                        <button
+                            onClick={handleAddScreening}
+                            className="p-2 rounded-md dark:bg-gray-900 bg-gray-400 text-white hover:bg-primary-dark transition-colors"
+                        >
+
+                            {t('movieList.addScreening')}
+                        </button>
+
+                    </div>
+
+
+
+
+                    {/* Movie Modal */}
+                    {createMovieOpen && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center">
+                            <div className="bg-white dark:bg-gray-900 rounded-lg shadow-2xl w-full max-w-2xl relative">
+                                <button
+                                    onClick={() => {
+                                        setCreateMovieOpen(false);
+                                        setSelectedMovieId(null);
+                                    }}
+                                    className="absolute top-2 right-2 text-gray-500 hover:text-gray-800 dark:hover:text-white"
+                                >
+                                    ✕
+                                </button>
+
+                                <CreateOrUpdateMovie
+                                    handleRerender={handleRerender}
+                                    movieId={selectedMovieId}
+                                />
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Screening Modal */}
+                    {createScreeningOpen && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center">
+                            <div className="bg-white dark:bg-gray-900 rounded-lg shadow-2xl w-full max-w-2xl relative">
+                                <button
+                                    onClick={() => {
+                                        setCreateScreeningOpen(false);
+                                        setSelectedScreeningId(null);
+                                    }}
+                                    className="absolute top-2 right-2 text-gray-500 hover:text-gray-800 dark:hover:text-white"
+                                >
+                                    ✕
+                                </button>
+
+                                <CreateOrUpdateScreening screeningId={selectedScreeningId} />
+                            </div>
+                        </div>
+                    )}
+
+
+                    <div className="p-6 flex-1">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 w-full">
+                            {movies
+                                .filter((movie) => {
+                                    const movieScreenings = getScreeningsForMovie(movie.movieId);
+                                    // Show all movies if checkbox is checked; otherwise, only movies that have screenings
+                                    return showMoviesNoScreenings || (movieScreenings && movieScreenings.length > 0);
+                                })
+                                .map((movie, i) => {
+                                    const movieScreenings = getScreeningsForMovie(movie.movieId);
+
+                                    return (
+                                        <div key={i} className="rounded-xl shadow-md overflow-hidden transition-all hover:shadow-lg">
+                                            <MoviePreview
+                                                handleRerender={() => handleRerender()}
+                                                onSelectMovieId={handleSelectMovie}
+                                                movieId={movie.movieId}
+                                            />
+
+                                            {movieScreenings && movieScreenings.length > 0 ? (
+                                                <div className="p-4">
+                                                    <Accordion type="single" collapsible>
+                                                        <AccordionItem value="item-1">
+                                                            <AccordionTrigger className="flex items-center gap-2 py-2 cursor-pointer">
+                                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                                </svg>
+                                                                <div className="flex">
+                                                                    <h3 className="text-sm font-medium">
+                                                                        {t('movieList.availableScreenings')} ({movieScreenings.length})
+                                                                    </h3>
+                                                                </div>
+                                                            </AccordionTrigger>
+                                                            <AccordionContent className="grid grid-cols-1 gap-3">
+                                                                {movieScreenings.map((screening) => (
+                                                                    <ScreeningTimeComponent
+                                                                        key={screening.screeningId}
+                                                                        screening={screening}
+                                                                        onSelect={setSelectedScreening}
+                                                                        onSelectScreeningId={handleSelectScreening}
+                                                                    />
+                                                                ))}
+                                                            </AccordionContent>
+                                                        </AccordionItem>
+                                                    </Accordion>
+                                                </div>
+                                            ) : (
+                                                <div className="p-4 text-center text-gray-500 italic">
+                                                    {t('movieList.noScreenings')}
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+
+                        </div>
                     </div>
                 </div>
-            )}
+
+                {selectedScreening && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+                        <div className="rounded-xl shadow-xl max-w-5xl w-full relative bg-white">
+                            <button
+                                className="cursor-pointer absolute p-3 top-3 right-3 text-gray-500 hover:text-black text-4xl"
+                                onClick={() => setSelectedScreening(null)}
+                            >
+                                ×
+                            </button>
+                            <ScreeningTickets id={selectedScreening.screeningId} />
+                        </div>
+                    </div>
+                )}
+            </div>
         </div>
     );
 };

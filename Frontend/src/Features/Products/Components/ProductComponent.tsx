@@ -9,11 +9,15 @@ import axios from "axios";
 import { useState, useEffect } from "react";
 import { BsImage, BsCartCheckFill, BsCart2 } from "react-icons/bs";
 
+
+import { toast } from "sonner"
+
 interface Props {
     productInStorageId: number;
+    onSelecProductId: (movieId: number) => void;
 }
 
-const ProductComponent: React.FC<Props> = ({ productInStorageId }) => {
+const ProductComponent: React.FC<Props> = ({ productInStorageId, onSelecProductId }) => {
 
 
 
@@ -84,6 +88,20 @@ const ProductComponent: React.FC<Props> = ({ productInStorageId }) => {
         }
     };
 
+
+    const handleDelete = async () => {
+        if (!product?.productId) {
+            toast.error('Product ID is missing.');
+            return;
+        }
+
+        try {
+            await productService.delete(`productId = ${product.productId}`);
+            toast.success('Product deleted.');
+        } catch (error: any) {
+            toast.error(error?.message || 'Error deleting product.');
+        }
+    };
 
     function handleProductsNumberChange(newNumber: number) {
         if (
@@ -283,6 +301,29 @@ const ProductComponent: React.FC<Props> = ({ productInStorageId }) => {
                             </div>
                         )}
                     </div>
+
+                    <div>
+
+                        <button
+                            onClick={handleDelete}
+                            className="text-blue-500 hover:text-blue-700"
+                            title="Edit"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 4h2m-1 0v12m-4 4h10a2 2 0 002-2v-2a2 2 0 00-2-2H7a2 2 0 00-2 2v2a2 2 0 002 2z" />
+                            </svg>
+
+                            Delete
+                        </button>
+
+
+                        <button onClick={() => onSelecProductId(product.productId)}>EDIT</button>
+
+                    </div>
+
+
+
+
                 </div>
 
                 {/* Cart Controls */}
@@ -313,6 +354,9 @@ const ProductComponent: React.FC<Props> = ({ productInStorageId }) => {
                                 <BsCartCheckFill className="text-green-600 dark:text-green-400 text-xl mr-2" />
                                 <span className="text-green-600 dark:text-green-400 font-medium">{t[language].inCart}</span> {/* Translated */}
                             </div>
+
+
+
                         </div>
                     ) : (
                         <button

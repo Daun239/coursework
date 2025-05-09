@@ -47,18 +47,18 @@ const Pagination: React.FC<PaginationProps> = ({
 
     const t = {
         en: {
-            prev: "Prev",
+            prev: "<",
             page: "Page",
             of: "of",
-            next: "Next"
+            next: ">"
         },
 
         ua:
         {
-            prev: "Назад",
+            prev: "<",
             page: "Сторінка",
             of: "з",
-            next: "Вперед"
+            next: ">"
         }
     };
 

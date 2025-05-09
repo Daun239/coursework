@@ -14,6 +14,7 @@ import { User } from './Types/User';
 import { Toaster } from 'sonner';
 import ProductsList from './Features/Products/Components/ProductsList';
 import DeliveryOrder from './Features/DeliveryOrder/Components/DeliveryOrder';
+import ProtectedRoute from './components/ProtectedRoute';
 
 
 const getDecodedToken = (token: string | null) => {
@@ -43,20 +44,24 @@ function App() {
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
-      if (e.key === "t" && (e.metaKey || e.ctrlKey) && e.altKey) {
+      // Handle 't' key in both English and Ukrainian keyboard layouts
+      const ukrainianTKey = e.key === "е" || e.key === "t"; // 'е' is the Ukrainian equivalent of 't'
+
+      if (ukrainianTKey && (e.metaKey || e.ctrlKey) && e.altKey) {
         e.preventDefault();
         console.log('THEME SWITCH');
-        const theme1 = theme === 'dark' ? 'light' : 'dark';
-        setTheme(theme1);
+        const newTheme = theme === 'dark' ? 'light' : 'dark';
+        setTheme(newTheme);
       }
     };
+
     document.addEventListener("keydown", down);
 
     // Cleanup the event listener when the component unmounts
     return () => {
       document.removeEventListener("keydown", down);
     };
-  }, [theme, setTheme]); // Add theme and setTheme as dependencies
+  }, [theme, setTheme]);
 
 
   useEffect(() => {
@@ -95,10 +100,28 @@ function App() {
 
         <Routes>
           <Route path="/login" element={<LoginPage />} />
-          {/* Protected routes */}
+
           <Route path="/movies" element={<MovieList />} />
           <Route path="/products" element={<ProductsList />} />
           <Route path="/deliveryOrders" element={<DeliveryOrder />} />
+        </Routes>
+
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+
+
+          <Route
+            path="/movies"
+            element={<ProtectedRoute element={<MovieList />} requiredRole="Manager" />}
+          />
+          <Route
+            path="/products"
+            element={<ProtectedRoute element={<ProductsList />} requiredRole="WarehouseWorker" />}
+          />
+          <Route
+            path="/deliveryOrders"
+            element={<ProtectedRoute element={<DeliveryOrder />} requiredRole="Cashier" />}
+          />
         </Routes>
 
       </div>
@@ -106,7 +129,7 @@ function App() {
       {/* <ToastContainer position="top-right" autoClose={3000} /> */}
 
       <Toaster />
-    </ ThemeProvider>
+    </ ThemeProvider >
   );
 }
 

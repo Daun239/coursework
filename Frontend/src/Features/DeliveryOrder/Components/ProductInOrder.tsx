@@ -25,6 +25,7 @@ import { useUserStore } from '@/Stores/UserStore';
 import { ProductsInStorage } from '@/Types/ProductsInStorage';
 import { Product } from '@/Types/Product';
 import { toast } from 'sonner';
+import { useLanguageStore } from '@/Stores/useLanguageStore';
 
 
 
@@ -43,7 +44,11 @@ const translations = {
         inProgress: 'In Progress',
         placements: 'Placements',
         noPlacementsAdded: 'No placements have been added yet.',
-        noImageFound: 'No image found'
+        noImageFound: 'No image found',
+        addPlacement: "Add Placement",
+        pickDate: "Pick Date",
+        ExpirationDate: "Expiration Date",
+        quantity: "Quantity",
     },
     ua: {
         pricePerUnit: 'Ціна за одиницю:',
@@ -53,11 +58,15 @@ const translations = {
         inProgress: 'В процесі',
         placements: 'Розміщення',
         noPlacementsAdded: 'Розміщення ще не додано.',
-        noImageFound: 'Зображення не знайдено'
+        noImageFound: 'Зображення не знайдено',
+        addPlacement: "Додати розміщення",
+        pickDate: "Дата вибору",
+        ExpirationDate: "Термін придатності",
+        quantity: "Кількість",
     }
 };
 
-const ProductInOrder: React.FC<ProductInOrderProps> = ({ productInOrderId, language = 'en', handleReload }) => {
+const ProductInOrder: React.FC<ProductInOrderProps> = ({ productInOrderId, deliveryOrderFinished, handleReload }) => {
     const {
         productPlacementService,
         productsInOrderService,
@@ -72,13 +81,12 @@ const ProductInOrder: React.FC<ProductInOrderProps> = ({ productInOrderId, langu
     const [product, setProduct] = useState<Product>();
 
     const { fetchProductImage, isImageLoading, productImage } = useProductImage();
+
+    const { language } = useLanguageStore();
     const t = translations[language];
 
 
     const { user } = useUserStore();
-
-
-
 
     useEffect(() => {
         const fetchData = async () => {
@@ -279,7 +287,7 @@ const ProductInOrder: React.FC<ProductInOrderProps> = ({ productInOrderId, langu
                         )}
 
                         <div>
-                            <button onClick={() => setAddPlacementOpen(true)}>Add a placement</button>
+                            <button onClick={() => setAddPlacementOpen(true)}>{t.addPlacement}</button>
                         </div>
 
 
@@ -287,10 +295,11 @@ const ProductInOrder: React.FC<ProductInOrderProps> = ({ productInOrderId, langu
                             <div className="bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg p-6 mt-4 space-y-4 shadow-sm">
                                 <div className="space-y-2">
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                        Quantity
+                                        {t.quantity}
                                     </label>
                                     <input
                                         type="number"
+                                        min="1"
                                         value={placementQuantity}
                                         onChange={(e) => setPlacementQuantity(Number(e.target.value))}
                                         className="..."
@@ -301,7 +310,7 @@ const ProductInOrder: React.FC<ProductInOrderProps> = ({ productInOrderId, langu
                                 {/* Production Date Picker */}
                                 <div className="space-y-2">
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                        Production Date
+                                        {t.productionDate}
                                     </label>
                                     <Popover>
                                         <PopoverTrigger asChild>
@@ -316,7 +325,7 @@ const ProductInOrder: React.FC<ProductInOrderProps> = ({ productInOrderId, langu
                                                 {productionDate ? format(productionDate, "PPP") : (
                                                     <span>
                                                         {/* {t[language].buttons.pickDate} */}
-                                                        Pick date
+                                                        {t.pickDate}
                                                     </span>
                                                 )}
                                             </Button>
@@ -335,7 +344,7 @@ const ProductInOrder: React.FC<ProductInOrderProps> = ({ productInOrderId, langu
                                 {/* Expiration Date Picker */}
                                 <div className="space-y-2">
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                        Expiration Date
+                                        {t.ExpirationDate}
                                     </label>
                                     <Popover>
                                         <PopoverTrigger asChild>
@@ -350,7 +359,7 @@ const ProductInOrder: React.FC<ProductInOrderProps> = ({ productInOrderId, langu
                                                 {expirationDate ? format(expirationDate, "PPP") : (
                                                     <span>
                                                         {/* {t[language].buttons.pickDate} */}
-                                                        Pick date
+                                                        {t.pickDate}
                                                     </span>
                                                 )}
                                             </Button>
@@ -369,7 +378,7 @@ const ProductInOrder: React.FC<ProductInOrderProps> = ({ productInOrderId, langu
                                 {/* Add Button */}
                                 <div className="pt-4">
                                     <Button onClick={handleAddProductPlacement} className="w-full">
-                                        Add Placement
+                                        {t.addPlacement}
                                     </Button>
                                 </div>
                             </div>

@@ -13,6 +13,7 @@ import { useLanguageStore } from "@/Stores/useLanguageStore";
 interface Props {
     screening: Screening;
     onSelect?: (screening: Screening) => void;
+    onSelectScreeningId: (screeningId: number) => void;
 }
 
 const translations = {
@@ -49,7 +50,7 @@ const SeatIcon = () => (
     </svg>
 );
 
-const ScreeningTimeComponent: React.FC<Props> = ({ screening, onSelect }) => {
+const ScreeningTimeComponent: React.FC<Props> = ({ screening, onSelect, onSelectScreeningId }) => {
     const { startDate, startTime, endTime } = screening;
     const { ticketService, seatService, hallService, screeningPriceService } = useServiceStore();
     const [tickets, setTickets] = useState<Ticket[]>([]);
@@ -58,6 +59,8 @@ const ScreeningTimeComponent: React.FC<Props> = ({ screening, onSelect }) => {
     const { cart } = useCartStore();
     const { language } = useLanguageStore() || "en";
     const t = translations[language] ?? translations["en"];
+
+
 
     useEffect(() => {
         const fetchData = async () => {
@@ -131,8 +134,36 @@ const ScreeningTimeComponent: React.FC<Props> = ({ screening, onSelect }) => {
     return (
         <div
             onClick={() => onSelect?.(screening)}
-            className={`cursor-pointer p-3 rounded-xl border shadow-md transition-all hover:shadow-lg ${isSoldOut ? 'bg-gray-100 text-gray-500' : 'dark:hover:bg-gray-800 dark:bg-gray-900'}`}
+            className={`relative cursor-pointer p-3 rounded-xl border shadow-md transition-all hover:shadow-lg ${isSoldOut ? 'bg-gray-100 text-gray-500' : 'dark:hover:bg-gray-800 dark:bg-gray-900'}`}
         >
+            {/* Action Buttons */}
+            <div className="absolute top-2 right-2 flex space-x-2">
+                <button
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onSelectScreeningId(screening.screeningId);
+                    }}
+                    className="text-blue-500 hover:text-blue-700"
+                    title="Edit"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 4h2m-1 0v12m-4 4h10a2 2 0 002-2v-2a2 2 0 00-2-2H7a2 2 0 00-2 2v2a2 2 0 002 2z" />
+                    </svg>
+                </button>
+                <button
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        // TODO: handle delete, or pass `onDelete(screening)` if you define it
+                    }}
+                    className="text-red-500 hover:text-red-700"
+                    title="Delete"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
             <div className="flex items-center mb-1">
                 <CalendarIcon />
                 <span className="font-medium text-sm">{formattedDate}</span>
@@ -149,6 +180,7 @@ const ScreeningTimeComponent: React.FC<Props> = ({ screening, onSelect }) => {
             </div>
         </div>
     );
+
 };
 
 export default ScreeningTimeComponent;

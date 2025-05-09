@@ -30,7 +30,7 @@ namespace CinemaNetwork.API.Controllers
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
             var employee = await _context.Employees
-    .Include(e => e.EmployeePosition)
+    .Include(e => e.EmployeePosition).Include(e => e.EmployeePassword)
     .Include(e => e.Cinema)
         .ThenInclude(c => c.City)
     .FirstOrDefaultAsync(e => e.Email == request.Email);
@@ -41,12 +41,11 @@ namespace CinemaNetwork.API.Controllers
                 return Unauthorized("Invalid email or password.");
             }
 
-            // Verify password
-            var passwordVerificationResult = _passwordHasher.VerifyHashedPassword(employee, employee.PasswordHash, request.Password);
-            if (passwordVerificationResult == PasswordVerificationResult.Failed)
+            if (employee.EmployeePassword.Password != request.Password)
             {
                 return Unauthorized("Invalid email or password.");
             }
+
 
             // Get role from EmployeePosition
             var role = employee.EmployeePosition.EmployeePosition1;

@@ -11,6 +11,8 @@ public partial class Employee
 
     public int EmployeePositionId { get; set; }
 
+    public int? EmployeePasswordId { get; set; }
+
     public string? Name { get; set; }
 
     public string? Surname { get; set; }
@@ -18,8 +20,6 @@ public partial class Employee
     public string? CellNumber { get; set; }
 
     public string? Email { get; set; }
-
-    public string PasswordHash { get; set; } = null!;
 
     public DateTime? CreateDateTime { get; set; }
 
@@ -30,6 +30,8 @@ public partial class Employee
     public virtual Cinema? Cinema { get; set; }
 
     public virtual ICollection<DeliveryOrder> DeliveryOrders { get; set; } = new List<DeliveryOrder>();
+
+    public virtual EmployeePassword? EmployeePassword { get; set; }
 
     public virtual EmployeePosition EmployeePosition { get; set; } = null!;
 

@@ -14,9 +14,10 @@ import { useLanguageStore } from "@/Stores/useLanguageStore";
 
 interface CustomRowProps {
     deliveryOrderId: number;
+    onUpdate?: (deliveryOrderId: number) => void;
 }
 
-const CustomRow: React.FC<CustomRowProps> = ({ deliveryOrderId }) => {
+const CustomRow: React.FC<CustomRowProps> = ({ deliveryOrderId, onUpdate }) => {
     const { language } = useLanguageStore();
 
     const t = {
@@ -25,14 +26,22 @@ const CustomRow: React.FC<CustomRowProps> = ({ deliveryOrderId }) => {
             loadingEmployee: "Loading employee...",
             noEndDate: "X",
             edit: "Edit",
-            delete: "Delete"
+            delete: "Delete",
+            save: "Save",
+            cancel: "Cancel",
+            selectSupplier: "Select supplier",
+            selectStatus: "Select status"
         },
         ua: {
             loadingSupplier: "Завантаження постачальника...",
             loadingEmployee: "Завантаження працівника...",
             noEndDate: "Немає",
             edit: "Редагувати",
-            delete: "Видалити"
+            delete: "Видалити",
+            save: "Зберегти",
+            cancel: "Скасувати",
+            selectSupplier: "Виберіть постачальника",
+            selectStatus: "Виберіть статус"
         },
     };
 
@@ -44,18 +53,33 @@ const CustomRow: React.FC<CustomRowProps> = ({ deliveryOrderId }) => {
         productPlacementService,
         productService,
         employeeService,
-        employeePositionService,
     } = useServiceStore();
 
     const [productsInOrder, setProductsInOrder] = useState<ProductsInOrder[]>([]);
     const [productPlacements, setProductPlacements] = useState<ProductPlacement[]>([]);
     const [productsInStorage, setProductsInStorage] = useState<ProductsInOrder[]>([]);
     const [employee, setEmployee] = useState<Employee>();
-    const [employeePositions, setEmployeePositons] = useState<EmployeePosition[]>([]);
     const [supplier, setSupplier] = useState<Supplier | null>(null);
     const [deliveryOrder, setDeliveryOrder] = useState<DeliveryOrder | null>(null);
     const [deliveryOrderStatus, setDeliveryOrderStatus] = useState<DeliveryOrderStatus>();
     const [loading, setLoading] = useState(true);
+    const [isEditing, setIsEditing] = useState(false);
+
+    // Add these states to handle the dropdown lists
+    const [allSuppliers, setAllSuppliers] = useState<Supplier[]>([]);
+    const [allStatuses, setAllStatuses] = useState<DeliveryOrderStatus[]>([]);
+
+    // Form state for editable fields
+    const [formData, setFormData] = useState<DeliveryOrder>({
+        supplierId: 0,
+        deliveryOrderStatusId: 0,
+        orderDateTime: null,
+        employeeId: null,
+        number: null,
+        sum: null,
+        paymentMethodId: null,
+        endDateTime: null,
+    });
 
     useEffect(() => {
         const fetchData = async () => {
@@ -76,6 +100,27 @@ const CustomRow: React.FC<CustomRowProps> = ({ deliveryOrderId }) => {
 
                 const [fetchedEmployee] = await employeeService.getAll(`employeeId = ${fetchedDeliveryOrder.employeeId}`);
                 setEmployee(fetchedEmployee);
+
+                // Fetch all suppliers and statuses for dropdowns
+                const fetchedSuppliers = await supplierService.getAll();
+                setAllSuppliers(fetchedSuppliers);
+
+                const fetchedStatuses = await deliveryOrderStatusService.getAll();
+                setAllStatuses(fetchedStatuses);
+
+                // Set initial form data
+                setFormData({
+                    supplierId: fetchedDeliveryOrder.supplierId,
+                    deliveryOrderStatusId: fetchedDeliveryOrder.deliveryOrderStatusId,
+                    deliveryOrderId: fetchedDeliveryOrder.deliveryOrderId,
+                    orderDateTime: fetchedDeliveryOrder.orderDateTime,
+                    employeeId: fetchedDeliveryOrder.employeeId,
+                    endDateTime: fetchedDeliveryOrder.endDateTime,
+                    number: fetchedDeliveryOrder.number,
+                    paymentMethodId: fetchedDeliveryOrder.paymentMethodId,
+                    sum: fetchedDeliveryOrder.sum
+                });
+
             } catch (error) {
                 console.error("Error fetching row data:", error);
             } finally {
@@ -96,14 +141,85 @@ const CustomRow: React.FC<CustomRowProps> = ({ deliveryOrderId }) => {
         return `${baseStyle} ${statusColor}`;
     };
 
-    const handleEdit = (id: number) => {
-        // Implement edit functionality
-        console.log("Edit order:", id);
+    const handleEdit = () => {
+        setIsEditing(true);
     };
 
-    const handleDelete = (id: number) => {
-        // Implement delete functionality
-        console.log("Delete order:", id);
+    const handleCancel = () => {
+        // Reset form data to current values
+        if (deliveryOrder) {
+            setFormData({
+                supplierId: deliveryOrder.supplierId,
+                deliveryOrderStatusId: deliveryOrder.deliveryOrderStatusId
+            });
+        }
+        setIsEditing(false);
+    };
+
+    const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: parseInt(value, 10)
+        }));
+    };
+
+    const handleSave = async () => {
+        try {
+            if (!deliveryOrder) return;
+
+
+
+            let endDateTime = deliveryOrder.endDateTime;
+            if (deliveryOrder.deliveryOrderStatusId === 3) {
+
+                endDateTime = new Date();
+            }
+
+
+
+            const updatedDeliveryOrder = {
+
+
+
+                ...deliveryOrder,
+                supplierId: formData.supplierId,
+                deliveryOrderStatusId: formData.deliveryOrderStatusId,
+                endDateTime: endDateTime,
+            };
+
+            await deliveryOrderService.update(updatedDeliveryOrder);
+
+            // Refresh data after update
+            const [refreshedDeliveryOrder] = await deliveryOrderService.getAll(`deliveryOrderId = ${deliveryOrderId}`);
+            setDeliveryOrder(refreshedDeliveryOrder);
+
+            const [refreshedSupplier] = await supplierService.getAll(`supplierId = ${formData.supplierId}`);
+            setSupplier(refreshedSupplier);
+
+            const [refreshedStatus] = await deliveryOrderStatusService.getAll(`deliveryOrderStatusId = ${formData.deliveryOrderStatusId}`);
+            setDeliveryOrderStatus(refreshedStatus);
+
+            setIsEditing(false);
+
+            // Notify parent component if needed
+            if (onUpdate) {
+                onUpdate(deliveryOrderId);
+            }
+        } catch (error) {
+            console.error("Error updating delivery order:", error);
+        }
+    };
+
+    const handleDelete = async (id: number) => {
+        try {
+            await deliveryOrderService.delete(id);
+            if (onUpdate) {
+                onUpdate(id);
+            }
+        } catch (error) {
+            console.error("Error deleting order:", error);
+        }
     };
 
     if (loading) {
@@ -117,19 +233,51 @@ const CustomRow: React.FC<CustomRowProps> = ({ deliveryOrderId }) => {
     }
 
     return (
-        <tr className={`border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-750 ${getStatusStyles()}`}>
+        <tr className={`my-10 border-b border-gray-200 dark:border-gray-700 dark:hover:bg-gray-750 ${!isEditing ? getStatusStyles() : ""}`}>
             <td className="py-3 px-4 text-gray-800 dark:text-gray-200">{deliveryOrder?.number}</td>
 
             <td className="py-3 px-4">
-                <span className="px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap bg-opacity-20 dark:bg-opacity-30 text-gray-800 dark:text-gray-200">
-                    {deliveryOrderStatus?.deliveryOrderStatus1}
-                </span>
+                {isEditing ? (
+                    <select
+                        name="deliveryOrderStatusId"
+                        value={formData.deliveryOrderStatusId}
+                        onChange={handleChange}
+                        className="px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                        <option value="" disabled>{t[language].selectStatus}</option>
+                        {allStatuses.map(status => (
+                            <option key={status.deliveryOrderStatusId} value={status.deliveryOrderStatusId}>
+                                {status.deliveryOrderStatus1}
+                            </option>
+                        ))}
+                    </select>
+                ) : (
+                    <span className="px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap bg-opacity-20 dark:bg-opacity-30 text-gray-800 dark:text-gray-200">
+                        {deliveryOrderStatus?.deliveryOrderStatus1}
+                    </span>
+                )}
             </td>
 
             <td className="py-3 px-4 text-gray-800 dark:text-gray-200">
-                {supplier
-                    ? <span className="font-medium">{`${supplier.name} ${supplier.surname}`}</span>
-                    : <span className="italic text-gray-400 dark:text-gray-500">{t[language].loadingSupplier}</span>}
+                {isEditing ? (
+                    <select
+                        name="supplierId"
+                        value={formData.supplierId}
+                        onChange={handleChange}
+                        className="px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                        <option value="" disabled>{t[language].selectSupplier}</option>
+                        {allSuppliers.map(sup => (
+                            <option key={sup.supplierId} value={sup.supplierId}>
+                                {`${sup.name} ${sup.surname}`}
+                            </option>
+                        ))}
+                    </select>
+                ) : (
+                    supplier ?
+                        <span className="font-medium">{`${supplier.name} ${supplier.surname}`}</span> :
+                        <span className="italic text-gray-400 dark:text-gray-500">{t[language].loadingSupplier}</span>
+                )}
             </td>
 
             <td className="py-3 px-4 text-gray-800 dark:text-gray-200">
@@ -154,25 +302,44 @@ const CustomRow: React.FC<CustomRowProps> = ({ deliveryOrderId }) => {
                 {deliveryOrder?.sum.toLocaleString()} ₴
             </td>
 
-            <ProgressColumn deliveryOrderId={deliveryOrderId} />
+            <ProgressColumn delivery deliveryOrderId={deliveryOrderId} />
 
             {/* Edit & Delete Buttons */}
             <td className="py-3 px-4">
                 <div className="flex gap-2">
-                    <button
-                        onClick={() => handleEdit(deliveryOrderId)}
-                        className="bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white px-3 py-1 rounded text-xs font-medium transition-colors duration-200"
-                        aria-label={t[language].edit}
-                    >
-                        {t[language].edit}
-                    </button>
-                    <button
-                        onClick={() => handleDelete(deliveryOrderId)}
-                        className="bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 text-white px-3 py-1 rounded text-xs font-medium transition-colors duration-200"
-                        aria-label={t[language].delete}
-                    >
-                        {t[language].delete}
-                    </button>
+                    {isEditing ? (
+                        <>
+                            <button
+                                onClick={handleSave}
+                                className="bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 text-white px-3 py-1 rounded text-xs font-medium transition-colors duration-200"
+                            >
+                                {t[language].save}
+                            </button>
+                            <button
+                                onClick={handleCancel}
+                                className="bg-gray-500 hover:bg-gray-600 dark:bg-gray-600 dark:hover:bg-gray-700 text-white px-3 py-1 rounded text-xs font-medium transition-colors duration-200"
+                            >
+                                {t[language].cancel}
+                            </button>
+                        </>
+                    ) : (
+                        <>
+                            <button
+                                onClick={handleEdit}
+                                className="bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white px-3 py-1 rounded text-xs font-medium transition-colors duration-200"
+                                aria-label={t[language].edit}
+                            >
+                                {t[language].edit}
+                            </button>
+                            <button
+                                onClick={() => handleDelete(deliveryOrderId)}
+                                className="bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 text-white px-3 py-1 rounded text-xs font-medium transition-colors duration-200"
+                                aria-label={t[language].delete}
+                            >
+                                {t[language].delete}
+                            </button>
+                        </>
+                    )}
                 </div>
             </td>
         </tr>

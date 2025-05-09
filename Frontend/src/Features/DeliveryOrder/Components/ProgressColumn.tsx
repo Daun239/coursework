@@ -13,6 +13,7 @@ import { ChevronDown, ChevronUp, Plus } from "lucide-react";
 import formFilterQuery from '@/lib/formFilterQuery';
 import ProductInOrder from './ProductInOrder';
 import { Product } from '@/Types/Product';
+import { useLanguageStore } from '@/Stores/useLanguageStore';
 
 type ProgressColumnProps = {
     deliveryOrderId: number;
@@ -41,6 +42,32 @@ const ProgressColumn = ({ deliveryOrderId }: ProgressColumnProps) => {
     const [quantity, setQuantity] = useState<number>(1);
 
     const [price, setPrice] = useState<number>(20);
+
+    const { language } = useLanguageStore();
+
+    const translations = {
+        en: {
+            addProduct: "Add Product",
+            cancel: "Cancel",
+            selectProduct: "Select Product",
+            selectProductByName: "Select product by name",
+            quantity: "Quantity",
+            price: "Price",
+            addToOrder: "Add to Order"
+        },
+        ua: {
+            addProduct: "Додати продукт",
+            cancel: "Скасувати",
+            selectProduct: "Вибрати продукт",
+            selectProductByName: "Виберіть продукт за назвою",
+            quantity: "Кількість",
+            price: "Ціна",
+            addToOrder: "Додати в замовлення"
+        }
+    };
+
+
+    const t = translations[language];
 
     useEffect(() => {
         const fetchData = async () => {
@@ -122,7 +149,7 @@ const ProgressColumn = ({ deliveryOrderId }: ProgressColumnProps) => {
     };
 
     return (
-        <td className='w-full overflow-clip'>
+        <td className='w-full align-top'>
             {isDetailsOpen ?
                 < ChevronUp className='cursor-pointer' onClick={() => setIsDetailsOpen(prev => !prev)} />
                 :
@@ -132,28 +159,28 @@ const ProgressColumn = ({ deliveryOrderId }: ProgressColumnProps) => {
             <Progress value={completedPercentage} />
 
             {isDetailsOpen && (
-                <div className="mt-2">
+                <div className="mt-2 max-h-96 overflow-y-auto">
                     <div className="mb-4">
                         <button
                             className="flex items-center px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
                             onClick={() => setIsAddOpen(prev => !prev)}
                         >
                             <Plus size={16} className="mr-1" />
-                            {isAddOpen ? 'Cancel' : 'Add Product'}
+                            {isAddOpen ? `${t.cancel}` : `${t.addProduct}`}
                         </button>
 
                         {isAddOpen && (
                             <div className="mt-2 p-3 border rounded bg-gray-50">
                                 <div className="mb-2">
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Select Product
+                                        {t.selectProduct}
                                     </label>
                                     <select
                                         className="w-full px-2 py-1 border rounded"
                                         value={selectedProductId}
                                         onChange={(e) => setSelectedProductId(Number(e.target.value))}
                                     >
-                                        <option value="">Select product by name</option>
+                                        <option value="">{t.selectProductByName}</option>
                                         {products.map(product => (
                                             <option key={product.productId} value={product.productId}>
                                                 {product.name}
@@ -164,7 +191,7 @@ const ProgressColumn = ({ deliveryOrderId }: ProgressColumnProps) => {
 
                                 <div className="mb-2">
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Quantity
+                                        {t.quantity}
                                     </label>
                                     <input
                                         type="number"
@@ -177,7 +204,7 @@ const ProgressColumn = ({ deliveryOrderId }: ProgressColumnProps) => {
 
                                 <div className="mb-2">
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Price
+                                        {t.price}
                                     </label>
                                     <input
                                         type="number"
@@ -193,7 +220,7 @@ const ProgressColumn = ({ deliveryOrderId }: ProgressColumnProps) => {
                                     className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600"
                                     onClick={handleAddProduct}
                                 >
-                                    Add to Order
+                                    {t.addToOrder}
                                 </button>
                             </div>
                         )}

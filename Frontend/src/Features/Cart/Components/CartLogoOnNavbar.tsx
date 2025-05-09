@@ -25,7 +25,7 @@ const CartLogoOnNavbar = () => {
 
     useEffect(() => {
         const down = (e: KeyboardEvent) => {
-            if (e.key === "c" && (e.metaKey || e.ctrlKey) && e.altKey) {
+            if ((e.key === "c" || e.key === 'с') && (e.metaKey || e.ctrlKey) && e.altKey) {
                 e.preventDefault();
                 setIsOpen(prevState => !prevState);
             }

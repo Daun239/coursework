@@ -52,11 +52,15 @@ export class LoginService {
         console.log("token", token);
 
         useUserStore.getState().setUser(user, token);
+
+        return { success: true, user, token }; // Return success, user, and token
       } else {
         alert("Login failed: " + data.message);
+        return { success: false, message: data.message }; // Return failure message
       }
     } catch (error) {
       console.error("Login error:", error);
+      return { success: false, message: "An error occurred during login." }; // Return error message
     }
   }
 }
