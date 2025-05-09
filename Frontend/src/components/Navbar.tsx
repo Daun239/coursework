@@ -7,32 +7,43 @@ import { useLanguageStore } from '@/Stores/useLanguageStore';
 
 const Navbar = () => {
   const { user } = useUserStore();
-  const { language, setLanguage } = useLanguageStore(); // 🆕
+  const { language, setLanguage } = useLanguageStore();
 
   return (
     <div className="navbar bg-white dark:bg-gray-950 shadow-md w-full fixed top-0 left-0 z-10">
-      {/* Left side - App title */}
+      {/* Left side - App title and navigation links */}
       <div className="flex items-center gap-4">
-        <p className=" text-lg font-semibold">
+        <p className="text-lg font-semibold">
           {user?.CinemaName}
         </p>
-        <Link to="/movies" className="btn btn-ghost text-xl hover:bg-gray-700">
-          🎟 {language === 'en' ? 'Movies' : 'Фільми'}
-        </Link>
-        <Link to="/products/" className="btn btn-ghost text-xl hover:bg-gray-700">
-          {language === 'en' ? 'Products' : 'Продукти'}
-        </Link>
-        <Link to="/deliveryOrders/" className="btn btn-ghost text-xl hover:bg-gray-700">
-          {language === 'en' ? 'Delivery Orders' : 'Замовлення доставки'}
-        </Link>
+
+        {/* Cashier-only links */}
+        {user?.employeePosition === 'Cashier' && (
+          <>
+            <Link to="/movies" className="btn btn-ghost text-xl hover:bg-gray-700">
+              🎟 {language === 'en' ? 'Movies' : 'Фільми'}
+            </Link>
+            <Link to="/products" className="btn btn-ghost text-xl hover:bg-gray-700">
+              {language === 'en' ? 'Products' : 'Продукти'}
+            </Link>
+          </>
+        )}
+
+        {/* Manager and WarehouseWorker */}
+        {(user?.employeePosition === 'Manager' || user?.employeePosition === 'WarehouseWorker') && (
+          <Link to="/deliveryOrders" className="btn btn-ghost text-xl hover:bg-gray-700">
+            {language === 'en' ? 'Delivery Orders' : 'Замовлення доставки'}
+          </Link>
+        )}
       </div>
 
-      {/* Right side */}
+      {/* Right side - Cart, theme, language, profile */}
       <div className="flex items-center gap-4 ml-auto">
-        <CartLogoOnNavbar />
+        {/* Cart - Cashier only */}
+        {user?.employeePosition === 'Cashier' && <CartLogoOnNavbar />}
+
         <ThemeToggle />
 
-        {/* Language Switcher 🆕 */}
         <div className="flex items-center gap-1">
           <button
             onClick={() => setLanguage('en')}

@@ -22,6 +22,13 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.Configure<MongoDBSettings>(
     builder.Configuration.GetSection("UserLoggingDatabase"));
 
+//     builder.Services.AddSingleton<IMongoClient>(sp =>
+// {
+//     var settings = sp.GetRequiredService<IOptions<MongoDbSettings>>().Value;
+//     return new MongoClient(settings.ConnectionString);
+// });
+
+
 
 var config = builder.Configuration; // Додаємо цю змінну
 
@@ -123,6 +130,10 @@ builder.Services.AddScoped<IPasswordHasher<Employee>, PasswordHasher<Employee>>(
 
 
 
+
+
+
+
 // Реєстрація сервісів
 
 // Add this alongside your generic registration
@@ -146,6 +157,10 @@ builder.Services.AddScoped<IPasswordHasher<Employee>, PasswordHasher<Employee>>(
 // builder.Services.AddScoped<IScreeningService, ScreeningService>();
 // builder.Services.AddScoped<ISeatService, SeatService>();
 // builder.Services.AddScoped<ITicketService, TicketService>();
+
+
+builder.Services.AddScoped<UserActionService>();
+
 
 builder.Services.AddScoped(typeof(IService<,>), typeof(Service<,>));
 builder.Services.AddScoped<IEmployeeService, EmployeeService>();

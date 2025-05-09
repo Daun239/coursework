@@ -107,22 +107,37 @@ function App() {
         </Routes>
 
         <Routes>
-          <Route path="/login" element={<LoginPage />} />
-
-
           <Route
             path="/movies"
-            element={<ProtectedRoute element={<MovieList />} requiredRole="Manager" />}
+            element={
+              <ProtectedRoute
+                element={<MovieList />}
+                allowedRoles={["Cashier"]}
+              />
+            }
           />
+
           <Route
             path="/products"
-            element={<ProtectedRoute element={<ProductsList />} requiredRole="WarehouseWorker" />}
+            element={
+              <ProtectedRoute
+                element={<ProductsList />}
+                allowedRoles={["Cashier"]}
+              />
+            }
           />
+
           <Route
             path="/deliveryOrders"
-            element={<ProtectedRoute element={<DeliveryOrder />} requiredRole="Cashier" />}
+            element={
+              <ProtectedRoute
+                element={<DeliveryOrder />}
+                allowedRoles={["Manager", "WarehouseWorker"]}
+              />
+            }
           />
         </Routes>
+
 
       </div>
 

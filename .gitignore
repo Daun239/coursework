@@ -1,4 +1,9 @@
+# Ignore Debug folders across all projects
 **/debug/
+**/Debug/
+**/bin/
+**/obj/
+
 # Ignore node_modules inside the Frontend folder
 Frontend/**/node_modules/
 
@@ -6,8 +11,36 @@ Frontend/**/node_modules/
 Frontend/**/build/
 Frontend/**/dist/
 
-# Log files
+# Ignore IDE folders
+.vscode/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Ignore environment files
+.env
+.env.*
+
+# Ignore log files
 Frontend/npm-debug.log*
 Frontend/yarn-debug.log*
 Frontend/yarn-error.log*
 Frontend/pnpm-debug.log*
+logs/
+*.log
+
+# Ignore coverage output
+coverage/
+Frontend/**/coverage/
+
+# Ignore temporary files
+*.tmp
+*.temp
+*.bak
+*.swp
+.DS_Store
+Thumbs.db
+
+# Ignore package manager lock files (optional if you're not using them

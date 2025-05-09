@@ -5,22 +5,22 @@ import { Navigate, useLocation } from "react-router-dom";
 
 interface ProtectedRouteProps {
   element: JSX.Element;
-  requiredRole: string; // The role needed to access this route
+  allowedRoles: string[]; // Accept multiple allowed roles
 }
+
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   element,
-  requiredRole,
+  allowedRoles,
 }) => {
-  const user = useUserStore((state) => state.user); // Access the current user
-  const location = useLocation(); // To remember where to redirect if not authorized
+  const user = useUserStore((state) => state.user);
+  const location = useLocation();
 
-  if (!user || user.role !== requiredRole) {
-    // Redirect them to login if they are not authorized or not logged in
+  if (!user || !allowedRoles.includes(user.employeePosition)) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  return element; // If the user has the required role, show the element (protected page)
+  return element;
 };
 
 export default ProtectedRoute;
