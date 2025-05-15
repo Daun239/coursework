@@ -2,7 +2,6 @@ import { useServiceStore } from '@/Stores/ServicesStore';
 import { Product } from '@/Types/Product';
 import React, { useEffect, useState } from 'react';
 import ProductComponent from './ProductComponent';
-import Sidebar from '@/components/Sidebar';
 import { useUserStore } from '@/Stores/UserStore';
 import { ProductsInStorage } from '@/Types/ProductsInStorage';
 import { ProductType } from '@/Types/ProductType';
@@ -28,7 +27,7 @@ import cleanInClauses from '@/lib/cleanInClauses';
 import { useLanguageStore } from '@/Stores/useLanguageStore';
 import { t } from '../Utils/useTranslation';
 import CreateOrUpdateProduct from './CreateOrUpdateProduct';
-import { exportProductsData } from '../Utils/exportProductsData';
+import { exportProductData } from '../Utils/exportProductsData';
 
 
 
@@ -290,6 +289,17 @@ const ProductsList = () => {
 
 
 
+    const handleExport = (format: "csv" | "json" | "pdf") => {
+        const services = {
+            productService
+        };
+
+        exportProductData(productsInStorage, format, `products_data_${format}`, services);
+    };
+
+
+
+
     return (
         <div className="flex h-screen overflow-hidden mt-16">
             {/* Sidebar with filters */}
@@ -397,6 +407,8 @@ const ProductsList = () => {
                                 <option value={10}>10</option>
                                 <option value={20}>20</option>
                                 <option value={50}>50</option>
+                                <option value={100}>100</option>
+                                <option value={250}>250</option>
                             </select>
                         </div>
 
@@ -432,14 +444,47 @@ const ProductsList = () => {
                 </div>
 
 
-                <div className="flex items-center mb-6">
+                <div className="flex items-center mb-6 space-x-4">
                     <button
                         onClick={() => setCreateProductOpen(prev => !prev)}
-                        className="p-2 rounded-md cursor-pointer bg-gray-500 dark:bg-gray-900 text-white hover:bg-primary-dark transition-colors mr-4"
+                        className="px-4 py-2 rounded-md cursor-pointer bg-indigo-600 text-white hover:bg-indigo-700 transition-colors duration-300 ease-in-out flex items-center shadow-md"
                     >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
                         {t[language].addProduct}
                     </button>
+
+                    <div className="flex items-center space-x-3">
+                        <button
+                            onClick={() => handleExport("csv")}
+                            title="Export as CSV"
+                            className="flex items-center px-4 py-2 rounded-md bg-emerald-600 text-white hover:bg-emerald-700 focus:ring-2 focus:ring-emerald-300 focus:outline-none transition-all duration-300 ease-in-out shadow-md"
+                        >
+                            <svg width="20" height="20" fill="none" xmlns="http://www.w3.org/2000/svg" className="mr-2">
+                                <path d="M14 3v4a1 1 0 001 1h4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                <path d="M17 21H7a2 2 0 01-2-2V5a2 2 0 012-2h7l5 5v11a2 2 0 01-2 2z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                <path d="M9 12h6M9 16h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                            </svg>
+                            CSV
+                        </button>
+
+                        <button
+                            onClick={() => handleExport("json")}
+                            title="Export as JSON"
+                            className="flex items-center px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-300 focus:outline-none transition-all duration-300 ease-in-out shadow-md"
+                        >
+                            <svg width="20" height="20" fill="none" xmlns="http://www.w3.org/2000/svg" className="mr-2">
+                                <path d="M8 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-14a2 2 0 00-2-2h-3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                <path d="M8 7.5V4.5a2 2 0 114 0v3M8 7.5h4M16 15l-2-2m0 0l-2 2m2-2v4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                            JSON
+                        </button>
+                    </div>
                 </div>
+
+
 
 
 
@@ -460,17 +505,6 @@ const ProductsList = () => {
                 </div>}
 
 
-                <button onClick={() => exportProductsData(productsInStorage, 'csv')}>
-                    Export as CSV
-                </button>
-
-                <button onClick={() => exportProductsData(productsInStorage, 'json')}>
-                    Export as JSON
-                </button>
-
-                <button onClick={() => exportProductsData(productsInStorage, 'pdf')}>
-                    Export as PDF
-                </button>
 
 
 

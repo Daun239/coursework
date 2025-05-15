@@ -4,14 +4,49 @@ import { useCartStore } from "../Stores/CartState";
 import { Button } from "@/components/ui/button";
 import { Ticket } from "@/Types/Ticket";
 import { useScreeningPrice } from "../Hooks/useScreeningPrice";
+import { useLanguageStore } from "@/Stores/useLanguageStore";
+
+// Choose language: "en" or "ua"
+// eslint-disable-next-line react-hooks/rules-of-hooks
+
+
+
+// Translation dictionary
+
 
 const CartTicketPreview = ({ ticket }: { ticket: Ticket }) => {
-    const { removeItem } = useCartStore();
 
+    const { language } = useLanguageStore();
+
+    const translations = {
+        en: {
+            loading: "Loading...",
+            row: "Row",
+            seat: "Seat",
+            price: "Price",
+            vip: "VIP",
+            yes: "Yes",
+            no: "No",
+            remove: "Remove",
+        },
+        ua: {
+            loading: "Завантаження...",
+            row: "Ряд",
+            seat: "Місце",
+            price: "Ціна",
+            vip: "VIP",
+            yes: "Так",
+            no: "Ні",
+            remove: "Видалити",
+        },
+    }[language];
+
+
+    const { removeItem } = useCartStore();
     const { screeningPrice } = useScreeningPrice(ticket.screeningPriceId);
 
     const screeningId = screeningPrice?.screeningId;
-    const { screeningData } = useScreeningData(screeningId ?? -1); // pass dummy ID or handle it better inside hook
+    const { screeningData } = useScreeningData(screeningId ?? -1);
 
     const seat = screeningData?.allSeats.find((s) => s.seatId === ticket.seatId);
 
@@ -21,25 +56,24 @@ const CartTicketPreview = ({ ticket }: { ticket: Ticket }) => {
     }, [screeningData, ticket.seatId]);
 
     const handleRemoveTicket = () => {
-        console.log(`removing ticket`);
         removeItem("ticket", ticket.ticketId);
     };
 
-    if (!screeningPrice || !screeningData || !seat) return <p>Loading...</p>;
+    if (!screeningPrice || !screeningData || !seat) return <p>{translations.loading}</p>;
 
     return (
         <div className="space-y-4">
             <div className="mt-4 border p-3 rounded-md flex justify-between items-center">
                 <div>
                     <p className="font-medium">
-                        Row: {seat.rowNumber}, Seat: {seat.seatNumber}, Price: {screeningPrice.ticketPrice}₴, VIP:{" "}
+                        {translations.row}: {seat.rowNumber}, {translations.seat}: {seat.seatNumber}, {translations.price}: {screeningPrice.ticketPrice}₴, {translations.vip}:{" "}
                         <span className={seat.isVipCategory ? "text-purple-600 font-semibold" : "text-gray-500"}>
-                            {seat.isVipCategory ? "Yes" : "No"}
+                            {seat.isVipCategory ? translations.yes : translations.no}
                         </span>
                     </p>
                 </div>
                 <Button className="cursor-pointer" size="sm" variant="destructive" onClick={handleRemoveTicket}>
-                    Remove
+                    {translations.remove}
                 </Button>
             </div>
         </div>

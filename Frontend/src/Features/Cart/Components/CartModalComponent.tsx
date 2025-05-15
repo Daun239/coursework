@@ -23,6 +23,8 @@ import { toast } from "sonner";
 import { Popover, PopoverTrigger, PopoverContent } from "@radix-ui/react-popover";
 import ScreeningTickets from "@/Features/Screenings/Components/ScreeningTickets";
 import { Screening } from "@/Types/Screening";
+import { UserActionLog } from "@/Types/UserActionLog";
+import { t } from "i18next";
 
 type CartItem =
     | { type: 'product'; data: ProductsInStorage }
@@ -30,7 +32,7 @@ type CartItem =
 
 const CartModalComponent = forwardRef<HTMLDialogElement>((_, ref) => {
     const { cart, clearCart } = useCartStore();
-    const { screeningPriceService, productCheckService, productCheckDetailService, checkTicketService, ticketService, checkService, clientService, productService, productsInStorageService } = useServiceStore();
+    const { userActionService, screeningPriceService, productCheckService, productCheckDetailService, checkTicketService, ticketService, checkService, clientService, productService, productsInStorageService } = useServiceStore();
     const [productsMap, setProductsMap] = useState<Record<number, Product>>({});
     const [selectedClient, setSelectedClient] = useState<Client | null>(null);
 
@@ -147,6 +149,18 @@ const CartModalComponent = forwardRef<HTMLDialogElement>((_, ref) => {
                     ticket.ticketId = 0;
                     try {
                         const createdTicket = await ticketService.create(ticket);
+
+                        const actionLog: UserActionLog = {
+                            action: "Created",
+                            details: `${JSON.stringify(createdTicket)}`,
+                            entity: "Ticket",
+                            timestamp: new Date(),
+                            user: `${user?.name} ${user?.surname}`
+                        }
+
+                        userActionService.post(actionLog);
+
+
                         const checkTicket: CheckTicket = {
                             ticketId: createdTicket.ticketId,
                             checkId: createdCheck.checkId,
@@ -219,12 +233,12 @@ const CartModalComponent = forwardRef<HTMLDialogElement>((_, ref) => {
                 }
             }
 
-            toast.success("Purchase completed successfully!");
+            toast.success(t('cart.purchaseSuccessfull'));
             clearCart();
 
         } catch (err) {
             console.error("❌ Unexpected error during checkout:", err);
-            toast.error("Error processing your purchase. Please try again.");
+            toast.error(t('cart.error'));
         }
     };
 
@@ -252,39 +266,40 @@ const CartModalComponent = forwardRef<HTMLDialogElement>((_, ref) => {
                     .map(async ({ data }) => {
                         const ticket = data as Ticket;
                         const [screeningPrice] = await screeningPriceService.getAll(`screeningPriceId = ${ticket.screeningPriceId}`);
-
                         const screeningId = screeningPrice.screeningId;
-
-                        return { ticket, screeningId }; // Return ticket and screeningId pair
+                        return { ticket, screeningId };
                     })
             );
 
-            // Now reduce the result to group the tickets by screeningId
-            const groupedTicketsByScreening = groupedTickets.reduce((acc, { ticket, screeningId }) => {
+            const grouped = groupedTickets.reduce((acc, { ticket, screeningId }) => {
                 if (!acc[screeningId]) acc[screeningId] = [];
                 acc[screeningId].push(ticket);
                 return acc;
             }, {} as Record<number, Ticket[]>);
 
-            setGroupedTicketsByScreening(groupedTicketsByScreening);
+            setGroupedTicketsByScreening(grouped);
         };
 
         if (cart.ticket && cart.ticket.length > 0) {
             fetchData();
+        } else {
+            // Clear grouped data if no tickets left
+            setGroupedTicketsByScreening({});
         }
     }, [cart.ticket]);
 
+
     return (
         <div>
-            <dialog ref={ref} id="my_modal_3" className="modal w-full z-10">
-                <div className="modal-box bg-white dark:bg-gray-800 shadow-xl max-w-4xl w-11/12 mx-auto">
+            <dialog ref={ref} id="my_modal_3" className="modal p-8 w-full h-full z-10">
+                <div className="modal-box bg-white dark:bg-gray-800 h-full shadow-xl max-w-4xl w-11/12 mx-auto">
                     <form method="dialog">
                         <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2
                      text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">✕</button>
                     </form>
 
                     <h3 className="font-bold text-lg text-gray-800 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2">
-                        Shopping Cart
+                        {t('cart.shoppingCart')}
                     </h3>
 
                     {selectedScreeningId && (
@@ -323,7 +338,7 @@ const CartModalComponent = forwardRef<HTMLDialogElement>((_, ref) => {
                         ) : (
                             <div className="flex flex-col items-center justify-center py-8 text-gray-500 dark:text-gray-400">
                                 <BsCartX className="text-4xl mb-3" />
-                                <p className="text-center">Your cart is empty.</p>
+                                <p className="text-center">{t('cart.yourCartIsEmpty')}</p>
                             </div>
                         )}
                     </div>
@@ -331,15 +346,15 @@ const CartModalComponent = forwardRef<HTMLDialogElement>((_, ref) => {
                     {items.length > 0 && (
                         <div className="mt-6 border-t border-gray-200 dark:border-gray-700 pt-4">
                             <div className="flex justify-between text-sm text-gray-600 dark:text-gray-300 mb-1">
-                                <span>Products ({productsTotalQuantity})</span>
+                                <span>{t('cart.products')} ({productsTotalQuantity})</span>
                                 <span>${productsTotalPrice.toFixed(2)}</span>
                             </div>
                             <div className="flex justify-between text-sm text-gray-600 dark:text-gray-300 mb-3">
-                                <span>Tickets ({ticketsTotalQuantity})</span>
+                                <span>{t('cart.tickets')} ({ticketsTotalQuantity})</span>
                                 <span>${ticketsTotalPrice.toFixed(2)}</span>
                             </div>
                             <div className="flex justify-between font-bold text-gray-800 dark:text-gray-100">
-                                <span>Total</span>
+                                <span>{t('cart.total')} </span>
                                 <span>${totalPrice.toFixed(2)}</span>
                             </div>
                         </div>
@@ -351,7 +366,7 @@ const CartModalComponent = forwardRef<HTMLDialogElement>((_, ref) => {
                             <div className="flex items-center mb-1">
                                 <BsCreditCard2Front className="text-gray-500 dark:text-gray-400 mr-2" />
                                 <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    Payment Method
+                                    {t('cart.paymentMethod')}
                                 </label>
                             </div>
                             <select
@@ -359,7 +374,7 @@ const CartModalComponent = forwardRef<HTMLDialogElement>((_, ref) => {
                                 defaultValue=""
                                 className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg py-2 px-3 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
                             >
-                                <option value="" disabled>Select payment method</option>
+                                <option value="" disabled>{t('cart.selectPaymentMethod')}</option>
                                 {paymentMethods.map(p => (
                                     <option key={p.paymentMethodId} value={p.paymentMethodId}>
                                         {p.paymentMethod1}
@@ -373,7 +388,7 @@ const CartModalComponent = forwardRef<HTMLDialogElement>((_, ref) => {
                             <div className="flex items-center mb-1">
                                 <BsPersonCircle className="text-gray-500 dark:text-gray-400 mr-2" />
                                 <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    Select Client
+                                    {t('cart.selectClient')}
                                 </label>
 
                                 <div className="ml-auto flex space-x-2">
@@ -384,7 +399,7 @@ const CartModalComponent = forwardRef<HTMLDialogElement>((_, ref) => {
                                         title="Search by Email"
                                     >
                                         <BsEnvelope className="mr-1" size={12} />
-                                        Email
+                                        {t('cart.email')}
                                     </button>
 
                                     <button
@@ -394,7 +409,7 @@ const CartModalComponent = forwardRef<HTMLDialogElement>((_, ref) => {
                                         title="Search by Phone"
                                     >
                                         <BsPhone className="mr-1" size={12} />
-                                        Phone
+                                        {t('cart.phone')}
                                     </button>
                                 </div>
                             </div>
@@ -445,10 +460,10 @@ const CartModalComponent = forwardRef<HTMLDialogElement>((_, ref) => {
                         {selectedClient && (
                             <div className="mt-2 p-2 bg-gray-100 dark:bg-gray-700 rounded-md">
                                 <div className="text-xs text-gray-600 dark:text-gray-400">
-                                    <span className="font-medium block mb-1">Selected Client:</span>
+                                    <span className="font-medium block mb-1">{t('cart.selectedClient')}</span>
                                     <span className="block">{selectedClient.name} {selectedClient.surname}</span>
-                                    {selectedClient.email && <span className="block">Email: {selectedClient.email}</span>}
-                                    {selectedClient.cellNumber && <span className="block">Phone: {selectedClient.cellNumber}</span>}
+                                    {selectedClient.email && <span className="block">{t('cart.email')} {selectedClient.email}</span>}
+                                    {selectedClient.cellNumber && <span className="block">{t('cart.phone')} {selectedClient.cellNumber}</span>}
                                 </div>
                             </div>
                         )}
@@ -460,7 +475,7 @@ const CartModalComponent = forwardRef<HTMLDialogElement>((_, ref) => {
                             onClick={handleBuy}
                             disabled={!selectedClient || !selectedPaymentMethod || items.length === 0}
                         >
-                            Complete Purchase
+                            {t('cart.completePurchase')}
                         </button>
 
                         {showConfirm ? (
@@ -472,13 +487,13 @@ const CartModalComponent = forwardRef<HTMLDialogElement>((_, ref) => {
                                     }}
                                     className="px-3 py-2 text-sm cursor-pointer bg-red-500 text-white rounded hover:bg-red-600"
                                 >
-                                    Confirm
+                                    {t('confirm')}
                                 </button>
                                 <button
                                     onClick={() => setShowConfirm(false)}
                                     className="px-3 py-2 text-sm cursor-pointer bg-gray-300 text-gray-800 rounded hover:bg-gray-400"
                                 >
-                                    Cancel
+                                    {t('cancel')}
                                 </button>
                             </div>
                         ) : (

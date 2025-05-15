@@ -302,23 +302,28 @@ const ProductComponent: React.FC<Props> = ({ productInStorageId, onSelecProductI
                         )}
                     </div>
 
-                    <div>
-
+                    <div className="flex gap-3 items-center">
+                        {/* Delete Button */}
                         <button
                             onClick={handleDelete}
-                            className="text-blue-500 hover:text-blue-700"
-                            title="Edit"
+                            className="p-2 rounded-md hover:bg-red-100 dark:hover:bg-red-900 text-red-600 dark:text-red-400 transition-colors"
+                            title="Delete"
                         >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 4h2m-1 0v12m-4 4h10a2 2 0 002-2v-2a2 2 0 00-2-2H7a2 2 0 00-2 2v2a2 2 0 002 2z" />
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                             </svg>
-
-                            Delete
                         </button>
 
-
-                        <button onClick={() => onSelecProductId(product.productId)}>EDIT</button>
-
+                        {/* Edit Button */}
+                        <button
+                            onClick={() => onSelecProductId(product.productId)}
+                            className="p-2 rounded-md hover:bg-blue-100 dark:hover:bg-blue-900 text-blue-600 dark:text-blue-400 transition-colors"
+                            title="Edit"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536M9 11l3.536-3.536a2 2 0 012.828 0l.707.707a2 2 0 010 2.828L12 15H9v-3z" />
+                            </svg>
+                        </button>
                     </div>
 
 

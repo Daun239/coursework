@@ -4,6 +4,7 @@ using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace CinemaNetwork.API.MongoDB
 {
@@ -14,12 +15,17 @@ namespace CinemaNetwork.API.MongoDB
 
         public UserActionService(
             IOptions<MongoDBSettings> mongoDBSettings,
-            IMongoClient mongoClient,
-            ILogger<UserActionService> logger)
+            // IMongoClient mongoClient,
+            ILogger<UserActionService> logger,
+               IConfiguration configuration)
+
         {
             var settings = mongoDBSettings.Value;
 
-            var database = mongoClient.GetDatabase(settings.DatabaseName);
+            var client = new MongoClient("mongodb+srv://fov2505:hrk0959fqy2vT6Rh@user-logs-collection.oe4fgeh.mongodb.net/?retryWrites=true&w=majority&appName=user-logs-collection");
+
+
+            var database = client.GetDatabase(settings.DatabaseName);
             _userActionLogs = database.GetCollection<UserActionLog>(settings.CollectionName);
 
             _logger = logger;
@@ -29,11 +35,9 @@ namespace CinemaNetwork.API.MongoDB
         {
             try
             {
-                log.Timestamp ??= DateTime.UtcNow;
 
                 await _userActionLogs.InsertOneAsync(log);
 
-                _logger.LogInformation($"User action logged: {log.Action} for User: {log.UserId}");
             }
             catch (Exception ex)
             {
@@ -42,18 +46,22 @@ namespace CinemaNetwork.API.MongoDB
             }
         }
 
-        public async Task<List<UserActionLog>> GetLogsByUserIdAsync(string userId)
+
+
+
+        public async Task<List<UserActionLog>> GetAllLogs()
         {
             try
             {
-                var filter = Builders<UserActionLog>.Filter.Eq(log => log.UserId, userId);
-                return await _userActionLogs.Find(filter).ToListAsync();
+
+                return await _userActionLogs.Find(a => true).ToListAsync();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error retrieving logs for User ID {userId}: {ex.Message}");
+                _logger.LogError(ex, $"Error retrieving logs {ex.Message}");
                 throw new Exception("Error retrieving user logs", ex);
             }
         }
+
     }
 }

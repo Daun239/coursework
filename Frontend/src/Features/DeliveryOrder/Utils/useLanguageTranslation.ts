@@ -78,6 +78,8 @@ const translations = {
     "table.progress": "Прогрес",
     "table.actions": "Дії",
 
+    success: "Delivery order successfully created",
+
     // Empty states
     "empty.noOrders": "Замовлення доставки не знайдено",
 

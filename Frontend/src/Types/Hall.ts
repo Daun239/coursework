@@ -1,7 +1,6 @@
 ﻿export interface Hall {
-    hallId: number;
-    hinemaId: number;
-    hallNumber?: number | null;
-    hallTechnologyId?: number | null;
-  }
-  
+  hallId: number;
+  cinemaId: number;
+  hallNumber?: number | null;
+  hallTechnologyId?: number | null;
+}

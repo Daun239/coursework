@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useLanguageStore } from '@/Stores/useLanguageStore';
+import { useServiceStore } from '@/Stores/ServicesStore';
 
 type ProfileProps = {
   EmployeePosition: string;
@@ -59,8 +60,10 @@ const Profile = ({ CinemaId, EmployeePosition, CellNumber, Email, Name, Surname,
     return `${name[0]}${surname[0]}`.toUpperCase();
   };
 
+
+  const { userActionService } = useServiceStore();
   const handleLogout = () => {
-    logOut();
+    logOut(userActionService);
   };
 
   const { language } = useLanguageStore() || "en";

@@ -60,7 +60,7 @@ const MoviePreview = ({ movieId, onSelectMovieId, handleRerender }: Props) => {
       endDate: "End Date",
       notAvailable: "N/A",
       deleteSuccess: "Movie deleted successfully",
-      deleteError: "Failed to delete movie"
+      deleteError: "Can't delete a movie with at least a single screening"
     },
     ua: {
       edit: "Редагувати",
@@ -80,7 +80,7 @@ const MoviePreview = ({ movieId, onSelectMovieId, handleRerender }: Props) => {
       endDate: "Дата закінчення",
       notAvailable: "Немає даних",
       deleteSuccess: "Фільм успішно видалено",
-      deleteError: "Не вдалося видалити фільм"
+      deleteError: "Не можна видалити фільм із хоча б одним сеансом"
     }
   };
 

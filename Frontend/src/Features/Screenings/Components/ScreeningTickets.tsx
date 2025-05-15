@@ -41,6 +41,7 @@ const t = {
     addToCart: "Add to cart",
     loadingScreeningData: "Loading screening data...",
     toast: "Tickets added to cart successfully!",
+    fail: "Failed to add tickets to cart",
 
 
   },
@@ -64,7 +65,8 @@ const t = {
     noSeats: "Місця не обрані",
     addToCart: "Додати до кошика",
     loadingScreeningData: "Завантаження даних сеансу...",
-    toast: "Квитки успішно додані до кошика!"
+    toast: "Квитки успішно додані до кошика!",
+    fail: "Сталась помилка при додаванні квитків до кошика",
   }
 
 }
@@ -160,11 +162,11 @@ const ScreeningTickets: React.FC<ScreeningTicketsProps> = ({ id, theme = 'light'
 
 
       handleClear();
-      toast.success('Tickets added to cart successfully!')
+      toast.success(`${languagetranslated.toast}`)
 
     } catch (error) {
       console.error("Failed to add tickets:", error);
-      toast.error("Something went wrong. Please try again.");
+      toast.error(`${languagetranslated.fail}`);
     }
   };
 

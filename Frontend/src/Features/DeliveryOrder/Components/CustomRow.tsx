@@ -2,7 +2,6 @@ import { useServiceStore } from "@/Stores/ServicesStore";
 import { DeliveryOrder } from "@/Types/DeliveryOrder";
 import { DeliveryOrderStatus } from "@/Types/DeliveryOrderStatus";
 import { Employee } from "@/Types/Employee";
-import { EmployeePosition } from "@/Types/EmployeePosition";
 import { ProductPlacement } from "@/Types/ProductPlacement";
 import { ProductsInOrder } from "@/Types/ProductsInOrder";
 import { Supplier } from "@/Types/Supplier";
@@ -11,6 +10,9 @@ import { useState, useEffect } from "react";
 import getStatusColor from "../Utils/getStatusColor";
 import ProgressColumn from "./ProgressColumn";
 import { useLanguageStore } from "@/Stores/useLanguageStore";
+import { UserActionLog } from "@/Types/UserActionLog";
+import { useUserStore } from "@/Stores/UserStore";
+import { PaymentMethod } from "@/Types/PaymentMethod";
 
 interface CustomRowProps {
     deliveryOrderId: number;
@@ -30,7 +32,10 @@ const CustomRow: React.FC<CustomRowProps> = ({ deliveryOrderId, onUpdate }) => {
             save: "Save",
             cancel: "Cancel",
             selectSupplier: "Select supplier",
-            selectStatus: "Select status"
+            selectStatus: "Select status",
+
+            selectPaymentMethod: "Select payment method",
+
         },
         ua: {
             loadingSupplier: "Завантаження постачальника...",
@@ -41,7 +46,8 @@ const CustomRow: React.FC<CustomRowProps> = ({ deliveryOrderId, onUpdate }) => {
             save: "Зберегти",
             cancel: "Скасувати",
             selectSupplier: "Виберіть постачальника",
-            selectStatus: "Виберіть статус"
+            selectStatus: "Виберіть статус",
+            selectPaymentMethod: "Виберіть метод оплати",
         },
     };
 
@@ -53,11 +59,16 @@ const CustomRow: React.FC<CustomRowProps> = ({ deliveryOrderId, onUpdate }) => {
         productPlacementService,
         productService,
         employeeService,
+        userActionService,
+        paymentMethodService,
     } = useServiceStore();
 
     const [productsInOrder, setProductsInOrder] = useState<ProductsInOrder[]>([]);
     const [productPlacements, setProductPlacements] = useState<ProductPlacement[]>([]);
     const [productsInStorage, setProductsInStorage] = useState<ProductsInOrder[]>([]);
+
+
+    const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>();
     const [employee, setEmployee] = useState<Employee>();
     const [supplier, setSupplier] = useState<Supplier | null>(null);
     const [deliveryOrder, setDeliveryOrder] = useState<DeliveryOrder | null>(null);
@@ -68,6 +79,7 @@ const CustomRow: React.FC<CustomRowProps> = ({ deliveryOrderId, onUpdate }) => {
     // Add these states to handle the dropdown lists
     const [allSuppliers, setAllSuppliers] = useState<Supplier[]>([]);
     const [allStatuses, setAllStatuses] = useState<DeliveryOrderStatus[]>([]);
+    const [allPaymentMethods, setAllPaymentMethods] = useState<PaymentMethod[]>([]);
 
     // Form state for editable fields
     const [formData, setFormData] = useState<DeliveryOrder>({
@@ -100,6 +112,17 @@ const CustomRow: React.FC<CustomRowProps> = ({ deliveryOrderId, onUpdate }) => {
 
                 const [fetchedEmployee] = await employeeService.getAll(`employeeId = ${fetchedDeliveryOrder.employeeId}`);
                 setEmployee(fetchedEmployee);
+
+                const [paymentMethod] = await paymentMethodService.getAll(`paymentMethodId = ${fetchedDeliveryOrder?.paymentMethodId}`);
+
+                setPaymentMethod(paymentMethod);
+
+                const paymentMethods = await paymentMethodService.getAll("", "", 1, 1000000);
+
+                console.log('fetchedpaymentmethods', paymentMethods);
+
+
+                setAllPaymentMethods(paymentMethods);
 
                 // Fetch all suppliers and statuses for dropdowns
                 const fetchedSuppliers = await supplierService.getAll();
@@ -188,7 +211,20 @@ const CustomRow: React.FC<CustomRowProps> = ({ deliveryOrderId, onUpdate }) => {
                 endDateTime: endDateTime,
             };
 
-            await deliveryOrderService.update(updatedDeliveryOrder);
+            const result = await deliveryOrderService.update(updatedDeliveryOrder);
+
+
+            const actionLog: UserActionLog = {
+                action: "Updated",
+                details: `${JSON.stringify(result)}`,
+                entity: "DeliveryOrder",
+                timestamp: new Date(),
+                user: `${user?.name} ${user?.surname}`
+            }
+
+            userActionService.post(actionLog);
+
+
 
             // Refresh data after update
             const [refreshedDeliveryOrder] = await deliveryOrderService.getAll(`deliveryOrderId = ${deliveryOrderId}`);
@@ -211,12 +247,24 @@ const CustomRow: React.FC<CustomRowProps> = ({ deliveryOrderId, onUpdate }) => {
         }
     };
 
+    const { user } = useUserStore();
+
     const handleDelete = async (id: number) => {
         try {
-            await deliveryOrderService.delete(id);
+            const result = await deliveryOrderService.delete(`deliveryOrderId = ${deliveryOrder}`);
             if (onUpdate) {
                 onUpdate(id);
             }
+
+            const actionLog: UserActionLog = {
+                action: "Deleted",
+                details: `${JSON.stringify(result)}`,
+                entity: "DeliveryOrder",
+                timestamp: new Date(),
+                user: `${user?.name} ${user?.surname}`
+            }
+
+            userActionService.post(actionLog);
         } catch (error) {
             console.error("Error deleting order:", error);
         }
@@ -232,8 +280,11 @@ const CustomRow: React.FC<CustomRowProps> = ({ deliveryOrderId, onUpdate }) => {
         );
     }
 
+
+    console.log('allpaymentmthods', allPaymentMethods);
+
     return (
-        <tr className={`my-10 border-b border-gray-200 dark:border-gray-700 dark:hover:bg-gray-750 ${!isEditing ? getStatusStyles() : ""}`}>
+        <tr className={`my-10 border-b border-gray-200 dark:border-gray-700 dark:hover:bg-gray-750`}>
             <td className="py-3 px-4 text-gray-800 dark:text-gray-200">{deliveryOrder?.number}</td>
 
             <td className="py-3 px-4">
@@ -252,9 +303,39 @@ const CustomRow: React.FC<CustomRowProps> = ({ deliveryOrderId, onUpdate }) => {
                         ))}
                     </select>
                 ) : (
-                    <span className="px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap bg-opacity-20 dark:bg-opacity-30 text-gray-800 dark:text-gray-200">
+                    <span
+                        className={`${!isEditing ? getStatusStyles() : ""} px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap bg-opacity-20 dark:bg-opacity-30 text-gray-800 dark:text-gray-200`}
+                    >
                         {deliveryOrderStatus?.deliveryOrderStatus1}
                     </span>
+
+                )}
+            </td>
+
+
+
+            <td className="py-3 px-4">
+                {isEditing ? (
+                    <select
+                        name="paymentMethodId"
+                        value={formData.paymentMethodId}
+                        onChange={handleChange}
+                        className="px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                        <option value="" disabled>{t[language].selectPaymentMethod}</option>
+                        {allPaymentMethods.map(method => (
+                            <option key={method.paymentMethodId} value={method.paymentMethodId}>
+                                {method.paymentMethod1}
+                            </option>
+                        ))}
+                    </select>
+                ) : (
+                    <span
+                        className={`${!isEditing ? getStatusStyles() : ""} px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap bg-opacity-20 dark:bg-opacity-30 text-gray-800 dark:text-gray-200`}
+                    >
+                        {paymentMethod?.paymentMethod1}
+                    </span>
+
                 )}
             </td>
 
@@ -302,47 +383,52 @@ const CustomRow: React.FC<CustomRowProps> = ({ deliveryOrderId, onUpdate }) => {
                 {deliveryOrder?.sum.toLocaleString()} ₴
             </td>
 
-            <ProgressColumn delivery deliveryOrderId={deliveryOrderId} />
+            <ProgressColumn deliveryOrder={deliveryOrder} />
 
             {/* Edit & Delete Buttons */}
             <td className="py-3 px-4">
                 <div className="flex gap-2">
-                    {isEditing ? (
-                        <>
-                            <button
-                                onClick={handleSave}
-                                className="bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 text-white px-3 py-1 rounded text-xs font-medium transition-colors duration-200"
-                            >
-                                {t[language].save}
-                            </button>
-                            <button
-                                onClick={handleCancel}
-                                className="bg-gray-500 hover:bg-gray-600 dark:bg-gray-600 dark:hover:bg-gray-700 text-white px-3 py-1 rounded text-xs font-medium transition-colors duration-200"
-                            >
-                                {t[language].cancel}
-                            </button>
-                        </>
-                    ) : (
-                        <>
-                            <button
-                                onClick={handleEdit}
-                                className="bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white px-3 py-1 rounded text-xs font-medium transition-colors duration-200"
-                                aria-label={t[language].edit}
-                            >
-                                {t[language].edit}
-                            </button>
-                            <button
-                                onClick={() => handleDelete(deliveryOrderId)}
-                                className="bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 text-white px-3 py-1 rounded text-xs font-medium transition-colors duration-200"
-                                aria-label={t[language].delete}
-                            >
-                                {t[language].delete}
-                            </button>
-                        </>
+
+                    {user?.employeePosition === "Manager" && (
+                        isEditing ? (
+                            <>
+                                <button
+                                    onClick={handleSave}
+                                    className="bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 text-white px-3 py-1 rounded text-xs font-medium transition-colors duration-200"
+                                >
+                                    {t[language].save}
+                                </button>
+                                <button
+                                    onClick={handleCancel}
+                                    className="bg-gray-500 hover:bg-gray-600 dark:bg-gray-600 dark:hover:bg-gray-700 text-white px-3 py-1 rounded text-xs font-medium transition-colors duration-200"
+                                >
+                                    {t[language].cancel}
+                                </button>
+                            </>
+                        ) : (
+                            <>
+                                <button
+                                    onClick={handleEdit}
+                                    className="bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white px-3 py-1 rounded text-xs font-medium transition-colors duration-200"
+                                    aria-label={t[language].edit}
+                                >
+                                    {t[language].edit}
+                                </button>
+                                <button
+                                    onClick={() => handleDelete(deliveryOrderId)}
+                                    className="bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 text-white px-3 py-1 rounded text-xs font-medium transition-colors duration-200"
+                                    aria-label={t[language].delete}
+                                >
+                                    {t[language].delete}
+                                </button>
+                            </>
+                        )
                     )}
+
+
                 </div>
             </td>
-        </tr>
+        </tr >
     );
 };
 

@@ -6,6 +6,10 @@ import { MapPin, User, Calendar, Box } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { toast } from 'sonner';
 import { t } from '@/Features/Products/Utils/useTranslation';
+import { useUserStore } from '@/Stores/UserStore';
+import { useLanguageStore } from '@/Stores/useLanguageStore';
+import { UserActionLog } from '@/Types/UserActionLog';
+import { ProductPlacement } from '@/Types/ProductPlacement';
 
 const translations = {
     en: {
@@ -28,14 +32,23 @@ const translations = {
     }
 };
 
-const ProductPlacementComponent = ({ productPlacement, overallQuantity, handleRerender, deliveryOrderFinished }) => {
-    const { productService, productPlacementService, productsInStorageService, employeeService, cinemaService, cityService } = useServiceStore();
+type props = {
+    productPlacement: ProductPlacement,
+    overallQuantity: number,
+    handleRerender: () => void,
+    deliveryOrderFinished: boolean,
+}
+
+const ProductPlacementComponent = ({ productPlacement, overallQuantity, handleRerender, deliveryOrderFinished }: props) => {
+    const { userActionService, productService, productPlacementService, productsInStorageService, employeeService, cinemaService, cityService } = useServiceStore();
     const [product, setProduct] = useState(null);
     const [employee, setEmployee] = useState();
     const [cinema, setCinema] = useState();
     const [city, setCity] = useState();
 
-    const language = 'ua'; // This would be dynamic, depending on the user's preference
+    const { user } = useUserStore();
+
+    const { language } = useLanguageStore(); // This would be dynamic, depending on the user's preference
     const t = translations[language];
 
     useEffect(() => {
@@ -72,8 +85,22 @@ const ProductPlacementComponent = ({ productPlacement, overallQuantity, handleRe
                 quantity: productInStorage.quantity - productPlacement.quantity,
             });
 
-            await productPlacementService.delete(`productPlacementId = ${productPlacement.productPlacementId}`);
+            const result = await productPlacementService.delete(`productPlacementId = ${productPlacement.productPlacementId}`);
             toast.success(t.placementDeleted);
+
+
+
+            const actionLog: UserActionLog = {
+                action: "Deleted",
+                details: `${JSON.stringify(result)}`,
+                entity: "ProductPlacement",
+                timestamp: new Date(),
+                user: `${user?.name} ${user?.surname}`
+            }
+
+            userActionService.post(actionLog);
+
+
             handleRerender();
         } catch (error) {
             toast.error(t.errorDeletingPlacement);
@@ -82,37 +109,50 @@ const ProductPlacementComponent = ({ productPlacement, overallQuantity, handleRe
 
     if (!cinema || !city || !employee) return <div className="p-2 border rounded-lg bg-gray-50">{t.loading}</div>;
 
+
+    console.log("employeeid", productPlacement.employeeId, 'userid', user?.employeeId)
     return (
         <div className="p-3 border rounded-lg bg-white dark:bg-gray-900 dark:border-gray-700 shadow-sm hover:shadow transition-shadow">
             <div className="flex justify-between items-center mb-2">
                 <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
-                    <Calendar className="w-3 h-3 mr-1" />
-                    {format(new Date(productPlacement.placementDate), "MM/dd/yy, HH:mm")}
+                    <div className="flex items-center bg-gray-200 dark:bg-gray-700 rounded p-1">
+                        <Calendar className="w-3 h-3 text-gray-600 dark:text-gray-300" />
+                        <span className="ml-1">{format(new Date(productPlacement.placementDate), "MM/dd/yy, HH:mm")}</span>
+                    </div>
                 </div>
-                <Popover>
-                    <PopoverTrigger asChild>
-                        <button disabled={deliveryOrderFinished} className="text-xs px-2 py-0.5 rounded bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-900 dark:text-red-400 dark:hover:bg-red-800">
-                            {t.delete}
-                        </button>
-                    </PopoverTrigger>
-                    <PopoverContent className="p-3 w-48 shadow dark:bg-gray-800 dark:border-gray-700">
-                        <p className="text-xs mb-2 text-gray-800 dark:text-gray-200">{t.confirmDeletion}</p>
-                        <div className="flex justify-end gap-1">
+
+
+                {productPlacement.employeeId == user?.employeeId &&
+
+                    <Popover>
+                        <PopoverTrigger asChild>
                             <button
-                                className="text-xs px-2 py-0.5 bg-gray-100 dark:bg-gray-700 dark:text-gray-200 rounded"
-                                onClick={() => document.activeElement?.blur()}
-                            >
-                                {t.cancel}
-                            </button>
-                            <button
-                                className="text-xs px-2 py-0.5 bg-red-500 text-white rounded dark:bg-red-600 hover:dark:bg-red-500"
-                                onClick={handleDeletePlacement}
+                                disabled={deliveryOrderFinished}
+                                className="text-xs px-2 py-0.5 rounded bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-900 dark:text-red-400 dark:hover:bg-red-800 transition-colors"
                             >
                                 {t.delete}
                             </button>
-                        </div>
-                    </PopoverContent>
-                </Popover>
+                        </PopoverTrigger>
+                        <PopoverContent className="p-3 w-48 shadow dark:bg-gray-800 dark:border-gray-700">
+                            <p className="text-xs mb-2 text-gray-800 dark:text-gray-200">{t.confirmDeletion}</p>
+                            <div className="flex justify-end gap-1">
+                                <button
+                                    className="text-xs px-2 py-0.5 bg-gray-100 dark:bg-gray-700 dark:text-gray-200 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                                    onClick={() => document.activeElement?.blur()}
+                                >
+                                    {t.cancel}
+                                </button>
+                                <button
+                                    className="text-xs px-2 py-0.5 bg-red-500 text-white rounded hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-500 transition-colors"
+                                    onClick={handleDeletePlacement}
+                                >
+                                    {t.delete}
+                                </button>
+                            </div>
+                        </PopoverContent>
+                    </Popover>
+                }
+
             </div>
 
             <div className="flex items-center text-xs mb-2 text-gray-700 dark:text-gray-300">
@@ -129,7 +169,7 @@ const ProductPlacementComponent = ({ productPlacement, overallQuantity, handleRe
             </div>
 
             <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
-                <User className="w-3 h-3 mr-1" />
+                <User className="w-3 h-3 mr-1 text-gray-500 dark:text-gray-400" />
                 <span className="truncate">{employee.name} {employee.surname}</span>
             </div>
         </div>

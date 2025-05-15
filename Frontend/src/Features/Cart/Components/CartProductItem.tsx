@@ -4,9 +4,36 @@ import { FaMinus, FaPlus } from "react-icons/fa";
 import { BsTrash } from "react-icons/bs";
 import { useCartStore } from "../Stores/CartState";
 import useProductData from "@/Features/Products/Hooks/useProductData";
+import { useLanguageStore } from "@/Stores/useLanguageStore";
+
+// Translation dictionaries integrated directly into the component
+const translations = {
+    en: {
+        inStock: "In stock:",
+        units: "units",
+        produced: "Produced:",
+        expires: "Expires:",
+        price: "Price:",
+        noImage: "No image",
+        removeItem: "Remove item"
+    },
+    ua: {
+        inStock: "В наявності:",
+        units: "одиниць",
+        produced: "Виготовлено:",
+        expires: "Термін дії:",
+        price: "Ціна:",
+        noImage: "Немає зображення",
+        removeItem: "Видалити товар"
+    }
+};
 
 const CartProductItem = ({ item }: { item: ProductsInStorage }) => {
     const id = getItemId(item);
+    const { language } = useLanguageStore();
+
+    // Get translation dictionary based on selected language
+    const t = translations[language] || translations.en;
 
     const cart = useCartStore((state) => state.cart.product);
     const cartItem = cart.find((i) => getItemId(i) === id) as ProductsInStorage | undefined;
@@ -43,6 +70,12 @@ const CartProductItem = ({ item }: { item: ProductsInStorage }) => {
         new Date(item.expirationDate) > new Date() &&
         new Date(item.expirationDate) < new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
+    // Format date according to the user's language
+    const formatDate = (dateString: string) => {
+        const date = new Date(dateString);
+        return date.toLocaleDateString(language === 'ua' ? 'uk-UA' : 'en-US');
+    };
+
     return (
         <div className="mb-6 rounded-lg overflow-hidden bg-white dark:bg-gray-800 shadow-md hover:shadow-lg transition-shadow duration-200">
             <div className="p-4 flex gap-4">
@@ -56,7 +89,7 @@ const CartProductItem = ({ item }: { item: ProductsInStorage }) => {
                         <img src={productImage} alt={product?.name} className="w-full h-full object-cover" />
                     ) : (
                         <div className="w-full h-full flex items-center justify-center text-xs text-gray-400 bg-gray-100 dark:bg-gray-800">
-                            No image
+                            {t.noImage}
                         </div>
                     )}
                 </div>
@@ -73,7 +106,7 @@ const CartProductItem = ({ item }: { item: ProductsInStorage }) => {
                         <button
                             onClick={handleRemoveItem}
                             className="text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 transition-colors"
-                            title="Remove item"
+                            title={t.removeItem}
                         >
                             <BsTrash className="text-lg" />
                         </button>
@@ -89,34 +122,34 @@ const CartProductItem = ({ item }: { item: ProductsInStorage }) => {
                     {/* Product Details in a card-like format */}
                     <div className="mt-2 bg-gray-50 dark:bg-gray-700/40 rounded-md p-2 text-sm text-gray-600 dark:text-gray-300 space-y-1.5">
                         <div className="flex items-center justify-between">
-                            <span className="text-gray-500 dark:text-gray-400">In stock:</span>
+                            <span className="text-gray-500 dark:text-gray-400">{t.inStock}</span>
                             <span className={`font-medium ${availableQuality > 10
-                                    ? 'text-green-600 dark:text-green-400'
-                                    : availableQuality > 0
-                                        ? 'text-yellow-600 dark:text-yellow-400'
-                                        : 'text-red-600 dark:text-red-400'
+                                ? 'text-green-600 dark:text-green-400'
+                                : availableQuality > 0
+                                    ? 'text-yellow-600 dark:text-yellow-400'
+                                    : 'text-red-600 dark:text-red-400'
                                 }`}>
-                                {availableQuality} units
+                                {availableQuality} {t.units}
                             </span>
                         </div>
 
                         {item?.productionDate && (
                             <div className="flex items-center justify-between">
-                                <span className="text-gray-500 dark:text-gray-400">Produced:</span>
-                                <span>{new Date(item.productionDate).toLocaleDateString()}</span>
+                                <span className="text-gray-500 dark:text-gray-400">{t.produced}</span>
+                                <span>{formatDate(item.productionDate)}</span>
                             </div>
                         )}
 
                         {item?.expirationDate && (
                             <div className="flex items-center justify-between">
-                                <span className="text-gray-500 dark:text-gray-400">Expires:</span>
+                                <span className="text-gray-500 dark:text-gray-400">{t.expires}</span>
                                 <span className={`font-medium ${isExpired
-                                        ? 'text-red-600 dark:text-red-400'
-                                        : isExpiringSoon
-                                            ? 'text-yellow-600 dark:text-yellow-400'
-                                            : 'text-green-600 dark:text-green-400'
+                                    ? 'text-red-600 dark:text-red-400'
+                                    : isExpiringSoon
+                                        ? 'text-yellow-600 dark:text-yellow-400'
+                                        : 'text-green-600 dark:text-green-400'
                                     }`}>
-                                    {new Date(item.expirationDate).toLocaleDateString()}
+                                    {formatDate(item.expirationDate)}
                                 </span>
                             </div>
                         )}
@@ -125,7 +158,7 @@ const CartProductItem = ({ item }: { item: ProductsInStorage }) => {
                     {/* Price display */}
                     <div className="mt-3 flex items-center justify-between">
                         <div className="text-gray-800 dark:text-gray-200 font-medium">
-                            Price: <span className="text-lg">${product ? (product.price * orderedProductsNumber).toFixed(2) : "N/A"}</span>
+                            {t.price} <span className="text-lg">${product ? (product.price * orderedProductsNumber).toFixed(2) : "N/A"}</span>
                         </div>
 
                         {/* Quantity Controls with improved styling */}

@@ -12,6 +12,8 @@ import formFilterQuery from '@/lib/formFilterQuery';
 import { Run } from '@/Types/Run';
 
 import { toast } from "sonner"
+import { UserActionLog } from '@/Types/UserActionLog';
+import { useUserStore } from '@/Stores/UserStore';
 
 // Translation object with English and Ukrainian support
 const translations = {
@@ -32,7 +34,9 @@ const translations = {
         update: "Update Movie",
         success: "Movie created successfully!",
         updateSuccess: "Movie updated successfully!",
-        failure: "Failed to process movie."
+        failure: "Failed to process movie.",
+
+        runStartDateHasToBeBeforeEndDate: "Run start date has to be sooner than end date",
     },
     ua: {
         title: "Створити фільм",
@@ -51,7 +55,9 @@ const translations = {
         update: "Оновити фільм",
         success: "Фільм успішно створено!",
         updateSuccess: "Фільм успішно оновлено!",
-        failure: "Не вдалося обробити фільм."
+        failure: "Не вдалося обробити фільм.",
+
+        runStartDateHasToBeBeforeEndDate: "Кінець прокату повинен бути після початку прокату",
     }
 };
 
@@ -90,6 +96,7 @@ const CreateOrUpdateMovie = ({ movieId, handleRerender }: { movieId?: number, ha
         publisherService,
         languageService,
         runService,
+        userActionService
     } = useServiceStore();
 
     useEffect(() => {
@@ -136,7 +143,8 @@ const CreateOrUpdateMovie = ({ movieId, handleRerender }: { movieId?: number, ha
                             budget: existingMovie.budget,
                             description: existingMovie.description,
                             name: existingMovie.name,
-                            runtime: existingMovie.runtime
+                            runtime: existingMovie.runtime,
+                            movieId: movieId,
                         })
                     }
                 }
@@ -165,19 +173,50 @@ const CreateOrUpdateMovie = ({ movieId, handleRerender }: { movieId?: number, ha
         }));
     };
 
+
+
+    const { user } = useUserStore();
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
+
+            if (formData.runEndDate <= formData.runStartDate) {
+                toast.error(t.runStartDateHasToBeBeforeEndDate)
+                return;
+            }
             let movieResponse;
 
             if (movieId) {
                 movieResponse = await movieService.update(formData);
                 handleRerender();
                 toast(t.updateSuccess);
+
+                const actionLog: UserActionLog = {
+                    action: "Added",
+                    details: `${JSON.stringify(movieResponse)}`,
+                    entity: "Movie",
+                    timestamp: new Date(),
+                    user: `${user?.name} ${user?.surname}`
+                }
+
+                userActionService.post(actionLog);
+
             } else {
                 movieResponse = await movieService.create(formData);
                 handleRerender();
                 toast(t.success);
+
+                const actionLog: UserActionLog = {
+                    action: "Added",
+                    details: `${JSON.stringify(movieResponse)}`,
+                    entity: "Movie",
+                    timestamp: new Date(),
+                    user: `${user?.name} ${user?.surname}`
+                }
+
+                userActionService.post(actionLog);
+
             }
 
             const run: Run = {
@@ -222,7 +261,7 @@ const CreateOrUpdateMovie = ({ movieId, handleRerender }: { movieId?: number, ha
     };
 
     return (
-        <div className="w-full max-w-2xl mx-auto p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md">
+        <div className="w-full max-w-2xl mx-auto p-6 bg-black dark:bg-gray-800 rounded-lg shadow-md">
             <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">
                     {movieId ? t.update : t.title}
@@ -321,7 +360,7 @@ const CreateOrUpdateMovie = ({ movieId, handleRerender }: { movieId?: number, ha
                             required
                             className="px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
-                            <option value="" disabled>Select Publisher</option>
+                            <option value="" disabled>{t.selectLanguage}</option>
                             {publishers.map(pub => (
                                 <option key={pub.publisherId} value={pub.publisherId}>
                                     {pub.publisher1}
@@ -339,7 +378,7 @@ const CreateOrUpdateMovie = ({ movieId, handleRerender }: { movieId?: number, ha
                             required
                             className="px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
-                            <option value="" disabled>Select Language</option>
+                            <option value="" disabled>{t.selectLanguage}</option>
                             {languages.map(lang => (
                                 <option key={lang.languageId} value={lang.languageId}>
                                     {lang.language1}

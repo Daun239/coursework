@@ -26,6 +26,7 @@ import { ProductsInStorage } from '@/Types/ProductsInStorage';
 import { Product } from '@/Types/Product';
 import { toast } from 'sonner';
 import { useLanguageStore } from '@/Stores/useLanguageStore';
+import { UserActionLog } from '@/Types/UserActionLog';
 
 
 
@@ -49,6 +50,11 @@ const translations = {
         pickDate: "Pick Date",
         ExpirationDate: "Expiration Date",
         quantity: "Quantity",
+        productionDate: "Production Date",
+
+        fillData: "Please fill in quantity, production date, and expiration date.",
+
+        expirationDateCantBeSoonerThanProductionDate: "Expiration date can't be sooner than production date"
     },
     ua: {
         pricePerUnit: 'Ціна за одиницю:',
@@ -63,6 +69,10 @@ const translations = {
         pickDate: "Дата вибору",
         ExpirationDate: "Термін придатності",
         quantity: "Кількість",
+        productionDate: "Дата виготовлення",
+        fillData: "Заповніть всі поля",
+        expirationDateCantBeSoonerThanProductionDate: "Дата виготовлення не може бути більшою за дату кінця терміну"
+
     }
 };
 
@@ -71,8 +81,10 @@ const ProductInOrder: React.FC<ProductInOrderProps> = ({ productInOrderId, deliv
         productPlacementService,
         productsInOrderService,
         productService,
-        productsInStorageService
+        productsInStorageService,
+        userActionService
     } = useServiceStore();
+
 
     const [productInOrder, setProductInOrder] = useState<ProductsInOrder>();
     const [productPlacements, setProductPlacements] = useState<ProductPlacement[]>([]);
@@ -130,7 +142,12 @@ const ProductInOrder: React.FC<ProductInOrderProps> = ({ productInOrderId, deliv
 
     const handleAddProductPlacement = async () => {
         if (!placementQuantity || !productionDate || !expirationDate) {
-            toast.error("Please fill in quantity, production date, and expiration date.");
+            toast.error(t.fillData);
+            return;
+        }
+
+        if (productionDate > expirationDate) {
+            toast.error(t.expirationDateCantBeSoonerThanProductionDate)
             return;
         }
 
@@ -172,9 +189,24 @@ const ProductInOrder: React.FC<ProductInOrderProps> = ({ productInOrderId, deliv
                 quantity: placementQuantity,
             };
 
-            await productPlacementService.create(productPlacement);
+            const result = await productPlacementService.create(productPlacement);
 
             toast.success(`Placed ${placementQuantity} items successfully.`);
+
+
+
+
+            const actionLog: UserActionLog = {
+                action: "Added",
+                details: `${JSON.stringify(result)}`,
+                entity: "ProductPlacement",
+                timestamp: new Date(),
+                user: `${user?.name} ${user?.surname}`
+            }
+
+            userActionService.post(actionLog);
+
+
 
             handleReload();
         } catch (error: any) {
@@ -190,7 +222,7 @@ const ProductInOrder: React.FC<ProductInOrderProps> = ({ productInOrderId, deliv
     const [placementQuantity, setPlacementQuantity] = useState<number>(1);
 
     return (
-        <div className="border border-gray-200 dark:border-gray-700 p-4 rounded-lg shadow-sm bg-white dark:bg-gray-800 mb-4 transition-all hover:shadow-md">
+        <div className="border border-gray-200 dark:border-gray-700 p-4 rounded-lg shadow-sm bg-gray-200 dark:bg-gray-900 mb-4 transition-all hover:shadow-md">
             <div className="flex flex-col md:flex-row md:items-start gap-4">
                 {/* Left side - Image and basic info */}
                 <div className="md:w-1/3 lg:w-1/4">
@@ -286,10 +318,20 @@ const ProductInOrder: React.FC<ProductInOrderProps> = ({ productInOrderId, deliv
                             </div>
                         )}
 
-                        <div>
-                            <button onClick={() => setAddPlacementOpen(true)}>{t.addPlacement}</button>
-                        </div>
 
+                        {user?.employeePosition === "WarehouseWorker" &&
+                            <div className="btn-ghost">
+                                <button
+                                    onClick={() => setAddPlacementOpen(true)}
+                                    className="mt-4 px-4 py-2 text-sm font-medium rounded-md 
+            bg-gray-100 dark:bg-gray-800 
+            text-gray-800 dark:text-gray-200 
+            hover:bg-gray-200 dark:hover:bg-gray-700"
+                                >
+                                    {t.addPlacement}
+                                </button>
+                            </div>
+                        }
 
                         {addPlacementOpen && (
                             <div className="bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg p-6 mt-4 space-y-4 shadow-sm">
@@ -330,7 +372,8 @@ const ProductInOrder: React.FC<ProductInOrderProps> = ({ productInOrderId, deliv
                                                 )}
                                             </Button>
                                         </PopoverTrigger>
-                                        <PopoverContent className="w-auto p-0">
+                                        <PopoverContent className="w-auto p-0 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md shadow-md">
+
                                             <Calendar
                                                 mode="single"
                                                 selected={productionDate}
@@ -364,7 +407,8 @@ const ProductInOrder: React.FC<ProductInOrderProps> = ({ productInOrderId, deliv
                                                 )}
                                             </Button>
                                         </PopoverTrigger>
-                                        <PopoverContent className="w-auto p-0">
+                                        <PopoverContent className="w-auto p-0 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md shadow-md">
+
                                             <Calendar
                                                 mode="single"
                                                 selected={expirationDate}
@@ -376,11 +420,16 @@ const ProductInOrder: React.FC<ProductInOrderProps> = ({ productInOrderId, deliv
                                 </div>
 
                                 {/* Add Button */}
-                                <div className="pt-4">
-                                    <Button onClick={handleAddProductPlacement} className="w-full">
-                                        {t.addPlacement}
-                                    </Button>
-                                </div>
+
+                                {user?.employeePosition === "WarehouseWorker" &&
+
+                                    <div className="pt-4">
+                                        <Button onClick={handleAddProductPlacement} className="w-full">
+                                            {t.addPlacement}
+                                        </Button>
+                                    </div>
+                                }
+
                             </div>
                         )}
                     </div>

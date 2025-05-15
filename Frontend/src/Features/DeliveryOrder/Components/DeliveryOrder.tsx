@@ -18,6 +18,8 @@ import { userInfo } from "os"
 import { useUserStore } from "@/Stores/UserStore"
 
 import { toast } from "sonner"
+import { UserActionLog } from "@/Types/UserActionLog"
+import { exportDeliveryOrderData } from "../Utils/exportDeliveryOrder"
 
 
 
@@ -28,7 +30,9 @@ export default function DeliveryOrder() {
         supplierService,
         productsInOrderService,
         employeeService,
-        deliveryOrderStatusService
+        deliveryOrderStatusService,
+        userActionService,
+        paymentMethodService
     } = useServiceStore();
 
     const [deliveryOrders, setDeliveryOrders] = useState<DeliveryOrder[]>([]);
@@ -93,6 +97,10 @@ export default function DeliveryOrder() {
             total: "Total",
             progress: "Progress",
             actions: "Actions",
+
+            success: "Delivery order successfully created",
+
+            paymentMethod: "Payment method",
         },
         ua: {
             deliveryOrders: "Замовлення на доставку",
@@ -109,6 +117,10 @@ export default function DeliveryOrder() {
             total: "Загальна сума",
             progress: "Прогрес",
             actions: "Дії",
+
+            success: "Замовлення поставки успішно створено",
+
+            paymentMethod: "Метод оплати",
         },
     };
 
@@ -156,6 +168,23 @@ export default function DeliveryOrder() {
     }, [supplierService, employeeService, deliveryOrderStatusService]);
 
 
+    const handleExport = (format: "csv" | "json" | "pdf") => {
+        // Create services object for delivery orders
+        const services = {
+            supplierService,
+            paymentMethodService,
+            employeeService,
+            deliveryOrderStatusService,
+        };
+
+        // Call the export function for delivery orders
+        exportDeliveryOrderData(deliveryOrders, format, `delivery_orders_data_${format}`, services);
+    };
+
+
+
+
+
     const handleAddDeliveryOrder = async () => {
         try {
             const [latestOrder] = await deliveryOrderService.getAll('', 'number desc', 1, 1);
@@ -174,9 +203,21 @@ export default function DeliveryOrder() {
                 supplierId: null,
             };
 
-            await deliveryOrderService.create(deliveryOrder);
+            const result = await deliveryOrderService.create(deliveryOrder);
 
-            toast.error("Замовлення поставки успішно створено");
+            toast.success(translations[language].success);
+
+
+            const actionLog: UserActionLog = {
+                action: "Added",
+                details: `${JSON.stringify(result)}`,
+                entity: "DeliveryOrder",
+                timestamp: new Date(),
+                user: `${user?.name} ${user?.surname}`
+            }
+
+            userActionService.post(actionLog);
+
 
         } catch (error) {
             console.error("Failed to create delivery order", error);
@@ -198,6 +239,16 @@ export default function DeliveryOrder() {
                         field: "deliveryOrderStatusId",
                         operator: "in",
                         values: selectedStatuses.map(d => d.deliveryOrderStatusId)
+                    });
+                }
+
+
+                console.log('user', user);
+                if (user?.employeePosition === 'WarehouseWorker') {
+                    filterConditions.push({
+                        field: "deliveryOrderStatusId",
+                        operator: "in",
+                        values: [deliveryOrderStatuses.find(d => d.deliveryOrderStatus1 === "Ordered")?.deliveryOrderStatusId]
                     });
                 }
 
@@ -276,8 +327,11 @@ export default function DeliveryOrder() {
         orderByPrice,
         orderByNumber,
         currentPage,
-        pageSize
+        pageSize,
+        user,
+        deliveryOrderStatuses // ✅ Add this
     ]);
+
 
     return (
         <div className="relative flex w-full">
@@ -324,13 +378,15 @@ export default function DeliveryOrder() {
                             onSelectionChange={(selected) => handleSelectionChange(selected, setSelectedEmployees)}
                         />
 
-                        <DropdownList
+
+                        {user?.employeePosition != 'WarehouseWorker' && <DropdownList
                             listName={t('deliveryOrders.filterByStatus')}
                             items={deliveryOrderStatuses}
                             service={deliveryOrderStatusService}
                             displayKey="deliveryOrderStatus1"
                             onSelectionChange={(selected) => handleSelectionChange(selected, setSelectedStatuses)}
-                        />
+                        />}
+
 
                         {/* Price Range Slider */}
                         <RangeSlider
@@ -387,6 +443,8 @@ export default function DeliveryOrder() {
                                 <option value={10}>10</option>
                                 <option value={20}>20</option>
                                 <option value={50}>50</option>
+                                <option value={100}>100</option>
+                                <option value={250}>250</option>
                             </select>
                         </div>
 
@@ -407,41 +465,86 @@ export default function DeliveryOrder() {
                 className={`flex-1 transition-all duration-300 ease-in-out ${isSidebarOpen ? 'ml-80' : 'ml-0'}`}
                 style={{ marginLeft: isSidebarOpen ? '320px' : '0' }}
             >
-                <div className="w-full px-4 py-6 mt-12">
-                    <div className="flex justify-between items-center mb-6">
-                        <div>
-                            <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">{t2.deliveryOrders}</h2>
-                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                                {deliveryOrders.manageAndTrackYourDeliveryOrders}
-                            </p>
+                <div className="w-full px-4 py-6">
+                    <div className="w-full px-4 py-6 mt-12">
+                        <div className="flex justify-between items-end mb-6">
+
+                            {/* Left side: title */}
+                            <div>
+                                <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">{t2.deliveryOrders}</h2>
+                                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                    {deliveryOrders.manageAndTrackYourDeliveryOrders}
+                                </p>
+                            </div>
+
+                            {/* Right side: buttons */}
+                            <div className="flex gap-4 items-center">
+                                {/* Add Delivery Order Button */}
+                                <button
+                                    onClick={handleAddDeliveryOrder}
+                                    className="px-6 py-2 rounded-md bg-white text-black hover:bg-gray-200 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700 transition-colors duration-200 shadow-md"
+                                >
+                                    {t2.addDeliveryOrder}
+                                </button>
+
+                                {/* Export Buttons */}
+                                <div className="flex gap-2">
+
+
+                                    {/* CSV Export Button with SVG */}
+                                    <button
+                                        onClick={() => handleExport("csv")}
+                                        title="Export as CSV"
+                                        className="flex items-center px-4 py-2 rounded-md bg-emerald-600 text-white hover:bg-emerald-700 focus:ring-2 focus:ring-emerald-300 focus:outline-none transition-all duration-300 ease-in-out shadow-md"
+                                    >
+                                        <svg width="20" height="20" fill="none" xmlns="http://www.w3.org/2000/svg" className="mr-2">
+                                            <path d="M14 3v4a1 1 0 001 1h4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                            <path d="M17 21H7a2 2 0 01-2-2V5a2 2 0 012-2h7l5 5v11a2 2 0 01-2 2z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                            <path d="M9 12h6M9 16h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                        </svg>
+                                        CSV
+                                    </button>
+
+                                    <button
+                                        onClick={() => handleExport("json")}
+                                        title="Export as JSON"
+                                        className="flex items-center px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-300 focus:outline-none transition-all duration-300 ease-in-out shadow-md"
+                                    >
+                                        <svg width="20" height="20" fill="none" xmlns="http://www.w3.org/2000/svg" className="mr-2">
+                                            <path d="M8 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-14a2 2 0 00-2-2h-3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                            <path d="M8 7.5V4.5a2 2 0 114 0v3M8 7.5h4M16 15l-2-2m0 0l-2 2m2-2v4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                        </svg>
+                                        JSON
+                                    </button>
+                                </div>
+
+
+                                {/* Toggle Sidebar Button */}
+                                <button
+                                    onClick={toggleSidebar}
+                                    className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 flex items-center shadow-md"
+                                >
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="20"
+                                        height="20"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="2"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        className="mr-2"
+                                    >
+                                        <path d="M3 3h18v18H3z"></path>
+                                        <path d="M9 3v18"></path>
+                                    </svg>
+                                    {isSidebarOpen ? t2.hideFilters : t2.showFilters}
+                                </button>
+                            </div>
+
+
                         </div>
-
-                        <button onClick={handleAddDeliveryOrder}>
-                            {t2.addDeliveryOrder}
-                        </button>
-
-                        {/* Toggle Sidebar Button */}
-                        <button
-                            onClick={toggleSidebar}
-                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center"
-                        >
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="20"
-                                height="20"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                className="mr-2"
-                            >
-                                <path d="M3 3h18v18H3z"></path>
-                                <path d="M9 3v18"></path>
-                            </svg>
-                            {isSidebarOpen ? t2.hideFilters : t2.showFilters}
-                        </button>
                     </div>
 
                     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
@@ -460,13 +563,16 @@ export default function DeliveryOrder() {
                                         <tr className="bg-gray-50 dark:bg-gray-700 text-left text-sm font-medium">
                                             <th className="py-3 px-4 text-gray-700 dark:text-gray-200">{t2.number}</th>
                                             <th className="py-3 px-4 text-gray-700 dark:text-gray-200">{t2.status}</th>
+                                            <th className="py-3 px-4 text-gray-700 dark:text-gray-200">{t2.paymentMethod}</th>
                                             <th className="py-3 px-4 text-gray-700 dark:text-gray-200">{t2.supplier}</th>
                                             <th className="py-3 px-4 text-gray-700 dark:text-gray-200">{t2.employee}</th>
                                             <th className="py-3 px-4 text-gray-700 dark:text-gray-200">{t2.orderDate}</th>
                                             <th className="py-3 px-4 text-gray-700 dark:text-gray-200">{t2.endDate}</th>
                                             <th className="py-3 px-4 text-gray-700 dark:text-gray-200">{t2.total}</th>
                                             <th className="py-3 px-4 text-gray-700 dark:text-gray-200">{t2.progress}</th>
-                                            <th className="py-3 px-4 text-gray-700 dark:text-gray-200">{t2.actions}</th>
+                                            {user?.employeePosition === "Manager" &&
+                                                <th className="py-3 px-4 text-gray-700 dark:text-gray-200">{t2.actions}</th>
+                                            }
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-200 dark:divide-gray-700">

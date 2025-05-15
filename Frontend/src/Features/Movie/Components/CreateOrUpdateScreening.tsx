@@ -8,6 +8,7 @@ import { useUserStore } from '@/Stores/UserStore';
 import formFilterQuery from '@/lib/formFilterQuery';
 import { Run } from '@/Types/Run';
 import { Movie } from '@/Types/Movie';
+import { t } from 'i18next';
 
 const CreateOrUpdateScreening = ({ screeningId }: { screeningId?: number }) => {
     const {
@@ -197,18 +198,18 @@ const CreateOrUpdateScreening = ({ screeningId }: { screeningId?: number }) => {
     const validateForm = () => {
         const newErrors: any = {};
 
-        if (!formData.hallId) newErrors.hallId = "Hall is required";
-        if (!formData.screeningFormatId) newErrors.screeningFormatId = "Screening format is required";
-        if (!formData.languageId) newErrors.languageId = "Language is required";
-        if (!formData.movieId) newErrors.movieId = "Movie is required";
+        if (!formData.hallId) newErrors.hallId = t('screening.hallIsRequired');
+        if (!formData.screeningFormatId) newErrors.screeningFormatId = t('screening.screeningFormatIsRequired');
+        if (!formData.languageId) newErrors.languageId = t('screening.languageIsRequired');
+        if (!formData.movieId) newErrors.movieId = t('screening.movieIsRequired');
 
         if (!formData.screeningTime) {
-            newErrors.screeningTime = "Screening time is required";
+            newErrors.screeningTime = t('screening.screeningTimeIsRequired');
         } else {
             const screeningTime = new Date(formData.screeningTime);
 
             if (screeningTime <= new Date()) {
-                newErrors.screeningTime = "Screening has to occur in the future";
+                newErrors.screeningTime = t('screening.screeningHasToOccurInFuture');
             }
 
             if (run) {
@@ -216,10 +217,16 @@ const CreateOrUpdateScreening = ({ screeningId }: { screeningId?: number }) => {
                 const end = new Date(run.endDate);
 
                 if (screeningTime < start || screeningTime > end) {
-                    newErrors.screeningTime = "Screening has to occur between run start and end date";
+                    newErrors.screeningTime = t('screening.screeningHasToOccurBetweenRunStartAndEndDates');
                 }
+
+                console.log('start date', start, "enddate", end);
+
+                if (start >= end)
+                    newErrors.runTime = t('screening.runStartDateHasToBeBeforeEndDate')
             }
         }
+
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -236,7 +243,7 @@ const CreateOrUpdateScreening = ({ screeningId }: { screeningId?: number }) => {
 
         try {
             if (!formData.screeningTime || !movie?.runtime) {
-                setErrors({ screeningTime: "Invalid screening time or missing movie runtime" });
+                setErrors({ screeningTime: t('screening.invalidScreeningTimeOrMissingMovieRuntime') });
                 return;
             }
 
@@ -256,12 +263,12 @@ const CreateOrUpdateScreening = ({ screeningId }: { screeningId?: number }) => {
 
             if (screeningId) {
                 await screeningService.update(payload);
-                setSuccessMessage("Screening updated successfully");
+                setSuccessMessage(t('screening.updatedSuccessfully'));
             } else {
 
                 console.log('payload', payload);
                 await screeningService.create(payload);
-                setSuccessMessage("Screening created successfully");
+                setSuccessMessage(t('screening.createdSuccessfully'));
 
                 // Reset form after successful creation
                 setFormData({
@@ -278,7 +285,7 @@ const CreateOrUpdateScreening = ({ screeningId }: { screeningId?: number }) => {
         } catch (error) {
             console.error("Error saving screening:", error);
             setErrors({
-                submit: "Failed to save screening. Please try again."
+                submit: t('screening.submitError')
             });
         } finally {
             setIsSubmitting(false);
@@ -314,14 +321,14 @@ const CreateOrUpdateScreening = ({ screeningId }: { screeningId?: number }) => {
                 {/* Movie Search Field */}
                 <div className="space-y-2">
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Movie
+                        {t('screening.movie')}
                     </label>
                     <div className="relative">
                         <input
                             type="text"
                             value={movieSearchQuery}
                             onChange={(e) => setMovieSearchQuery(e.target.value)}
-                            placeholder="Search for a movie..."
+                            placeholder={t('screening.searchForMovie')}
                             className={`w-full p-3 bg-white dark:bg-gray-700 border rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 dark:text-gray-100 ${errors.movieId
                                 ? 'border-red-500 dark:border-red-500'
                                 : 'border-gray-300 dark:border-gray-600'
@@ -358,14 +365,14 @@ const CreateOrUpdateScreening = ({ screeningId }: { screeningId?: number }) => {
                 {/* Run Selection */}
                 <div className="space-y-1">
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Run
+                        {t('run')}
                     </label>
 
                     <span className="block text-sm text-gray-600 dark:text-gray-400">
-                        <strong>Run start date:</strong> {run?.startDate ?? 'N/A'}
+                        <strong>{t('screening.runStartDate')}</strong> {run?.startDate ?? 'N/A'}
                     </span>
                     <span className="block text-sm text-gray-600 dark:text-gray-400">
-                        <strong>Run end date:</strong> {run?.endDate ?? 'N/A'}
+                        <strong>{t('screening.runEndDate')}</strong> {run?.endDate ?? 'N/A'}
                     </span>
                 </div>
 
@@ -373,7 +380,7 @@ const CreateOrUpdateScreening = ({ screeningId }: { screeningId?: number }) => {
                 {/* Hall Selection */}
                 <div className="space-y-2">
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Hall
+                        {t('screening.hall')}
                     </label>
                     <select
                         disabled={!!screeningId}
@@ -387,6 +394,13 @@ const CreateOrUpdateScreening = ({ screeningId }: { screeningId?: number }) => {
               disabled:cursor-not-allowed disabled:bg-gray-100 dark:disabled:bg-gray-800 disabled:text-gray-500`}
                     >
 
+                        <option value="">{t('screening.hall')}</option>
+                        {halls.map((hall) => (
+                            <option key={hall.hallId} value={hall.hallId}>
+                                {hall.hallNumber}
+                            </option>
+                        ))}
+
                     </select>
                     {errors.hallId && (
                         <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.hallId}</p>
@@ -396,7 +410,7 @@ const CreateOrUpdateScreening = ({ screeningId }: { screeningId?: number }) => {
                 {/* Screening Format */}
                 <div className="space-y-2">
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Format
+                        {t('screening.format')}
                     </label>
                     <select
                         name="screeningFormatId"
@@ -407,7 +421,7 @@ const CreateOrUpdateScreening = ({ screeningId }: { screeningId?: number }) => {
                             : 'border-gray-300 dark:border-gray-600'
                             }`}
                     >
-                        <option value="">Select a format</option>
+                        <option value="">{t('screening.selectFormat')}</option>
                         {formats.map((format) => (
                             <option key={format.screeningFormatId} value={format.screeningFormatId}>
                                 {format.screeningFormat1}
@@ -422,7 +436,7 @@ const CreateOrUpdateScreening = ({ screeningId }: { screeningId?: number }) => {
                 {/* Language */}
                 <div className="space-y-2">
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Language
+                        {t('screening.language')}
                     </label>
                     <select
                         name="languageId"
@@ -433,7 +447,7 @@ const CreateOrUpdateScreening = ({ screeningId }: { screeningId?: number }) => {
                             : 'border-gray-300 dark:border-gray-600'
                             }`}
                     >
-                        <option value="">Select a language</option>
+                        <option value="">{t('screening.selectLanguage')}</option>
                         {languages.map((language) => (
                             <option key={language.languageId} value={language.languageId}>
                                 {language.language1}
@@ -448,7 +462,7 @@ const CreateOrUpdateScreening = ({ screeningId }: { screeningId?: number }) => {
                 {/* Screening Time */}
                 <div className="space-y-2">
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Screening Time
+                        {t('screening.time')}
                     </label>
                     <input
                         type="datetime-local"
@@ -478,7 +492,7 @@ const CreateOrUpdateScreening = ({ screeningId }: { screeningId?: number }) => {
                                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
                                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                 </svg>
-                                Processing...
+                                {t('screening.processing')}
                             </span>
                         ) : screeningId ? 'Update Screening' : 'Create Screening'}
                     </button>

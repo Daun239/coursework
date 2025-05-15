@@ -14,13 +14,15 @@ import formFilterQuery from '@/lib/formFilterQuery';
 import ProductInOrder from './ProductInOrder';
 import { Product } from '@/Types/Product';
 import { useLanguageStore } from '@/Stores/useLanguageStore';
+import { UserActionLog } from '@/Types/UserActionLog';
+import { useUserStore } from '@/Stores/UserStore';
 
 type ProgressColumnProps = {
-    deliveryOrderId: number;
+    deliveryOrder: DeliveryOrder;
 };
 
-const ProgressColumn = ({ deliveryOrderId }: ProgressColumnProps) => {
-    const { deliveryOrderService, supplierService, deliveryOrderStatusService, productsInOrderService, productPlacementService, productService, employeeService, employeePositionService } = useServiceStore();
+const ProgressColumn = ({ deliveryOrder }: ProgressColumnProps) => {
+    const { userActionService, deliveryOrderService, supplierService, deliveryOrderStatusService, productsInOrderService, productPlacementService, productService, employeeService, employeePositionService } = useServiceStore();
 
     const [productsInOrder, setProductsInOrder] = useState<ProductsInOrder[]>([]);
     const [productPlacements, setProductPlacements] = useState<ProductPlacement[]>([]);
@@ -28,10 +30,11 @@ const ProgressColumn = ({ deliveryOrderId }: ProgressColumnProps) => {
     const [employee, setEmployee] = useState<Employee>();
     const [employeePositions, setEmployeePositons] = useState<EmployeePosition[]>([]);
     const [supplier, setSupplier] = useState<Supplier | null>(null);
-    const [deliveryOrder, setDeliveryOrder] = useState<DeliveryOrder>(null);
     const [deliveryOrderStatus, setDeliveryOrderStatus] = useState<DeliveryOrderStatus>();
     const [overallQuantity, setOVerallQuantity] = useState<number>(0);
     const [products, setProducts] = useState<Product[]>([]);
+
+
 
     const [isDetailsOpen, setIsDetailsOpen] = useState<boolean>(false);
     const [isAddOpen, setIsAddOpen] = useState<boolean>(false);
@@ -71,22 +74,19 @@ const ProgressColumn = ({ deliveryOrderId }: ProgressColumnProps) => {
 
     useEffect(() => {
         const fetchData = async () => {
-            const [fetchedDeliveryOrder] = await deliveryOrderService.getAll(`deliveryOrderId = ${deliveryOrderId}`);
-            setDeliveryOrder(fetchedDeliveryOrder);
-
-            const fetchedProductsInOrder = await productsInOrderService.getAll(`deliveryOrderId = ${deliveryOrderId}`);
+            const fetchedProductsInOrder = await productsInOrderService.getAll(`deliveryOrderId = ${deliveryOrder.deliveryOrderId}`);
             setProductsInOrder(fetchedProductsInOrder);
 
-            const [fetchedSupplier] = await supplierService.getAll(`supplierId = ${fetchedDeliveryOrder.supplierId}`)
+            const [fetchedSupplier] = await supplierService.getAll(`supplierId = ${deliveryOrder.supplierId}`)
             setSupplier(fetchedSupplier);
 
-            const [deliveryOrderStatus] = await deliveryOrderStatusService.getAll(`deliveryOrderStatusId = ${fetchedDeliveryOrder.deliveryOrderStatusId}`)
+            const [deliveryOrderStatus] = await deliveryOrderStatusService.getAll(`deliveryOrderStatusId = ${deliveryOrder.deliveryOrderStatusId}`)
             setDeliveryOrderStatus(deliveryOrderStatus);
 
-            const [fetchedEmployee] = await employeeService.getAll(`employeeId = ${fetchedDeliveryOrder.employeeId}`);
+            const [fetchedEmployee] = await employeeService.getAll(`employeeId = ${deliveryOrder.employeeId}`);
             setEmployee(fetchedEmployee);
 
-            const productsInOrder = await productsInOrderService.getAll(`deliveryOrderId = ${deliveryOrderId}`)
+            const productsInOrder = await productsInOrderService.getAll(`deliveryOrderId = ${deliveryOrder.deliveryOrderId}`)
             setProductsInOrder(productsInOrder);
 
             const ProductPlacementsQuery = formFilterQuery("AND",
@@ -107,25 +107,47 @@ const ProgressColumn = ({ deliveryOrderId }: ProgressColumnProps) => {
         fetchData();
     }, [reloadTrigger]);
 
-    const calculatedOverallQuantity = productsInOrder.reduce((acc, p) => {
+    let calculatedOverallQuantity = productsInOrder.reduce((acc, p) => {
         return acc + (p.quantity ?? 0);
     }, 0);
 
-    const calculatedPlacedQuantity = productPlacements.reduce((acc, p) => {
+    const calculatedPlacedQuantity = productPlacements ? productPlacements.reduce((acc, p) => {
         return acc + (p.quantity ?? 0);
-    }, 0)
+    }, 0) : 0
 
+    if (calculatedOverallQuantity >= 20000) {
+        calculatedOverallQuantity = 0;
+    }
+
+    // Ensure both values are numbers to avoid type issues
+    const safeOverallQuantity = Number(calculatedOverallQuantity) || 0;
+    const safePlacedQuantity = Number(calculatedPlacedQuantity) || 0;
+
+    // Calculate the percentage with a more robust check for division by zero
     const completedPercentage =
-        calculatedOverallQuantity > 0
-            ? (calculatedPlacedQuantity / calculatedOverallQuantity) * 100
+        safeOverallQuantity > 0
+            ? Math.round((safePlacedQuantity / safeOverallQuantity) * 100)
             : 0;
+
+    // Optional: Add a console.log for debugging
+    console.log({
+        overallQuantity: safeOverallQuantity,
+        placedQuantity: safePlacedQuantity,
+        percentage: completedPercentage
+    });
+
+
+
+    const { user } = useUserStore();
+
+
 
     const handleAddProduct = async () => {
         if (selectedProductId && quantity > 0) {
             try {
                 // Create a new product in order
                 const newProductInOrder: ProductsInOrder = {
-                    deliveryOrderId: deliveryOrderId,
+                    deliveryOrderId: deliveryOrder.deliveryOrderId,
                     productId: Number(selectedProductId),
                     quantity: quantity,
                     productInOrderId: 0,
@@ -133,12 +155,26 @@ const ProgressColumn = ({ deliveryOrderId }: ProgressColumnProps) => {
 
                 };
 
-                await productsInOrderService.create(newProductInOrder);
+                const result = await productsInOrderService.create(newProductInOrder);
+
 
                 // Reset form
                 setSelectedProductId('');
                 setQuantity(1);
                 setIsAddOpen(false);
+
+
+                const actionLog: UserActionLog = {
+                    action: "Added",
+                    details: `${JSON.stringify(result)}`,
+                    entity: "ProductsInOrder",
+                    timestamp: new Date(),
+                    user: `${user?.name} ${user?.surname}`
+                }
+
+                userActionService.post(actionLog);
+
+
 
                 // Trigger reload
                 setReloadTrigger(prev => !prev);
@@ -155,28 +191,33 @@ const ProgressColumn = ({ deliveryOrderId }: ProgressColumnProps) => {
                 :
                 < ChevronDown className='cursor-pointer' onClick={() => setIsDetailsOpen(prev => !prev)} />
             }
-            <span className='mx-auto'>{calculatedPlacedQuantity} / {calculatedOverallQuantity}</span>
+            <span className="mx-auto">
+                {(calculatedPlacedQuantity >= 20000 ? 0 : calculatedPlacedQuantity)} / {calculatedOverallQuantity}
+            </span>
+
             <Progress value={completedPercentage} />
 
             {isDetailsOpen && (
-                <div className="mt-2 max-h-96 overflow-y-auto">
+                <div className="mt-2 h-[1000px] overflow-y-auto">
                     <div className="mb-4">
-                        <button
+
+                        {(user?.employeePosition === "Manager" && deliveryOrderStatus?.deliveryOrderStatus1 === 'Ordered') && <button
                             className="flex items-center px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
                             onClick={() => setIsAddOpen(prev => !prev)}
                         >
                             <Plus size={16} className="mr-1" />
                             {isAddOpen ? `${t.cancel}` : `${t.addProduct}`}
-                        </button>
+                        </button>}
+
 
                         {isAddOpen && (
-                            <div className="mt-2 p-3 border rounded bg-gray-50">
-                                <div className="mb-2">
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                            <div className="mt-2 p-4 border rounded bg-gray-50 dark:bg-gray-800 dark:border-gray-700">
+                                <div className="mb-4">
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                                         {t.selectProduct}
                                     </label>
                                     <select
-                                        className="w-full px-2 py-1 border rounded"
+                                        className="w-full px-3 py-2 border rounded bg-white dark:bg-gray-900 dark:text-white dark:border-gray-600"
                                         value={selectedProductId}
                                         onChange={(e) => setSelectedProductId(Number(e.target.value))}
                                     >
@@ -189,8 +230,8 @@ const ProgressColumn = ({ deliveryOrderId }: ProgressColumnProps) => {
                                     </select>
                                 </div>
 
-                                <div className="mb-2">
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                <div className="mb-4">
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                                         {t.quantity}
                                     </label>
                                     <input
@@ -198,12 +239,12 @@ const ProgressColumn = ({ deliveryOrderId }: ProgressColumnProps) => {
                                         min={1}
                                         value={quantity}
                                         onChange={(e) => setQuantity(Number(e.target.value))}
-                                        className="w-full px-2 py-1 border rounded"
+                                        className="w-full px-3 py-2 border rounded bg-white dark:bg-gray-900 dark:text-white dark:border-gray-600"
                                     />
                                 </div>
 
-                                <div className="mb-2">
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                <div className="mb-4">
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                                         {t.price}
                                     </label>
                                     <input
@@ -211,19 +252,19 @@ const ProgressColumn = ({ deliveryOrderId }: ProgressColumnProps) => {
                                         min={1}
                                         value={price}
                                         onChange={(e) => setPrice(Number(e.target.value))}
-                                        className="w-full px-2 py-1 border rounded"
+                                        className="w-full px-3 py-2 border rounded bg-white dark:bg-gray-900 dark:text-white dark:border-gray-600"
                                     />
                                 </div>
 
-
                                 <button
-                                    className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600"
+                                    className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors dark:bg-green-600 dark:hover:bg-green-700"
                                     onClick={handleAddProduct}
                                 >
                                     {t.addToOrder}
                                 </button>
                             </div>
                         )}
+
                     </div>
 
                     <div className="space-y-2">
@@ -237,8 +278,9 @@ const ProgressColumn = ({ deliveryOrderId }: ProgressColumnProps) => {
                         ))}
                     </div>
                 </div>
-            )}
-        </td>
+            )
+            }
+        </td >
     )
 }
 

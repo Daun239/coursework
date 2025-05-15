@@ -15,6 +15,17 @@ import { Toaster } from 'sonner';
 import ProductsList from './Features/Products/Components/ProductsList';
 import DeliveryOrder from './Features/DeliveryOrder/Components/DeliveryOrder';
 import ProtectedRoute from './components/ProtectedRoute';
+import AuditComponent from './Features/Audit/Components/AuditComponent';
+import CinemasPage from './Features/Management/Components/CinemasPage';
+import ClientsPage from './Features/Clients/Components/ClientsPage';
+import SuppliersPage from './Features/Suppliers/Components/SuppliersPage';
+import EmployeesPage from './Features/Employees/Components/EmployeesPage';
+
+// main.tsx or App.tsx
+import './i18n'; // 👈 Import this before any component that uses translations
+import { LanguageSync } from './LanguageSync';
+
+
 
 
 const getDecodedToken = (token: string | null) => {
@@ -98,15 +109,30 @@ function App() {
 
       <div className="w-full bg-white dark:bg-gray-800 m-0 p-0">
 
+        <LanguageSync />
+
+
         <Routes>
           <Route path="/login" element={<LoginPage />} />
 
           <Route path="/movies" element={<MovieList />} />
           <Route path="/products" element={<ProductsList />} />
           <Route path="/deliveryOrders" element={<DeliveryOrder />} />
+
+          <Route path="/auditPage" element={<AuditComponent />} />
+
+          <Route path="/cinemasPage" element={<CinemasPage />} />
+
+          <Route path="/clientsPage" element={<ClientsPage />} />
+
+          <Route path="/suppliersPage" element={<SuppliersPage />} />
+
+          <Route path="/employeesPage" element={<EmployeesPage />} />
+
+
         </Routes>
 
-        <Routes>
+        {/* <Routes>
           <Route
             path="/movies"
             element={
@@ -136,7 +162,7 @@ function App() {
               />
             }
           />
-        </Routes>
+        </Routes> */}
 
 
       </div>

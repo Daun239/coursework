@@ -64,11 +64,13 @@ const GroupedTicketsSection = ({
 
     return (
         <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg shadow-inner flex gap-4 hover:bg-gray-200"
-            onClick={() => onClick(screeningId)}
+
         >
             {/* Poster */}
             {posterUrl && (
                 <img
+
+                    onClick={() => onClick(screeningId)}
                     src={posterUrl}
                     alt={`${movie?.name} poster`}
                     className="w-24 h-auto rounded-md object-cover"

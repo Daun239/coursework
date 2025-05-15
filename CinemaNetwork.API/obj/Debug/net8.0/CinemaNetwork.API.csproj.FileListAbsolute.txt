@@ -557,7 +557,6 @@ I:\Coursework\coursework\cinemanetwork.api\obj\Debug\net8.0\refint\CinemaNetwork
 I:\Coursework\coursework\cinemanetwork.api\obj\Debug\net8.0\CinemaNetwork.API.pdb
 I:\Coursework\coursework\cinemanetwork.api\obj\Debug\net8.0\CinemaNetwork.API.genruntimeconfig.cache
 I:\Coursework\coursework\cinemanetwork.api\obj\Debug\net8.0\ref\CinemaNetwork.API.dll
-I:\Coursework\coursework\cinemanetwork.api\obj\Debug\net8.0\CinemaNe.99A790F1.Up2Date
 F:\Univershit\6 sem\coursework\coursework\CinemaNetwork.Api\bin\Debug\net8.0\CinemaNetwork.API.staticwebassets.endpoints.json
 F:\Univershit\6 sem\coursework\coursework\CinemaNetwork.Api\bin\Debug\net8.0\DnsClient.dll
 F:\Univershit\6 sem\coursework\coursework\CinemaNetwork.Api\bin\Debug\net8.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
@@ -570,3 +569,4 @@ F:\Univershit\6 sem\coursework\coursework\CinemaNetwork.Api\bin\Debug\net8.0\Sys
 F:\Univershit\6 sem\coursework\coursework\CinemaNetwork.Api\bin\Debug\net8.0\ZstdSharp.dll
 F:\Univershit\6 sem\coursework\coursework\CinemaNetwork.Api\obj\Debug\net8.0\staticwebassets.build.endpoints.json
 F:\Univershit\6 sem\coursework\coursework\CinemaNetwork.Api\obj\Debug\net8.0\staticwebassets\msbuild.CinemaNetwork.API.Microsoft.AspNetCore.StaticWebAssetEndpoints.props
+I:\Coursework\coursework\cinemanetwork.api\obj\Debug\net8.0\CinemaNe.99A790F1.Up2Date

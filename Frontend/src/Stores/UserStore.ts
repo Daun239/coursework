@@ -3,12 +3,14 @@ import { jwtDecode } from "jwt-decode";
 import { User } from "../Types/User";
 import { useServiceStore } from "./ServicesStore";
 import { Cinema } from "../Types/Cinema";
+import { UserActionLog } from "@/Types/UserActionLog";
+import { UserActionService } from "@/lib/UserAction";
 
 type UserStore = {
   user: User | null;
   token: string | null;
   setUser: (user: User, token: string) => void;
-  logOut: () => void;
+  logOut: (userActionService?: UserActionService) => void;
 };
 
 const getUserFromToken = (token: string): User | null => {
@@ -58,7 +60,21 @@ export const useUserStore = create<UserStore>((set) => ({
     localStorage.setItem("jwt", token);
     set({ user, token });
   },
-  logOut: () => {
+  logOut: (userActionService?: UserActionService) => {
+    const user = useUserStore.getState().user;
+
+    const actionLog: UserActionLog = {
+      action: "Logged out",
+      details: `${JSON.stringify(user)}`,
+      entity: "User",
+      timestamp: new Date(),
+      user: `${user?.name ?? ""} ${user?.surname ?? ""}`,
+    };
+
+    if (userActionService) {
+      userActionService.post(actionLog);
+    }
+
     localStorage.removeItem("jwt");
     set({ user: null, token: null });
   },

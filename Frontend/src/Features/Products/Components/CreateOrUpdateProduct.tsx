@@ -1,7 +1,9 @@
 import { useServiceStore } from '@/Stores/ServicesStore';
 import { useLanguageStore } from '@/Stores/useLanguageStore';
+import { useUserStore } from '@/Stores/UserStore';
 import { Product } from '@/Types/Product';
 import { ProductType } from '@/Types/ProductType';
+import { UserActionLog } from '@/Types/UserActionLog';
 import React, { useEffect, useState } from 'react';
 
 interface Props {
@@ -48,7 +50,10 @@ const CreateOrUpdateProduct: React.FC<Props> = ({ productId }) => {
         price: 1,
     });
 
-    const { productTypeService, productService } = useServiceStore();
+    const { productTypeService, productService, userActionService } = useServiceStore();
+
+
+    const { user } = useUserStore();
 
     useEffect(() => {
         const fetchData = async () => {
@@ -79,11 +84,34 @@ const CreateOrUpdateProduct: React.FC<Props> = ({ productId }) => {
         }
 
         if (productId) {
-            await productService.update(productId, product);
+            const result = await productService.update(product);
             alert(t.updated);
+
+            const actionLog: UserActionLog = {
+                action: "Updated",
+                details: `${JSON.stringify(result)}`,
+                entity: "Product",
+                timestamp: new Date(),
+                user: `${user?.name} ${user?.surname}`
+            }
+
+            userActionService.post(actionLog);
+
+
         } else {
-            await productService.create(product);
+            const result = await productService.create(product);
             alert(t.created);
+
+            const actionLog: UserActionLog = {
+                action: "Created",
+                details: `${JSON.stringify(result)}`,
+                entity: "Product",
+                timestamp: new Date(),
+                user: `${user?.name} ${user?.surname}`
+            }
+
+            userActionService.post(actionLog);
+
         }
     };
 

@@ -3,6 +3,7 @@ import { useServiceStore } from "../../Stores/ServicesStore";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom"; // Import useNavigate
 import { useUserStore } from "@/Stores/UserStore";
+import { UserActionLog } from "@/Types/UserActionLog";
 
 const LoginPage = () => {
   const { loginService } = useServiceStore();
@@ -12,6 +13,8 @@ const LoginPage = () => {
 
 
   const { user } = useUserStore();
+
+  const { userActionService } = useServiceStore();
 
 
   const handleLogin = async () => {
@@ -23,6 +26,17 @@ const LoginPage = () => {
         toast.success("Успішний вхід!");
         // navigate("/dashboard"); // Redirect to the dashboard or any other page after login
 
+
+        const actionLog: UserActionLog = {
+          action: "Logged in",
+          details: `${JSON.stringify(result.user)}`,
+          entity: "User",
+          timestamp: new Date(),
+          user: `${result.user?.name} ${result.user?.surname}`
+        }
+
+        userActionService.post(actionLog);
+
         if (result.user?.role === "Cashier") {
           navigate("/movies");
         }
@@ -31,6 +45,9 @@ const LoginPage = () => {
         }
         else if (result.user?.role === "WarehouseWorker") {
           navigate("/deliveryOrders");
+        }
+        else if (result.user?.role === "Admin") {
+          navigate("/auditPage")
         }
 
 

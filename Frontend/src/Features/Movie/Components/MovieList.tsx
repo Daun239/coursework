@@ -26,6 +26,7 @@ import { useTranslation } from "../Hooks/useTranslation";
 import CreateOrUpdateMovie from "./CreateOrUpdateMovie";
 import CreateOrUpdateScreening from "./CreateOrUpdateScreening";
 import { useUserStore } from "@/Stores/UserStore";
+import { exportMovieData } from "../Utils/exportMovieData";
 
 
 function handleSelectionChange<T>(selected: T[], setState: React.Dispatch<React.SetStateAction<T[]>>) {
@@ -46,7 +47,7 @@ const MovieList = () => {
 
     const [title, setTitle] = useState<string>("");
 
-    const [pageSize, setPageSize] = useState<number>(10);
+    const [pageSize, setPageSize] = useState<number>(50);
     const [currentPage, setCurrentPage] = useState<number>(1);
     const [pagesCount, setPagesCount] = useState<number>(10);
 
@@ -319,6 +320,18 @@ const MovieList = () => {
         <span className="loading loading-spinner loading-xl"></span>
     }
 
+    const handleExport = (format: "csv" | "json" | "pdf") => {
+        const services = {
+            languageService,
+            publisherService,
+            ageRestrictionService,
+            countryService,
+        };
+
+        exportMovieData(movies, format, `movies_data_${format}`, services);
+    };
+
+
     return (
         <div className="flex h-screen overflow-hidden mt-16">
             {/* Sidebar with filters */}
@@ -431,6 +444,9 @@ const MovieList = () => {
                             <option value={10}>10</option>
                             <option value={20}>20</option>
                             <option value={50}>50</option>
+                            <option value={100}>100</option>
+                            <option value={250}>250</option>
+
                         </select>
                     </div>
 
@@ -466,38 +482,65 @@ const MovieList = () => {
 
 
 
-                <div className="flex-1 flex flex-col h-screen overflow-auto">
-                    {/* Toggle sidebar button */}
-                    <div className="p-4 flex justify-between items-center">
-                        <button
-                            onClick={handleAddMovie}
-                            className="p-2 rounded-md dark:bg-gray-900 bg-gray-400 text-white hover:bg-primary-dark transition-colors"
-                        >
+                <div className="flex-1 flex flex-col h-screen overflow-auto bg-gray-50 dark:bg-gray-800">
+                    {/* Header section with action buttons */}
+                    <div className="p-6 flex justify-between items-center bg-gray-200 dark:bg-gray-700 rounded-lg shadow-md mb-6">
 
-                            {t('movieList.addMovie')}
-                        </button>
+                        {/* Left side - Add Movie and Add Screening buttons */}
+                        <div className="flex space-x-4">
+                            <button
+                                onClick={handleAddMovie}
+                                className="px-4 py-2 rounded-md dark:bg-gray-900 bg-gray-400 text-white hover:bg-primary-dark focus:outline-none transition-colors duration-300 ease-in-out"
+                            >
+                                {t('movieList.addMovie')}
+                            </button>
 
+                            <button
+                                onClick={handleAddScreening}
+                                className="px-4 py-2 rounded-md dark:bg-gray-900 bg-gray-400 text-white hover:bg-primary-dark focus:outline-none transition-colors duration-300 ease-in-out"
+                            >
+                                {t('movieList.addScreening')}
+                            </button>
+                        </div>
+
+                        {/* Right side - Export buttons */}
+                        <div className="flex space-x-4">
+                            <button
+                                onClick={() => handleExport("csv")}
+                                title="Export as CSV"
+                                className="flex items-center px-4 py-2 rounded-md bg-emerald-600 text-white hover:bg-emerald-700 focus:ring-2 focus:ring-emerald-300 focus:outline-none transition-all duration-300 ease-in-out shadow-md"
+                            >
+                                <svg width="20" height="20" fill="none" xmlns="http://www.w3.org/2000/svg" className="mr-2">
+                                    <path d="M14 3v4a1 1 0 001 1h4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                    <path d="M17 21H7a2 2 0 01-2-2V5a2 2 0 012-2h7l5 5v11a2 2 0 01-2 2z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                    <path d="M9 12h6M9 16h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                </svg>
+                                CSV
+                            </button>
+
+                            <button
+                                onClick={() => handleExport("json")}
+                                title="Export as JSON"
+                                className="flex items-center px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-300 focus:outline-none transition-all duration-300 ease-in-out shadow-md"
+                            >
+                                <svg width="20" height="20" fill="none" xmlns="http://www.w3.org/2000/svg" className="mr-2">
+                                    <path d="M8 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-14a2 2 0 00-2-2h-3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                    <path d="M8 7.5V4.5a2 2 0 114 0v3M8 7.5h4M16 15l-2-2m0 0l-2 2m2-2v4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                </svg>
+                                JSON
+                            </button>
+                        </div>
                     </div>
 
 
 
-                    <div className="p-4 flex justify-between items-center">
-                        <button
-                            onClick={handleAddScreening}
-                            className="p-2 rounded-md dark:bg-gray-900 bg-gray-400 text-white hover:bg-primary-dark transition-colors"
-                        >
-
-                            {t('movieList.addScreening')}
-                        </button>
-
-                    </div>
 
 
 
 
                     {/* Movie Modal */}
                     {createMovieOpen && (
-                        <div className="fixed inset-0 z-50 flex items-center justify-center">
+                        <div className="fixed inset-0 z-50 flex items-center bg-black/50 justify-center">
                             <div className="bg-white dark:bg-gray-900 rounded-lg shadow-2xl w-full max-w-2xl relative">
                                 <button
                                     onClick={() => {
@@ -519,7 +562,7 @@ const MovieList = () => {
 
                     {/* Screening Modal */}
                     {createScreeningOpen && (
-                        <div className="fixed inset-0 z-50 flex items-center justify-center">
+                        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center">
                             <div className="bg-white dark:bg-gray-900 rounded-lg shadow-2xl w-full max-w-2xl relative">
                                 <button
                                     onClick={() => {
@@ -610,7 +653,7 @@ const MovieList = () => {
                     </div>
                 )}
             </div>
-        </div>
+        </div >
     );
 };
 

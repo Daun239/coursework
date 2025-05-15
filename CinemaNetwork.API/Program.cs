@@ -14,6 +14,8 @@ using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.OpenApi.Models;
 using CinemaNetwork.API.MongoDB;
+using MongoDB.Driver;
+using Microsoft.Extensions.Options;
 // using CinemaNetwork.API.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -22,9 +24,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.Configure<MongoDBSettings>(
     builder.Configuration.GetSection("UserLoggingDatabase"));
 
-//     builder.Services.AddSingleton<IMongoClient>(sp =>
+// builder.Services.AddSingleton<IMongoClient>(sp =>
 // {
-//     var settings = sp.GetRequiredService<IOptions<MongoDbSettings>>().Value;
+//     var settings = sp.GetRequiredService<IOptions<MongoDBSettings>>().Value;
 //     return new MongoClient(settings.ConnectionString);
 // });
 
@@ -33,7 +35,7 @@ builder.Services.Configure<MongoDBSettings>(
 var config = builder.Configuration; // Додаємо цю змінну
 
 
-    
+
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -176,15 +178,18 @@ builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 //----------------------------------------------jwt------------------
 
 
-builder.Services.AddAuthentication(x => {
+builder.Services.AddAuthentication(x =>
+{
     x.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
     x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
     x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-}).AddJwtBearer( x => {
-    x.TokenValidationParameters = new TokenValidationParameters {
+}).AddJwtBearer(x =>
+{
+    x.TokenValidationParameters = new TokenValidationParameters
+    {
         ValidIssuer = config["JWTSettings:Issuer"],
         ValidAudience = config["JWTSettings:Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey (Encoding.UTF8.GetBytes(config["JWTSettings:Key"]!)),
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["JWTSettings:Key"]!)),
 
         ValidateIssuer = true,
         ValidateAudience = true,

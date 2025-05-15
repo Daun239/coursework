@@ -2,6 +2,7 @@ import { GenericService } from "@/lib/GenericService";
 import { useLanguageStore } from "@/Stores/useLanguageStore";
 import { useEffect, useState } from "react";
 import { HiChevronDown, HiChevronUp, HiSearch, HiX } from "react-icons/hi";
+import { Input } from "./ui/input";
 
 type Props<T> = {
   service: GenericService<T>;
@@ -128,7 +129,7 @@ const DropdownList = <T,>({
           <div className="flex items-center gap-2 mb-3">
             {allItems.length > 5 && (
               <div className="relative flex-1">
-                <input
+                <Input
                   type="text"
                   placeholder={currentLang.search}
                   value={searchTerm}
@@ -177,7 +178,7 @@ const DropdownList = <T,>({
                   className="flex items-center py-2 hover:bg-gray-100 dark:hover:bg-gray-800 px-2 rounded transition-colors"
                 >
                   <div className="flex items-center">
-                    <input
+                    <Input
                       type="checkbox"
                       id={`checkbox-${listName}-${index}`}
                       checked={isItemSelected(item)}

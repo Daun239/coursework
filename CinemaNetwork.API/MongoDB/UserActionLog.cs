@@ -1,17 +1,20 @@
 using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
 
 namespace CinemaNetwork.API.MongoDB
 {
     public class UserActionLog
     {
-        public ObjectId? Id { get; set; }
-        public string? UserId { get; set; }
+        [BsonId]
+        [BsonRepresentation(BsonType.ObjectId)]
+        public string? Id { get; set; }
+
+        public string? User { get; set; }
         public string? Action { get; set; }
         public string? Entity { get; set; }
-        public string? EntityId { get; set; } // For easier querying
         public string? Details { get; set; }
-        public bool Success { get; set; } = true; // ✅ Default to true, but override on failure
+
+        [BsonDateTimeOptions(Kind = DateTimeKind.Utc)]
         public DateTime Timestamp { get; set; } = DateTime.UtcNow;
     }
 }
-
