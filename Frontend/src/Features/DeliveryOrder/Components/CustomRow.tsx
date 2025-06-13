@@ -13,13 +13,17 @@ import { useLanguageStore } from "@/Stores/useLanguageStore";
 import { UserActionLog } from "@/Types/UserActionLog";
 import { useUserStore } from "@/Stores/UserStore";
 import { PaymentMethod } from "@/Types/PaymentMethod";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner"
 
 interface CustomRowProps {
     deliveryOrderId: number;
     onUpdate?: (deliveryOrderId: number) => void;
+    handleRerender: () => void;
 }
 
-const CustomRow: React.FC<CustomRowProps> = ({ deliveryOrderId, onUpdate }) => {
+const CustomRow: React.FC<CustomRowProps> = ({ deliveryOrderId, onUpdate, handleRerender }) => {
     const { language } = useLanguageStore();
 
     const t = {
@@ -36,6 +40,11 @@ const CustomRow: React.FC<CustomRowProps> = ({ deliveryOrderId, onUpdate }) => {
 
             selectPaymentMethod: "Select payment method",
 
+            deliveryOrderSuccessfullyDeleted: "Delivery order successfully deleted",
+
+            cantDeleteDeliveryOrder: "Can't delete delivery order that has products in it",
+
+            areYouSure: "Are you sure?",
         },
         ua: {
             loadingSupplier: "Завантаження постачальника...",
@@ -48,6 +57,9 @@ const CustomRow: React.FC<CustomRowProps> = ({ deliveryOrderId, onUpdate }) => {
             selectSupplier: "Виберіть постачальника",
             selectStatus: "Виберіть статус",
             selectPaymentMethod: "Виберіть метод оплати",
+            cantDeleteDeliveryOrder: "Неможливо видалити поставку якщо в ній є товари",
+            deliveryOrderSuccessfullyDeleted: "Замовлення було успішно видалено",
+            areYouSure: "Ви впевнені?",
         },
     };
 
@@ -76,6 +88,8 @@ const CustomRow: React.FC<CustomRowProps> = ({ deliveryOrderId, onUpdate }) => {
     const [loading, setLoading] = useState(true);
     const [isEditing, setIsEditing] = useState(false);
 
+    // const [rerender, setRerender] = useState<number>(1);
+
     // Add these states to handle the dropdown lists
     const [allSuppliers, setAllSuppliers] = useState<Supplier[]>([]);
     const [allStatuses, setAllStatuses] = useState<DeliveryOrderStatus[]>([]);
@@ -93,6 +107,16 @@ const CustomRow: React.FC<CustomRowProps> = ({ deliveryOrderId, onUpdate }) => {
         endDateTime: null,
     });
 
+
+    const [deliveryOrderSum, setDeliveryOrderSum] = useState<number>(0);
+
+
+    const [rerender2, setRerender2] = useState<number>(0);
+
+    const handleRerender2 = () => {
+        setRerender2(prev => prev + 1);
+    }
+
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -103,6 +127,12 @@ const CustomRow: React.FC<CustomRowProps> = ({ deliveryOrderId, onUpdate }) => {
 
                 const fetchedProductsInOrder = await productsInOrderService.getAll(`deliveryOrderId = ${deliveryOrderId}`);
                 setProductsInOrder(fetchedProductsInOrder);
+
+                const sum = fetchedProductsInOrder.reduce((acc, p) => {
+                    return acc + p.quantity * p.price
+                }, 0)
+
+                setDeliveryOrderSum(sum);
 
                 const [fetchedSupplier] = await supplierService.getAll(`supplierId = ${fetchedDeliveryOrder.supplierId}`);
                 setSupplier(fetchedSupplier);
@@ -152,7 +182,7 @@ const CustomRow: React.FC<CustomRowProps> = ({ deliveryOrderId, onUpdate }) => {
         };
 
         fetchData();
-    }, [deliveryOrderId, deliveryOrderService, supplierService, deliveryOrderStatusService, productsInOrderService, employeeService]);
+    }, [deliveryOrderId, deliveryOrderService, supplierService, deliveryOrderStatusService, productsInOrderService, employeeService, rerender2]);
 
     // Define a base style for the status background
     const getStatusStyles = () => {
@@ -209,6 +239,7 @@ const CustomRow: React.FC<CustomRowProps> = ({ deliveryOrderId, onUpdate }) => {
                 supplierId: formData.supplierId,
                 deliveryOrderStatusId: formData.deliveryOrderStatusId,
                 endDateTime: endDateTime,
+                paymentMethodId: formData?.paymentMethodId,
             };
 
             const result = await deliveryOrderService.update(updatedDeliveryOrder);
@@ -222,7 +253,9 @@ const CustomRow: React.FC<CustomRowProps> = ({ deliveryOrderId, onUpdate }) => {
                 user: `${user?.name} ${user?.surname}`
             }
 
-            userActionService.post(actionLog);
+            // userActionService.post(actionLog);
+
+            // handleRerender();
 
 
 
@@ -236,6 +269,9 @@ const CustomRow: React.FC<CustomRowProps> = ({ deliveryOrderId, onUpdate }) => {
             const [refreshedStatus] = await deliveryOrderStatusService.getAll(`deliveryOrderStatusId = ${formData.deliveryOrderStatusId}`);
             setDeliveryOrderStatus(refreshedStatus);
 
+            const [refreshedPaymentMethod] = await paymentMethodService.getAll(`paymentMethodId = ${formData.paymentMethodId}`);
+
+            setPaymentMethod(refreshedPaymentMethod);
             setIsEditing(false);
 
             // Notify parent component if needed
@@ -251,7 +287,7 @@ const CustomRow: React.FC<CustomRowProps> = ({ deliveryOrderId, onUpdate }) => {
 
     const handleDelete = async (id: number) => {
         try {
-            const result = await deliveryOrderService.delete(`deliveryOrderId = ${deliveryOrder}`);
+            const result = await deliveryOrderService.delete(`deliveryOrderId = ${deliveryOrder?.deliveryOrderId}`);
             if (onUpdate) {
                 onUpdate(id);
             }
@@ -264,8 +300,14 @@ const CustomRow: React.FC<CustomRowProps> = ({ deliveryOrderId, onUpdate }) => {
                 user: `${user?.name} ${user?.surname}`
             }
 
-            userActionService.post(actionLog);
+            handleRerender();
+
+            toast.success(t[language].deliveryOrderSuccessfullyDeleted);
+
+            // userActionService.post(actionLog);
         } catch (error) {
+
+            toast.error(t[language].cantDeleteDeliveryOrder)
             console.error("Error deleting order:", error);
         }
     };
@@ -380,10 +422,13 @@ const CustomRow: React.FC<CustomRowProps> = ({ deliveryOrderId, onUpdate }) => {
             </td>
 
             <td className="py-3 px-4 font-medium text-gray-800 dark:text-gray-200">
-                {deliveryOrder?.sum.toLocaleString()} ₴
+                {/* {deliveryOrderS?.sum} ₴
+                                */}
+                {deliveryOrderSum } ₴
+
             </td>
 
-            <ProgressColumn deliveryOrder={deliveryOrder} />
+            <ProgressColumn handleRedernder2 = {handleRerender2} deliveryOrder={deliveryOrder} />
 
             {/* Edit & Delete Buttons */}
             <td className="py-3 px-4">
@@ -414,13 +459,32 @@ const CustomRow: React.FC<CustomRowProps> = ({ deliveryOrderId, onUpdate }) => {
                                 >
                                     {t[language].edit}
                                 </button>
-                                <button
-                                    onClick={() => handleDelete(deliveryOrderId)}
-                                    className="bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 text-white px-3 py-1 rounded text-xs font-medium transition-colors duration-200"
-                                    aria-label={t[language].delete}
-                                >
-                                    {t[language].delete}
-                                </button>
+
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <button
+                                            className="bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 text-white px-3 py-1 rounded text-xs font-medium transition-colors duration-200"
+                                            aria-label={t[language].delete}
+                                        >
+                                            {t[language].delete}
+                                        </button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-64">
+                                        <div className="text-sm font-medium mb-2">{t[language].areYouSure}</div>
+
+                                        <div className="flex justify-end space-x-2">
+                                            <Button variant="outline" size="sm">{t[language].cancel}</Button>
+                                            <Button
+                                                variant="destructive"
+                                                size="sm"
+                                                onClick={() => handleDelete(deliveryOrderId)}
+                                            >
+                                                {t[language].delete}
+                                            </Button>
+                                        </div>
+                                    </PopoverContent>
+                                </Popover>
+
                             </>
                         )
                     )}

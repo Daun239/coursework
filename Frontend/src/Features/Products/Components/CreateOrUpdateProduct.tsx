@@ -5,9 +5,12 @@ import { Product } from '@/Types/Product';
 import { ProductType } from '@/Types/ProductType';
 import { UserActionLog } from '@/Types/UserActionLog';
 import React, { useEffect, useState } from 'react';
+import { toast } from "sonner"
 
 interface Props {
     productId?: number;
+    onUpdate?: () => void;
+    handleRerender: () => void;
 }
 
 const translations = {
@@ -32,86 +35,106 @@ const translations = {
         name: 'Назва',
         create: 'Створити',
         update: 'Оновити',
-        fillRequired: 'Будь ласка, заповніть всі обов’язкові поля.',
+        fillRequired: 'Будь ласка, заповніть всі обовяязкові поля.',
         created: 'Продукт створено.',
         updated: 'Продукт оновлено.',
         price: "Ціна"
     },
 };
 
-const CreateOrUpdateProduct: React.FC<Props> = ({ productId }) => {
+const CreateOrUpdateProduct: React.FC<Props> = ({ productId, onUpdate, handleRerender }) => {
     const { language } = useLanguageStore();
     const t = translations[language];
-
+    const { user } = useUserStore();
+    const { productTypeService, productService, userActionService } = useServiceStore();
+    
     const [productTypes, setProductTypes] = useState<ProductType[]>([]);
     const [product, setProduct] = useState<Product>({
         name: '',
         productTypeId: 0,
         price: 1,
     });
-
-    const { productTypeService, productService, userActionService } = useServiceStore();
-
-
-    const { user } = useUserStore();
-
+    const [dataVersion, setDataVersion] = useState<number>(1);
+    
+    // Load product types and product data if editing
     useEffect(() => {
         const fetchData = async () => {
-            const fetchedTypes = await productTypeService.getAll('', '', 1, 10000);
-            setProductTypes(fetchedTypes);
+            try {
+                const fetchedTypes = await productTypeService.getAll('', '', 1, 10000);
+                setProductTypes(fetchedTypes);
 
-            if (productId) {
-                const [fetchedProduct] = await productService.getAll(`productId = ${productId}`);
-                if (fetchedProduct) setProduct(fetchedProduct);
-
-                const [productType] = productTypeService.getAll(`productTypeId = ${fetchedProduct.productTypeId}`);
-
-                // setProd
+                if (productId) {
+                    const [fetchedProduct] = await productService.getAll(`productId = ${productId}`);
+                    if (fetchedProduct) {
+                        setProduct(fetchedProduct);
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching data:', error);
             }
-
-            console.log('LANGUAGE', language);
         };
 
         fetchData();
-    }, [productId, productService, productTypeService]);
+    }, [productId, productService, productTypeService, language, dataVersion]);
+
+    const refreshData = () => {
+        setDataVersion(prev => prev + 1);
+        if (onUpdate) {
+            onUpdate();
+        }
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
         if (!product.name || !product.productTypeId) {
-            alert(t.fillRequired);
+            toast.error(t.fillRequired);
             return;
         }
 
-        if (productId) {
-            const result = await productService.update(product);
-            alert(t.updated);
+        try {
+            let result;
+            let action;
+            
+            if (productId) {
+                result = await productService.update(product);
+                toast.success(t.updated);
+                action = "Updated";
+            } else {
+                result = await productService.create(product);
+                toast.success(t.created);
+                action = "Created";
+            }
 
+            // Log the user action
             const actionLog: UserActionLog = {
-                action: "Updated",
+                action,
                 details: `${JSON.stringify(result)}`,
                 entity: "Product",
                 timestamp: new Date(),
                 user: `${user?.name} ${user?.surname}`
+            };
+            
+            // await userActionService.post(actionLog);
+            
+            // Reset form if creating new product
+            if (!productId) {
+                setProduct({
+                    name: '',
+                    productTypeId: 0,
+                    price: 1,
+                });
             }
+            
+            // Trigger rerender and notify parent
 
-            userActionService.post(actionLog);
+            handleRerender();
 
-
-        } else {
-            const result = await productService.create(product);
-            alert(t.created);
-
-            const actionLog: UserActionLog = {
-                action: "Created",
-                details: `${JSON.stringify(result)}`,
-                entity: "Product",
-                timestamp: new Date(),
-                user: `${user?.name} ${user?.surname}`
-            }
-
-            userActionService.post(actionLog);
-
+            refreshData();
+            
+        } catch (error) {
+            console.error('Error saving product:', error);
+            // alert('An error occurred while saving the product');
         }
     };
 
@@ -134,7 +157,7 @@ const CreateOrUpdateProduct: React.FC<Props> = ({ productId }) => {
                 >
                     <option value="">{t.selectType}</option>
                     {productTypes.map((pt) => (
-                        <option key={pt.id} value={pt.productTypeId}>
+                        <option key={pt.id || pt.productTypeId} value={pt.productTypeId}>
                             {pt.productType1}
                         </option>
                     ))}
@@ -159,11 +182,10 @@ const CreateOrUpdateProduct: React.FC<Props> = ({ productId }) => {
                     min="1"
                     className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 dark:text-gray-100 p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                     value={product.price}
-                    onChange={(e) => setProduct({ ...product, price: e.target.value })}
+                    onChange={(e) => setProduct({ ...product, price: Number(e.target.value) })}
                     required
                 />
             </div>
-
 
             <button
                 type="submit"

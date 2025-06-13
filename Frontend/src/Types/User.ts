@@ -1,11 +1,12 @@
-export type User = {
-  employeeId: number;
-  cinemaId: string;
-  employeePosition: string;
-  name?: string | null;
-  surname?: string | null;
-  cellNumber?: string | null;
-  email?: string | null;
-  CinemaName?: string | null;
-  CityName?: string | null;
-};
+export interface User {
+  employeeId: number | string;
+  email: string;
+  name: string;
+  surname: string;
+  cellNumber: string;
+  cinemaId: number | string;
+  employeePosition?: string; // Making this optional since we might not always have it
+  role: string; // Adding role as a required field
+  CinemaName: string;
+  CityName: string;
+}

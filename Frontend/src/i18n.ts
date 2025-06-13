@@ -165,6 +165,9 @@ i18n.use(initReactI18next).init({
           run: "Run",
           movie: "Movie",
 
+          create: "Create Screening",
+          update: "Update Screening",
+
           submitError: "Failed to save screening. Please try again.",
 
           createdSuccessfully: "Screening created successfully",
@@ -193,6 +196,10 @@ i18n.use(initReactI18next).init({
 
           runStartDateHasToBeBeforeEndDate:
             "Run start date has to be sooner than end date",
+
+            normalPrice: "Normal price",
+            vipPrice: "Vip price",
+
         },
 
         updateHall: {
@@ -242,6 +249,8 @@ i18n.use(initReactI18next).init({
           purchaseSuccessfull: "Purchase completed successfully!",
 
           error: "Error processing your purchase. Please try again.",
+
+          completePurchase: "Complete Purchase",
         },
       },
     },
@@ -399,6 +408,9 @@ i18n.use(initReactI18next).init({
           run: "Прокат",
           movie: "Фільм",
 
+          create: "Створити сеанс",
+          update: "Редагувати сеанс",
+
           submitError: "Не вдалося зберегти сеанс. Спробуйте ще раз.",
 
           createdSuccessfully: "Сеанс успішно створено",
@@ -427,6 +439,10 @@ i18n.use(initReactI18next).init({
 
           runStartDateHasToBeBeforeEndDate:
             "Кінець прокату повинен бути пізніше за початок",
+
+            normalPrice: "Звичайна ціна",
+            vipPrice: "ВІП ціна",
+
         },
 
         updateHall: {
@@ -473,6 +489,8 @@ i18n.use(initReactI18next).init({
           purchaseSuccessfull: "Покупку успішно завершено!",
 
           error: "Помилка під час обробки покупки. Спробуйте ще раз.",
+
+          completePurchase: "Виконати покупку",
         },
       },
     },

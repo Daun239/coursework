@@ -136,7 +136,7 @@ const CartModalComponent = forwardRef<HTMLDialogElement>((_, ref) => {
             if (ticketsTotalQuantity > 0 && ticketsTotalPrice > 0) {
                 const check: Check = {
                     clientId: selectedClient.clientId,
-                    employeeId: user?.employeeId,
+                    employeeId: user?.employeeId || 1,
                     buyDateTime: new Date(),
                     sum: ticketsTotalPrice,
                     paymentMethodId: selectedPaymentMethod,
@@ -158,7 +158,7 @@ const CartModalComponent = forwardRef<HTMLDialogElement>((_, ref) => {
                             user: `${user?.name} ${user?.surname}`
                         }
 
-                        userActionService.post(actionLog);
+                        // userActionService.post(actionLog);
 
 
                         const checkTicket: CheckTicket = {
@@ -256,7 +256,7 @@ const CartModalComponent = forwardRef<HTMLDialogElement>((_, ref) => {
         };
 
         fetchProducts();
-    }, [cart.product, productService, productsMap]);
+    }, [cart.product, productService, productsMap, user]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -487,7 +487,7 @@ const CartModalComponent = forwardRef<HTMLDialogElement>((_, ref) => {
                                     }}
                                     className="px-3 py-2 text-sm cursor-pointer bg-red-500 text-white rounded hover:bg-red-600"
                                 >
-                                    {t('confirm')}
+                                    {t('delete')}
                                 </button>
                                 <button
                                     onClick={() => setShowConfirm(false)}

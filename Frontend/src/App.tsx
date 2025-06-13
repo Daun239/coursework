@@ -112,7 +112,7 @@ function App() {
         <LanguageSync />
 
 
-        <Routes>
+        {/* <Routes>
           <Route path="/login" element={<LoginPage />} />
 
           <Route path="/movies" element={<MovieList />} />
@@ -130,6 +130,91 @@ function App() {
           <Route path="/employeesPage" element={<EmployeesPage />} />
 
 
+        </Routes> */}
+
+
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+
+          <Route
+            path="/movies"
+            element={
+              <ProtectedRoute
+                element={<MovieList />}
+                allowedRoles={['Cashier']}
+              />
+            }
+          />
+
+          <Route
+            path="/products"
+            element={
+              <ProtectedRoute
+                element={<ProductsList />}
+                allowedRoles={['Cashier', 'Manager']}
+              />
+            }
+          />
+
+          <Route
+            path="/deliveryOrders"
+            element={
+              <ProtectedRoute
+                element={<DeliveryOrder />}
+                allowedRoles={['Manager', 'WarehouseWorker']}
+              />
+            }
+          />
+
+          <Route
+            path="/clientsPage"
+            element={
+              <ProtectedRoute
+                element={<ClientsPage />}
+                allowedRoles={['Manager']}
+              />
+            }
+          />
+
+          <Route
+            path="/suppliersPage"
+            element={
+              <ProtectedRoute
+                element={<SuppliersPage />}
+                allowedRoles={['Manager']}
+              />
+            }
+          />
+
+          <Route
+            path="/employeesPage"
+            element={
+              <ProtectedRoute
+                element={<EmployeesPage />}
+                allowedRoles={['Manager']}
+              />
+            }
+          />
+
+          <Route
+            path="/cinemasPage"
+            element={
+              <ProtectedRoute
+                element={<CinemasPage />}
+                allowedRoles={['Manager']}
+              />
+            }
+          />
+
+          <Route
+            path="/auditPage"
+            element={
+              <ProtectedRoute
+                element={<AuditComponent />}
+                allowedRoles={['Admin']}
+              />
+            }
+          />
         </Routes>
 
         {/* <Routes>

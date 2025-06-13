@@ -81,7 +81,7 @@ export default function AddCinemaForm({ handleRerender }: Props) {
             }
 
 
-            userActionService.post(actionLog);
+            // userActionService.post(actionLog);
 
 
             handleRerender();

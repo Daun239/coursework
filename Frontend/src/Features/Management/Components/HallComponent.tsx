@@ -80,7 +80,7 @@ const HallComponent = ({ hall, onSelect, cinema, handleRerender }: hallProps) =>
             }
 
 
-            userActionService.post(actionLog);
+            // userActionService.post(actionLog);
 
 
             handleRerender();

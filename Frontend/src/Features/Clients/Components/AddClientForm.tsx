@@ -69,7 +69,7 @@ export default function AddClientForm() {
             }
 
 
-            userActionService.post(actionLog);
+            // userActionService.post(actionLog);
 
             // Show success toast with translated success message
             toast.success(t("clients.clientAddedSuccessfully"));

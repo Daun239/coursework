@@ -11,20 +11,45 @@ import {
   DropdownMenuLabel,
   DropdownMenuItem,
 } from '@radix-ui/react-dropdown-menu';
+import { useServiceStore } from '@/Stores/ServicesStore';
+import { Cinema } from '@/Types/Cinema';
+import { useState, useEffect } from 'react';
 
 const Navbar = () => {
   const { user } = useUserStore();
   const { language, setLanguage } = useLanguageStore();
+
+  const [cinema, setCinema] = useState<Cinema>();
+
+  const { cinemaService } = useServiceStore();
+
+
+  useEffect(() => {
+
+    const fetchdata = async () => {
+      const [cinema] = await cinemaService.getAll(`cinemaId = ${user?.cinemaId}`);
+      setCinema(cinema);
+    }
+
+    fetchdata();
+
+  }, [user])
+
+  // Safety check - don't render navbar if user isn't loaded yet
+  if (!user) {
+    return null;
+  }
 
   return (
     <div className="navbar bg-white dark:bg-gray-950 shadow-md w-full fixed top-0 left-0 z-10 px-4 py-2 flex justify-between items-center">
       {/* Left side */}
       <div className="flex items-center gap-4">
         <p className="text-lg font-semibold dark:text-white">
-          {user?.CinemaName}
+          {cinema?.name}
         </p>
 
-        {user?.employeePosition === 'Cashier' && (
+        {/* Cashier links */}
+        {user.employeePosition === 'Cashier' && (
           <>
             <Link to="/movies" className="btn btn-ghost text-md hover:bg-gray-200 dark:hover:bg-gray-700 dark:text-white">
               🎟 {language === 'en' ? 'Movies' : 'Фільми'}
@@ -35,39 +60,48 @@ const Navbar = () => {
           </>
         )}
 
-        {(user?.employeePosition === 'Manager' || user?.employeePosition === 'WarehouseWorker') && (
+        {/* Manager links */}
+        {user.employeePosition === 'Manager' && (
+          <>
+            <Link to="/deliveryOrders" className="btn btn-ghost text-md hover:bg-gray-200 dark:hover:bg-gray-700 dark:text-white">
+              {language === 'en' ? 'Delivery Orders' : 'Замовлення доставки'}
+            </Link>
+            <Link to="/products" className="btn btn-ghost text-md hover:bg-gray-200 dark:hover:bg-gray-700 dark:text-white">
+              {language === 'en' ? 'Products' : 'Продукти'}
+            </Link>
+            <Link to="/clientsPage" className="btn btn-ghost text-md hover:bg-gray-200 dark:hover:bg-gray-700 dark:text-white">
+              {language === 'en' ? 'Clients' : 'Клієнти'}
+            </Link>
+            <Link to="/suppliersPage" className="btn btn-ghost text-md hover:bg-gray-200 dark:hover:bg-gray-700 dark:text-white">
+              {language === 'en' ? 'Suppliers' : 'Постачальники'}
+            </Link>
+            <Link to="/employeesPage" className="btn btn-ghost text-md hover:bg-gray-200 dark:hover:bg-gray-700 dark:text-white">
+              {language === 'en' ? 'Employees' : 'Працівники'}
+            </Link>
+            <Link to="/cinemasPage" className="btn btn-ghost text-md hover:bg-gray-200 dark:hover:bg-gray-700 dark:text-white">
+              {language === 'en' ? 'Cinemas' : 'Кінотеатри'}
+            </Link>
+          </>
+        )}
+
+        {/* Warehouse Worker links */}
+        {user.employeePosition === 'WarehouseWorker' && (
           <Link to="/deliveryOrders" className="btn btn-ghost text-md hover:bg-gray-200 dark:hover:bg-gray-700 dark:text-white">
             {language === 'en' ? 'Delivery Orders' : 'Замовлення доставки'}
           </Link>
         )}
 
-
-
-
-        <Link to="/clientsPage" className="btn btn-ghost text-md hover:bg-gray-200 dark:hover:bg-gray-700 dark:text-white">
-          {language === 'en' ? 'Clients' : 'Клієнти'}
-        </Link>
-
-        <Link to="/suppliersPage" className="btn btn-ghost text-md hover:bg-gray-200 dark:hover:bg-gray-700 dark:text-white">
-          {language === 'en' ? 'Suppliers' : 'Постачальники'}
-        </Link>
-
-        <Link to="/employeesPage" className="btn btn-ghost text-md hover:bg-gray-200 dark:hover:bg-gray-700 dark:text-white">
-          {language === 'en' ? 'Employees' : 'Працівники'}
-        </Link>
-
-        <Link to="/cinemasPage" className="btn btn-ghost text-md hover:bg-gray-200 dark:hover:bg-gray-700 dark:text-white">
-          {language === 'en' ? 'Cinemas' : 'Кінотеатри'}
-        </Link>
-
-        <Link to="/auditPage" className="btn btn-ghost text-md hover:bg-gray-200 dark:hover:bg-gray-700 dark:text-white">
-          {language === 'en' ? 'Monitoring' : 'Моніторинг'}
-        </Link>
+        {/* Admin links */}
+        {user.employeePosition === 'Admin' && (
+          <Link to="/auditPage" className="btn btn-ghost text-md hover:bg-gray-200 dark:hover:bg-gray-700 dark:text-white">
+            {language === 'en' ? 'Monitoring' : 'Моніторинг'}
+          </Link>
+        )}
       </div>
 
       {/* Right side */}
       <div className="flex items-center gap-4">
-        {user?.employeePosition === 'Cashier' && <CartLogoOnNavbar />}
+        {user.employeePosition === 'Cashier' && <CartLogoOnNavbar />}
         <ThemeToggle />
 
         {/* Language toggle */}
@@ -92,7 +126,7 @@ const Navbar = () => {
             CinemaId={user.cinemaId}
             CellNumber={user.cellNumber}
             Email={user.email}
-            EmployeePosition={user.employeePosition}
+            EmployeePosition={user.employeePosition || user.role} // Use employeePosition if available, otherwise fall back to role
             Name={user.name}
             Surname={user.surname}
             EmployeeId={user.employeeId}

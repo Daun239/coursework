@@ -81,7 +81,7 @@ export default function AddEditHallForm({ hall, cinema, handleRerender }: Props)
             }
 
 
-            userActionService.post(actionLog);
+            // userActionService.post(actionLog);
 
 
 
@@ -92,6 +92,9 @@ export default function AddEditHallForm({ hall, cinema, handleRerender }: Props)
                 hallTechnologyId: 0,
 
             });
+
+            handleRerender();
+            
         } catch (error) {
             // Show error toast with translated error message
             console.error("Error adding hall:", error);
@@ -185,12 +188,12 @@ export default function AddEditHallForm({ hall, cinema, handleRerender }: Props)
                 </div>
             )}
 
-            {/* Submit Button */}
-            <div className="pt-4">
+            {!hall && <div className="pt-4">
                 <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition">
                     {t('create')}
                 </button>
-            </div>
+            </div>}
+
         </form>
 
     );

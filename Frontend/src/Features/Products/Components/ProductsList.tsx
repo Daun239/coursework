@@ -1,6 +1,6 @@
 import { useServiceStore } from '@/Stores/ServicesStore';
 import { Product } from '@/Types/Product';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import ProductComponent from './ProductComponent';
 import { useUserStore } from '@/Stores/UserStore';
 import { ProductsInStorage } from '@/Types/ProductsInStorage';
@@ -9,7 +9,6 @@ import formFilterQuery from '@/lib/formFilterQuery';
 import DropdownList from '@/components/DropdownList';
 import RangeSlider from '@/components/RangeSlider';
 import Pagination from '@/components/Pagination';
-
 
 import { format } from "date-fns"
 import { CalendarIcon } from "lucide-react"
@@ -29,42 +28,30 @@ import { t } from '../Utils/useTranslation';
 import CreateOrUpdateProduct from './CreateOrUpdateProduct';
 import { exportProductData } from '../Utils/exportProductsData';
 
-
-
-
-
-
-
-
-
 const ProductsList = () => {
-
-
-
     const { user } = useUserStore();
-
     const { productsInStorageService, productTypeService, productService } = useServiceStore();
     const [productsInStorage, setProductsInStorage] = useState<ProductsInStorage[]>([]);
     const [loading, setLoading] = useState(true);
-
-
     const [products, setProducts] = useState<Product[]>([]);
-
     const [productTypes, setProductTypes] = useState<ProductType[]>([]);
-
-
     const [currentPage, setCurrentPage] = useState<number>(1);
     const [pageSize, setPageSize] = useState<number>(10);
     const [pagesCount, setPagesCount] = useState<number>(1);
-
     const [productNames, setProductNames] = useState<Product[]>([]);
-
     const [selectedProductPriceRange, setSelectedProductPriceRange] = useState<[number, number]>([1, 1000000000000]);
-    const [selectedProductQuantityRange, setSelectedProductQuantityRange] = useState<[number, number]>([1, 1000000000000]);
-
+    const [selectedProductQuantityRange, setSelectedProductQuantityRange] = useState<[number, number]>([0, 1000000000000]);
     const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
-
     const [initialProductsInStorage, setInitialProductsInStorage] = useState<Product[]>([]);
+    const [productionDate, setProductionDate] = useState<Date>();
+    const [expirationDate, setExpirationDate] = useState<Date>();
+    const { minProductPrice, maxProductPrice, minProductQuantity, maxProductQuantity } = useProductRange();
+    const [productsInStorageCount, setProductsInStorageCount] = useState<number>(1);
+    const [rerender, setRerender] = useState<number>(0); // Changed initial value to 0 for clarity
+    const [isPageReset, setIsPageReset] = useState(false);
+    const [createProductOpen, setCreateProductOpen] = useState<boolean>(false);
+    const [selectedProductId, setSelectedProductId] = useState<number>(null);
+    const { language } = useLanguageStore();
 
     const toggleSidebar = () => {
         setIsSidebarOpen(prev => !prev);
@@ -74,29 +61,21 @@ const ProductsList = () => {
         setState(selected);
     }
 
-    const [productionDate, setProductionDate] = useState<Date>();
-
-    const [expirationDate, setExpirationDate] = useState<Date>();
-
-    const { minProductPrice, maxProductPrice, minProductQuantity, maxProductQuantity } = useProductRange();
-
-
-    const [productsInStorageCount, setProductsInStorageCount] = useState<number>(1);
-
-
     const handleSelectProduct = (productId: number) => {
         setSelectedProductId(productId);
         setCreateProductOpen(true);
     };
 
-
-
+    // Modified handleRerender function
+    const handleRerender = useCallback(() => {
+        console.log("handleRerender called"); // Added for debugging
+        setRerender(prev => prev + 1);
+        setCreateProductOpen(false); // Close the modal after updates
+    }, []);
 
     useEffect(() => {
         const down = (e: KeyboardEvent) => {
-            // Handle both 'f' (English) and 'ф' (Ukrainian) for switching sidebar
             const ukrainianFKey = e.key === "а" || e.key === "f";
-
             if (ukrainianFKey && (e.metaKey || e.ctrlKey) && e.altKey) {
                 e.preventDefault();
                 toggleSidebar();
@@ -105,14 +84,12 @@ const ProductsList = () => {
 
         document.addEventListener("keydown", down);
         return () => document.removeEventListener("keydown", down)
-    }, [])
+    }, []);
 
     // This effect only handles pagination calculation
     useEffect(() => {
         if (productsInStorage.length > 0) {
             setPagesCount(Math.ceil(productsInStorageCount / pageSize));
-
-            console.log('pagescount', pagesCount);
         }
     }, [productsInStorage.length, pageSize, productsInStorageCount]);
 
@@ -127,15 +104,11 @@ const ProductsList = () => {
             }
         };
 
-        setSelectedProductQuantityRange([minProductQuantity, maxProductQuantity]);
-
+        setSelectedProductQuantityRange([0, maxProductQuantity]);
         setSelectedProductPriceRange([minProductPrice, maxProductPrice]);
 
-
         fetchProductTypes();
-    }, []); // Empty dependency array means this runs once on mount
-
-
+    }, []);
 
     // Separate effect to fetch product types once
     useEffect(() => {
@@ -149,50 +122,35 @@ const ProductsList = () => {
         };
 
         fetchInitialProductsInStorage();
-    }, []); // Empty dependency array means this runs once on mount
-
-    const handleKeyDown = (e) => {
-        if (e.key === 'enter') {
-            return;
-        }
-    }
-
-
-    const [isPageReset, setIsPageReset] = useState(false);
-
+    }, []);
 
     useEffect(() => {
         setCurrentPage(1);  // Reset to page 1
         setIsPageReset(prev => !prev);  // Mark that the page has been reset
     }, [productNames, selectedProductPriceRange, selectedProductQuantityRange, productionDate, expirationDate, productTypes, pageSize]);
 
-
     useEffect(() => {
         if (
             minProductPrice !== undefined && maxProductPrice !== undefined &&
-            minProductQuantity !== undefined && maxProductQuantity !== undefined &&
-            (minProductPrice !== 0 || maxProductPrice !== 0) // optional safeguard
+            minProductQuantity !== undefined && maxProductQuantity !== undefined
         ) {
-            setSelectedProductQuantityRange([minProductQuantity, maxProductQuantity]);
+            setSelectedProductQuantityRange([0, maxProductQuantity]);
             setSelectedProductPriceRange([minProductPrice, maxProductPrice]);
         }
     }, [minProductPrice, maxProductPrice, minProductQuantity, maxProductQuantity]);
 
-
-
-
+    // Main data fetching effect
     useEffect(() => {
         const fetchProducts = async () => {
-
+            console.log("fetchProducts triggered, rerender value:", rerender); // Debug log
+            
             if (
                 selectedProductPriceRange[0] === 0 && selectedProductPriceRange[1] === 0 ||
                 selectedProductQuantityRange[0] === 0 && selectedProductQuantityRange[1] === 0
             ) return;
 
-
-
-            console.log(`productNames = `, productNames)
             try {
+                setLoading(true);
                 const productIds = initialProductsInStorage.map(p => p.productId);
                 const productsQuery = formFilterQuery("AND", {
                     field: 'productId',
@@ -201,10 +159,9 @@ const ProductsList = () => {
                 },
                     {
                         field: "price",
-                        values: selectedProductPriceRange.map(v => v.toString()).filter(v => v !== '0'), // Ensure they are strings,
+                        values: selectedProductPriceRange.map(v => v.toString()).filter(v => v !== '0'),
                         operator: "range",
                     },
-
                     {
                         field: 'productTypeId',
                         operator: "in",
@@ -217,26 +174,13 @@ const ProductsList = () => {
                     }
                 );
 
-                console.log('productsquery = ', productsQuery);
-                console.log(`cleaned query`, cleanInClauses(productsQuery))
                 const products = await productService.getAll(productsQuery, "", 1, 10000000);
                 setProducts(products);
 
                 const producttsInStorageFilterQuery = `CinemaId = ${user?.cinemaId} And ` + formFilterQuery("AND",
-
-                    // {
-                    //     field: 'productionDate',
-                    //     operator: "in",
-                    //     values: productionDate?.getDate(),
-                    // },
-                    // {
-                    //     values: expirationDate,
-                    //     field: "",
-                    //     operator: "in",
-                    // },
                     {
                         field: "quantity",
-                        values: selectedProductQuantityRange.map(v => v.toString()), // Ensure they are strings,
+                        values: selectedProductQuantityRange.map(v => v.toString()),
                         operator: "range",
                     },
                     {
@@ -244,24 +188,13 @@ const ProductsList = () => {
                         values: products.map(p => p.productId),
                         operator: "in"
                     }
-
-                )
-
-                console.log('products in storage query', producttsInStorageFilterQuery);
-
-
+                );
 
                 const productsInStorageCount = await productsInStorageService.getCount(producttsInStorageFilterQuery);
-
                 setProductsInStorageCount(productsInStorageCount);
 
-
-
                 const productsInStorage = await productsInStorageService.getAll(producttsInStorageFilterQuery, "", currentPage, pageSize);
-
                 setProductsInStorage(productsInStorage);
-
-
             } catch (error) {
                 console.error("Failed to fetch products", error);
             } finally {
@@ -269,25 +202,8 @@ const ProductsList = () => {
             }
         };
 
-
-        console.log(`quantity range`, selectedProductQuantityRange);
-
-        console.log(`price range`, selectedProductPriceRange);
         fetchProducts();
-
-    }, [currentPage, isPageReset]);
-
-
-    const { language } = useLanguageStore(); // <-- use language from store
-
-
-    const [createProductOpen, setCreateProductOpen] = useState<boolean>(false);
-
-
-
-    const [selectedProductId, setSelectedProductId] = useState<number>(null);
-
-
+    }, [currentPage, isPageReset, rerender, pageSize, user?.cinemaId]); // Added missing dependencies
 
     const handleExport = (format: "csv" | "json" | "pdf") => {
         const services = {
@@ -296,9 +212,6 @@ const ProductsList = () => {
 
         exportProductData(productsInStorage, format, `products_data_${format}`, services);
     };
-
-
-
 
     return (
         <div className="flex h-screen overflow-hidden mt-16">
@@ -311,7 +224,7 @@ const ProductsList = () => {
             >
                 <div className="w-80 h-full bg-white dark:bg-gray-900 p-4 shadow-lg">
                     <div className="filters-container">
-                        {productsInStorage.length > 0 && <h2 className="font-semibold text-xl mb-4">{productsInStorage.length} {t[language].filters.productsFound}</h2>}
+                        {productsInStorage.length > 0 && <h2 className="font-semibold text-xl mb-4">{productsInStorageCount} {t[language].filters.productsFound}</h2>}
 
                         {<DropdownList
                             listName={t[language].filters.filterByProductNames}
@@ -443,7 +356,6 @@ const ProductsList = () => {
                     <h2 className="text-2xl font-bold">{t[language].productsList}</h2>
                 </div>
 
-
                 <div className="flex items-center mb-6 space-x-4">
                     <button
                         onClick={() => setCreateProductOpen(prev => !prev)}
@@ -484,30 +396,26 @@ const ProductsList = () => {
                     </div>
                 </div>
 
+                {createProductOpen && 
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+                        <div className="bg-white dark:bg-gray-900 rounded-lg shadow-2xl w-full max-w-2xl relative">
+                            <button
+                                onClick={() => {
+                                    setCreateProductOpen(false);
+                                    setSelectedProductId(null);
+                                }}
+                                className="absolute top-2 right-2 text-gray-500 hover:text-gray-800 dark:hover:text-white"
+                            >
+                                ✕
+                            </button>
 
-
-
-
-                {createProductOpen && <div className="fixed inset-0 z-50 flex items-center justify-center ">
-                    <div className="bg-white dark:bg-gray-900 rounded-lg shadow-2xl w-full max-w-2xl relative">
-                        <button
-                            onClick={() => {
-                                setCreateProductOpen(false);
-                                setSelectedProductId(null);
-                            }}
-                            className="absolute top-2 right-2 text-gray-500 hover:text-gray-800 dark:hover:text-white"
-                        >
-                            ✕
-                        </button>
-
-                        <CreateOrUpdateProduct productId={selectedProductId} />
+                            <CreateOrUpdateProduct 
+                                handleRerender={handleRerender} 
+                                productId={selectedProductId} 
+                            />
+                        </div>
                     </div>
-                </div>}
-
-
-
-
-
+                }
 
                 {/* Loading state */}
                 {loading && (
@@ -517,7 +425,7 @@ const ProductsList = () => {
                 )}
 
                 {/* No products found message */}
-                {!loading && products.length === 0 && (
+                {!loading && productsInStorage.length === 0 && (
                     <div className="flex flex-col items-center justify-center text-center my-8">
                         <div className="text-4xl text-gray-400">
                             <i className="fas fa-box-open"></i>
@@ -527,10 +435,13 @@ const ProductsList = () => {
                     </div>
                 )}
 
-                {/* Products grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-12">
                     {productsInStorage.length > 0 && productsInStorage.map(product => (
-                        <ProductComponent onSelecProductId={handleSelectProduct} key={product.productInStorageId} productInStorageId={product.productInStorageId} />
+                        <ProductComponent 
+                            onSelecProductId={handleSelectProduct} 
+                            key={`${product.productInStorageId}-${rerender}`} // Add rerender to key to force re-render
+                            productInStorageId={product.productInStorageId} 
+                        />
                     ))}
 
                     {/* Empty state within grid */}
@@ -543,7 +454,6 @@ const ProductsList = () => {
             </div>
         </div>
     );
-
 };
 
 export default ProductsList;

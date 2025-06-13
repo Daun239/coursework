@@ -75,7 +75,7 @@ const ClientComponent = ({ client, onClientUpdated }: ClientComponentProps) => {
             }
 
 
-            userActionService.post(actionLog);
+            // userActionService.post(actionLog);
 
 
 
@@ -108,7 +108,7 @@ const ClientComponent = ({ client, onClientUpdated }: ClientComponentProps) => {
             }
 
 
-            userActionService.post(actionLog);
+            // userActionService.post(actionLog);
 
 
             setIsEditing(false);

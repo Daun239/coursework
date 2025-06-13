@@ -4,7 +4,7 @@ import formFilterQuery from '@/lib/formFilterQuery';
 import { useServiceStore } from '@/Stores/ServicesStore';
 import { Cinema } from '@/Types/Cinema';
 import { City } from '@/Types/City';
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import CinemaComponent from './CinemaComponent';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
@@ -12,39 +12,27 @@ import AddCinemaForm from './AddCinemaForm';
 import { Modal } from './Modal';
 
 const CinemasPage = () => {
-
-
-
     const { t } = useTranslation();
-
 
     const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true);
     const [currentPage, setCurrentPage] = useState<number>(1);
     const [pageSize, setPageSize] = useState<number>(50);
     const [pagesCount, setPagesCount] = useState<number>(10);
-
     const [searchByAddress, setSearchByAddress] = useState<string>("");
-
-
     const [searchByName, setSearchByName] = useState<string>("");
-
-
     const [cities, setCities] = useState<City[]>([]);
-
-
-
-
-
     const [cinemas, setCinemas] = useState<Cinema[]>([]);
-
     const [cinemasCount, setCinemasCount] = useState<number>(1);
+    const [rerender, setRerender] = useState<number>(0);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
-    const [rerender, setRerender] = useState<boolean>(false);
+    const { cinemaService, cityService } = useServiceStore();
 
-    const handleRerender = () => {
-        setRerender(prev => !prev);
-    }
-
+    // Modified handleRerender function
+    const handleRerender = useCallback(() => {
+        setRerender(prev => prev + 1);
+        closeModal(); // Close the modal after adding a cinema
+    }, []);
 
     useEffect(() => {
         const down = (e: KeyboardEvent) => {
@@ -61,24 +49,19 @@ const CinemasPage = () => {
         setIsSidebarOpen(prev => !prev);
     };
 
-
     function handleSelectionChange<T>(selected: T[], setState: React.Dispatch<React.SetStateAction<T[]>>) {
         setState(selected);
     }
 
-    const { cinemaService, cityService } = useServiceStore();
-
-    useEffect(() => {
-
-        const fetchData = async () => {
-
+    // Fetch data function moved outside useEffect for better clarity
+    const fetchData = useCallback(async () => {
+        try {
             const cinemasQuery = formFilterQuery("AND",
                 {
                     field: "cityId",
                     operator: "in",
                     values: cities.map(c => c.cityId)
                 },
-
                 {
                     field: "name",
                     operator: "contains",
@@ -89,28 +72,27 @@ const CinemasPage = () => {
                     operator: "contains",
                     values: [searchByAddress]
                 }
-            )
-            const cinemas = await cinemaService.getAll(cinemasQuery, ``, currentPage, pageSize);
-
+            );
+            
+            const cinemas = await cinemaService.getAll(cinemasQuery, "", currentPage, pageSize);
             const cinemasCount = await cinemaService.getCount(cinemasQuery);
+            
             setCinemas(cinemas);
             setCinemasCount(cinemasCount);
-
-            setPagesCount(Math.ceil(cinemasCount / pageSize))
+            setPagesCount(Math.ceil(cinemasCount / pageSize));
+        } catch (error) {
+            console.error("Error fetching cinemas:", error);
         }
+    }, [cities, searchByAddress, searchByName, currentPage, pageSize, cinemaService, rerender]);
 
+    // Separate useEffect for rerendering
+    useEffect(() => {
         fetchData();
-    }, [cities, searchByAddress, searchByName, rerender])
-
-
-
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    }, [fetchData]);
 
     // Toggle modal visibility
     const openModal = () => setIsModalOpen(true);
     const closeModal = () => setIsModalOpen(false);
-
-
 
     return (
         <div className="mt-16 flex h-screen bg-white dark:bg-gray-900 text-gray-800 dark:text-white">
@@ -146,8 +128,6 @@ const CinemasPage = () => {
                                 className="pl-6 bg-transparent border-none focus:outline-none w-full"
                             />
                         </label>
-
-
 
                         {/* Search input */}
                         <label className="input bg-gray-200 dark:bg-gray-800 my-4 flex items-center">
@@ -205,13 +185,8 @@ const CinemasPage = () => {
                 </div>
             </div>
 
-
-
-
             {/* Main content */}
             <div className="flex-1 flex flex-col h-screen overflow-auto">
-
-
                 <Modal isOpen={isModalOpen} onClose={closeModal}>
                     <AddCinemaForm handleRerender={handleRerender} />
                 </Modal>
@@ -245,12 +220,11 @@ const CinemasPage = () => {
                     <div className="w-36"></div>
                 </div>
 
-
                 {/* Cinemas grid */}
                 <div className="p-6">
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 gap-4">
                         {cinemas?.map((c) => (
-                            <CinemaComponent key={c.cinemaId} cinema={c} />
+                            <CinemaComponent handleRerender={handleRerender} key={c.cinemaId} cinema={c} />
                         ))}
                     </div>
 

@@ -55,11 +55,8 @@ export const useProductRange = () => {
           1,
           1
         );
-        setMinProductQuantity(
-          minQuantityItem?.quantity && minQuantityItem.quantity > 0
-            ? minQuantityItem.quantity
-            : 1
-        );
+        setMinProductQuantity(minQuantityItem?.quantity ?? 0);
+
         setMaxProductQuantity(maxQuantityItem?.quantity ?? 0);
       } catch (error) {
         console.error("Failed to fetch ranges:", error);

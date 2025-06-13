@@ -11,12 +11,10 @@ import React, { useEffect, useState } from 'react';
 import ProductPlacementComponent from './ProductPlacement';
 import { BsImage } from 'react-icons/bs';
 import { useProductImage } from '@/Features/Products/Hooks/useProductImage';
-// import { Box, Calendar, CalendarIcon, Grid, LayoutGrid } from 'lucide-react';
 import { Popover, PopoverTrigger, PopoverContent } from '@radix-ui/react-popover';
 import { format } from 'date-fns';
 
-
-import { LayoutGrid, Box, CalendarIcon } from "lucide-react"
+import { LayoutGrid, Box, CalendarIcon, Edit2, Trash2 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -27,13 +25,14 @@ import { Product } from '@/Types/Product';
 import { toast } from 'sonner';
 import { useLanguageStore } from '@/Stores/useLanguageStore';
 import { UserActionLog } from '@/Types/UserActionLog';
-
-
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 
 interface ProductInOrderProps {
     productInOrderId: number;
     language?: 'en' | 'ua';
     handleReload: () => void;
+    deliveryOrderFinished?: boolean;
 }
 
 const translations = {
@@ -51,10 +50,20 @@ const translations = {
         ExpirationDate: "Expiration Date",
         quantity: "Quantity",
         productionDate: "Production Date",
-
         fillData: "Please fill in quantity, production date, and expiration date.",
-
-        expirationDateCantBeSoonerThanProductionDate: "Expiration date can't be sooner than production date"
+        expirationDateCantBeSoonerThanProductionDate: "Expiration date can't be sooner than production date",
+        editProduct: "Edit Product",
+        deleteProduct: "Delete Product",
+        edit: "Edit",
+        delete: "Delete",
+        cancel: "Cancel",
+        save: "Save",
+        price: "Price",
+        editProductInfo: "Edit Product Information",
+        confirmDelete: "Confirm Delete",
+        deleteConfirmMsg: "Are you sure you want to delete this product placement? This action cannot be undone.",
+        productUpdated: "Product information updated successfully.",
+        placementDeleted: "Product placement deleted successfully."
     },
     ua: {
         pricePerUnit: 'Ціна за одиницю:',
@@ -71,8 +80,19 @@ const translations = {
         quantity: "Кількість",
         productionDate: "Дата виготовлення",
         fillData: "Заповніть всі поля",
-        expirationDateCantBeSoonerThanProductionDate: "Дата виготовлення не може бути більшою за дату кінця терміну"
-
+        expirationDateCantBeSoonerThanProductionDate: "Дата виготовлення не може бути більшою за дату кінця терміну",
+        editProduct: "Редагувати продукт",
+        deleteProduct: "Видалити продукт",
+        edit: "Редагувати",
+        delete: "Видалити",
+        cancel: "Скасувати",
+        save: "Зберегти",
+        price: "Ціна",
+        editProductInfo: "Редагувати інформацію про продукт",
+        confirmDelete: "Підтвердити видалення",
+        deleteConfirmMsg: "Ви впевнені, що хочете видалити це розміщення продукту? Цю дію неможливо скасувати.",
+        productUpdated: "Інформацію про продукт успішно оновлено.",
+        placementDeleted: "Розміщення продукту успішно видалено."
     }
 };
 
@@ -85,20 +105,23 @@ const ProductInOrder: React.FC<ProductInOrderProps> = ({ productInOrderId, deliv
         userActionService
     } = useServiceStore();
 
-
     const [productInOrder, setProductInOrder] = useState<ProductsInOrder>();
     const [productPlacements, setProductPlacements] = useState<ProductPlacement[]>([]);
     const [productName, setProductName] = useState<string | undefined>();
-
     const [product, setProduct] = useState<Product>();
-
     const { fetchProductImage, isImageLoading, productImage } = useProductImage();
-
     const { language } = useLanguageStore();
     const t = translations[language];
-
-
     const { user } = useUserStore();
+
+    // Edit dialog state
+    const [editDialogOpen, setEditDialogOpen] = useState(false);
+    const [editPrice, setEditPrice] = useState<number>(0);
+    const [editQuantity, setEditQuantity] = useState<number>(0);
+
+    // Delete confirmation dialog state
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [selectedPlacementId, setSelectedPlacementId] = useState<number | null>(null);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -115,6 +138,8 @@ const ProductInOrder: React.FC<ProductInOrderProps> = ({ productInOrderId, deliv
                     `productInOrderId = ${productInOrderId}`
                 );
                 setProductInOrder(fetchedProductInOrder);
+                setEditPrice(fetchedProductInOrder.price);
+                setEditQuantity(fetchedProductInOrder.quantity);
 
                 const [product] = await productService.getAll(`productId = ${fetchedProductInOrder.productId}`);
                 setProduct(product);
@@ -129,16 +154,12 @@ const ProductInOrder: React.FC<ProductInOrderProps> = ({ productInOrderId, deliv
         fetchData();
     }, [handleReload]);
 
-
     const [addPlacementOpen, setAddPlacementOpen] = useState<boolean>(false);
-
     const placedProductsQuantity = productPlacements.reduce((acc, pp) => acc + pp.quantity, 0);
-
     const completedPercentage =
         productInOrder && productInOrder.quantity > 0
             ? (placedProductsQuantity / productInOrder.quantity) * 100
             : 0;
-
 
     const handleAddProductPlacement = async () => {
         if (!placementQuantity || !productionDate || !expirationDate) {
@@ -191,10 +212,11 @@ const ProductInOrder: React.FC<ProductInOrderProps> = ({ productInOrderId, deliv
 
             const result = await productPlacementService.create(productPlacement);
 
-            toast.success(`Placed ${placementQuantity} items successfully.`);
-
-
-
+            if (language === 'en')
+                toast.success(`Placed ${placementQuantity} items successfully.`);
+            else {
+                toast.success(`${placementQuantity} товарів успішно розміщено.`);
+            }
 
             const actionLog: UserActionLog = {
                 action: "Added",
@@ -204,21 +226,104 @@ const ProductInOrder: React.FC<ProductInOrderProps> = ({ productInOrderId, deliv
                 user: `${user?.name} ${user?.surname}`
             }
 
-            userActionService.post(actionLog);
+            // userActionService.post(actionLog);
 
-
-
+            setAddPlacementOpen(false);
             handleReload();
         } catch (error: any) {
             toast.error(error?.message || "An unexpected error occurred while placing the product.");
         }
     };
 
+    const handleUpdateProduct = async () => {
+        if (!productInOrder) return;
+
+        try {
+            const updatedProduct: ProductsInOrder = {
+                ...productInOrder,
+                price: editPrice,
+                quantity: editQuantity
+            };
+
+            await productsInOrderService.update(updatedProduct);
+
+            const actionLog: UserActionLog = {
+                action: "Updated",
+                details: `Updated ProductInOrder ID: ${productInOrderId}, Price: ${editPrice}, Quantity: ${editQuantity}`,
+                entity: "ProductsInOrder",
+                timestamp: new Date(),
+                user: `${user?.name} ${user?.surname}`
+            }
+
+            // userActionService.post(actionLog);
+
+            toast.success(t.productUpdated);
+            setEditDialogOpen(false);
+            handleReload();
+        } catch (error: any) {
+            toast.error(error?.message || "An unexpected error occurred while updating the product.");
+        }
+    };
+
+    const handleDeletePlacement = async (placementId: number) => {
+        try {
+            // Find the placement to get its details
+            const placement = productPlacements.find(p => p.productPlacementId === placementId);
+            if (!placement) return;
+
+            // First, update the products in storage to remove the quantity
+            const [productInStorage] = await productsInStorageService.getAll(
+                `productInStorageId=${placement.productInStorageId}`
+            );
+
+            if (productInStorage) {
+                const updatedProductInStorage: ProductsInStorage = {
+                    ...productInStorage,
+                    quantity: Math.max(0, productInStorage.quantity - placement.quantity)
+                };
+
+                await productsInStorageService.update(updatedProductInStorage);
+            }
+
+            // Now delete the placement
+            await productPlacementService.delete(placementId);
+
+            const actionLog: UserActionLog = {
+                action: "Deleted",
+                details: `Deleted ProductPlacement ID: ${placementId}`,
+                entity: "ProductPlacement",
+                timestamp: new Date(),
+                user: `${user?.name} ${user?.surname}`
+            }
+
+            // userActionService.post(actionLog);
+
+            toast.success(t.placementDeleted);
+            setDeleteDialogOpen(false);
+            setSelectedPlacementId(null);
+            handleReload();
+        } catch (error: any) {
+            toast.error(error?.message || "An unexpected error occurred while deleting the placement.");
+        }
+    };
+
+    const handleDeleteProductInOrder = async () => {
+        try {
+
+            await productsInOrderService.delete(`productInOrderId = ${productInOrderId}`);
+
+            toast('Товар успішно видалено');
+            handleReload();
+
+        }
+
+        catch(error) {
+            toast('Неможливо видалити товар із замовлення якщо були додані розміщення')
+        }
+    }
 
     const [productionDate, setProductionDate] = useState<Date>();
-
     const [expirationDate, setExpirationDate] = useState<Date>();
-
     const [placementQuantity, setPlacementQuantity] = useState<number>(1);
 
     return (
@@ -226,7 +331,32 @@ const ProductInOrder: React.FC<ProductInOrderProps> = ({ productInOrderId, deliv
             <div className="flex flex-col md:flex-row md:items-start gap-4">
                 {/* Left side - Image and basic info */}
                 <div className="md:w-1/3 lg:w-1/4">
-                    <h3 className="text-base font-semibold mb-2 text-gray-800 dark:text-gray-100">{productName}</h3>
+                    <div className="flex justify-between items-center mb-2">
+                        <h3 className="text-base font-semibold text-gray-800 dark:text-gray-100">{productName}</h3>
+
+                        {/* Edit button */}
+                        {user?.employeePosition === "Manager" && !deliveryOrderFinished && (
+                            <button
+                                onClick={() => setEditDialogOpen(true)}
+                                className="text-blue-500 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
+                                title={t.editProduct}
+                            >
+                                <Edit2 className="h-4 w-4" />
+                            </button>
+                        )}
+
+
+                        {user?.employeePosition === "Manager" && !deliveryOrderFinished && (
+                            <button
+                                onClick={handleDeleteProductInOrder}
+                                className="text-blue-500 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
+                                title={t.editProduct}
+                            >
+                                <p className="h-4 w-4 text-red-500">X</p>
+                            </button>
+                        )}
+
+                    </div>
 
                     {/* Compact product image */}
                     <div className="relative overflow-hidden rounded-md h-28 bg-gray-100 dark:bg-gray-700 mb-2">
@@ -286,10 +416,6 @@ const ProductInOrder: React.FC<ProductInOrderProps> = ({ productInOrderId, deliv
                         <Progress
                             value={completedPercentage}
                             className="h-2 bg-gray-200 dark:bg-gray-700"
-                            indicatorClassName={`${completedPercentage >= 100
-                                ? 'bg-green-500 dark:bg-green-400'
-                                : 'bg-blue-500 dark:bg-blue-400'
-                                }`}
                         />
                     </div>
 
@@ -302,13 +428,30 @@ const ProductInOrder: React.FC<ProductInOrderProps> = ({ productInOrderId, deliv
                         {productPlacements.length > 0 ? (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 {productPlacements.map((p) => (
-                                    <ProductPlacementComponent
-                                        productPlacement={p}
-                                        overallQuantity={productInOrder?.quantity}
-                                        handleRerender={handleReload}
-                                        key={p.productInStorageId}
-                                        language={language}
-                                    />
+                                    <div key={p.productPlacementId} className="relative">
+                                        <ProductPlacementComponent
+                                            productPlacement={p}
+                                            overallQuantity={productInOrder?.quantity}
+                                            handleRerender={handleReload}
+                                            language={language}
+                                        />
+
+                                        {/* Delete button for placements */}
+                                        {user?.employeePosition === "WarehouseWorker" && !deliveryOrderFinished && (
+                                            <button
+                                                onClick={() => {
+                                                    setSelectedPlacementId(p.productPlacementId);
+                                                    setDeleteDialogOpen(true);
+                                                }}
+                                                className="absolute top-2 right-2 text-red-500 dark:text-red-400 
+                                                           hover:text-red-700 dark:hover:text-red-300 bg-white dark:bg-gray-800 
+                                                           rounded-full p-1 shadow-sm"
+                                                title={t.deleteProduct}
+                                            >
+                                                <Trash2 className="h-3 w-3" />
+                                            </button>
+                                        )}
+                                    </div>
                                 ))}
                             </div>
                         ) : (
@@ -318,20 +461,19 @@ const ProductInOrder: React.FC<ProductInOrderProps> = ({ productInOrderId, deliv
                             </div>
                         )}
 
-
-                        {user?.employeePosition === "WarehouseWorker" &&
+                        {user?.employeePosition === "WarehouseWorker" && !deliveryOrderFinished && (
                             <div className="btn-ghost">
                                 <button
-                                    onClick={() => setAddPlacementOpen(true)}
+                                    onClick={() => setAddPlacementOpen(!addPlacementOpen)}
                                     className="mt-4 px-4 py-2 text-sm font-medium rounded-md 
-            bg-gray-100 dark:bg-gray-800 
-            text-gray-800 dark:text-gray-200 
-            hover:bg-gray-200 dark:hover:bg-gray-700"
+                                               bg-gray-100 dark:bg-gray-800 
+                                               text-gray-800 dark:text-gray-200 
+                                               hover:bg-gray-200 dark:hover:bg-gray-700"
                                 >
-                                    {t.addPlacement}
+                                    {addPlacementOpen ? t.cancel : t.addPlacement}
                                 </button>
                             </div>
-                        }
+                        )}
 
                         {addPlacementOpen && (
                             <div className="bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg p-6 mt-4 space-y-4 shadow-sm">
@@ -344,9 +486,8 @@ const ProductInOrder: React.FC<ProductInOrderProps> = ({ productInOrderId, deliv
                                         min="1"
                                         value={placementQuantity}
                                         onChange={(e) => setPlacementQuantity(Number(e.target.value))}
-                                        className="..."
+                                        className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md"
                                     />
-
                                 </div>
 
                                 {/* Production Date Picker */}
@@ -365,15 +506,11 @@ const ProductInOrder: React.FC<ProductInOrderProps> = ({ productInOrderId, deliv
                                             >
                                                 <CalendarIcon className="mr-2 h-4 w-4" />
                                                 {productionDate ? format(productionDate, "PPP") : (
-                                                    <span>
-                                                        {/* {t[language].buttons.pickDate} */}
-                                                        {t.pickDate}
-                                                    </span>
+                                                    <span>{t.pickDate}</span>
                                                 )}
                                             </Button>
                                         </PopoverTrigger>
                                         <PopoverContent className="w-auto p-0 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md shadow-md">
-
                                             <Calendar
                                                 mode="single"
                                                 selected={productionDate}
@@ -400,15 +537,11 @@ const ProductInOrder: React.FC<ProductInOrderProps> = ({ productInOrderId, deliv
                                             >
                                                 <CalendarIcon className="mr-2 h-4 w-4" />
                                                 {expirationDate ? format(expirationDate, "PPP") : (
-                                                    <span>
-                                                        {/* {t[language].buttons.pickDate} */}
-                                                        {t.pickDate}
-                                                    </span>
+                                                    <span>{t.pickDate}</span>
                                                 )}
                                             </Button>
                                         </PopoverTrigger>
                                         <PopoverContent className="w-auto p-0 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md shadow-md">
-
                                             <Calendar
                                                 mode="single"
                                                 selected={expirationDate}
@@ -420,21 +553,81 @@ const ProductInOrder: React.FC<ProductInOrderProps> = ({ productInOrderId, deliv
                                 </div>
 
                                 {/* Add Button */}
-
-                                {user?.employeePosition === "WarehouseWorker" &&
-
+                                {user?.employeePosition === "WarehouseWorker" && (
                                     <div className="pt-4">
                                         <Button onClick={handleAddProductPlacement} className="w-full">
                                             {t.addPlacement}
                                         </Button>
                                     </div>
-                                }
-
+                                )}
                             </div>
                         )}
                     </div>
                 </div>
             </div>
+
+            {/* Edit Product Dialog */}
+            <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>{t.editProductInfo}</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">{t.price}</label>
+                            <Input
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                value={editPrice}
+                                onChange={(e) => setEditPrice(Number(e.target.value))}
+                                className="w-full"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">{t.quantity}</label>
+                            <Input
+                                type="number"
+                                min="1"
+                                value={editQuantity}
+                                onChange={(e) => setEditQuantity(Number(e.target.value))}
+                                className="w-full"
+                            />
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
+                            {t.cancel}
+                        </Button>
+                        <Button onClick={handleUpdateProduct}>
+                            {t.save}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Delete Confirmation Dialog */}
+            <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>{t.confirmDelete}</DialogTitle>
+                    </DialogHeader>
+                    <div className="py-4">
+                        <p>{t.deleteConfirmMsg}</p>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+                            {t.cancel}
+                        </Button>
+                        <Button
+                            variant="destructive"
+                            onClick={() => selectedPlacementId && handleDeletePlacement(selectedPlacementId)}
+                        >
+                            {t.delete}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 };

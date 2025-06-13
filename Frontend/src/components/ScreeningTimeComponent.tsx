@@ -9,11 +9,13 @@ import { format } from "date-fns";
 import { enUS, uk } from "date-fns/locale";
 import { useCartStore } from "@/Features/Cart/Stores/CartState";
 import { useLanguageStore } from "@/Stores/useLanguageStore";
+import { toast } from "sonner"
 
 interface Props {
     screening: Screening;
     onSelect?: (screening: Screening) => void;
     onSelectScreeningId: (screeningId: number) => void;
+    handleRerender: () => void;
 }
 
 const translations = {
@@ -22,6 +24,9 @@ const translations = {
         errorDateTime: "Error: Invalid date time",
         soldOut: "Sold out",
         availableSeats: (count: number) => `${count} seat${count !== 1 ? 's' : ''} available`,
+
+        cantDeleteScreening: "Can't delete a screening if a single ticket was sold for it",
+        deletedSuccessfully: "Screening deleted successfully!",
     },
     ua: {
         errorDate: "Помилка: недійсні дата або час",
@@ -29,6 +34,9 @@ const translations = {
         soldOut: "Розпродано",
         availableSeats: (count: number) =>
             `${count} міс${count === 1 ? '' : count < 5 ? 'ця' : 'ць'} доступно`,
+
+        cantDeleteScreening: "Неможливо видалити сеанс якщо на нього куплено квиток",
+        deletedSuccessfully: "Сеанс успішно видалено!",
     },
 };
 
@@ -50,11 +58,11 @@ const SeatIcon = () => (
     </svg>
 );
 
-const ScreeningTimeComponent: React.FC<Props> = ({ screening, onSelect, onSelectScreeningId }) => {
+const ScreeningTimeComponent: React.FC<Props> = ({ screening, onSelect, onSelectScreeningId, handleRerender }) => {
     const { startDate, startTime, endTime } = screening;
-    const { ticketService, seatService, hallService, screeningPriceService } = useServiceStore();
+    const { screeningService, ticketService, seatService, hallService, screeningPriceService } = useServiceStore();
     const [tickets, setTickets] = useState<Ticket[]>([]);
-    const [availableSeats, setAvailableSeats] = useState<number>(0);
+    const [availableSeats, setAvailableSeats] = useState<number>(25);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const { cart } = useCartStore();
     const { language } = useLanguageStore() || "en";
@@ -66,30 +74,36 @@ const ScreeningTimeComponent: React.FC<Props> = ({ screening, onSelect, onSelect
         const fetchData = async () => {
             try {
                 setIsLoading(true);
-
+    
                 const screeningPrices = await screeningPriceService.getAll(`screeningId = ${screening.screeningId}`);
-
-
+    
                 const ticketsQuery = formFilterQuery("AND", {
                     field: "screeningPriceId",
                     operator: "in",
-                    values: screeningPrices.map((p) => p.screeningPriceId)
-                })
-
-                const tickets = await ticketService.getAll(ticketsQuery, "", 1, 1000);
-                const seatQuery = formFilterQuery("OR", {
-                    field: 'seatId',
-                    operator: 'in',
-                    values: tickets.map(t => t.seatId)
+                    values: screeningPrices.map((p) => p.screeningPriceId),
                 });
-
-                const seats = await seatService.getAll(seatQuery, "", 1, 1000);
-                const [hall] = await hallService.getAll(`hallId = ${screening.hallId}`, '', 1, 1);
+    
+                const tickets = await ticketService.getAll(ticketsQuery, "", 1, 1000);
+    
+                const [hall] = await hallService.getAll(`hallId = ${screening.hallId}`, "", 1, 1);
                 const seatsInHall = await seatService.getAll(`hallId = ${hall.hallId}`, "", 1, 1000);
-
-                const occupiedSeatIds = new Set(seats.map(seat => seat.seatId));
-                const available = seatsInHall.filter(seat => !occupiedSeatIds.has(seat.seatId)).length;
-
+    
+                let occupiedSeatIds = new Set<string>();
+                if (tickets.length > 0) {
+                    const seatQuery = formFilterQuery("OR", {
+                        field: "seatId",
+                        operator: "in",
+                        values: tickets.map((t) => t.seatId),
+                    });
+    
+                    const seats = await seatService.getAll(seatQuery, "", 1, 1000);
+                    occupiedSeatIds = new Set(seats.map((seat) => seat.seatId));
+                }
+    
+                const available = seatsInHall.filter(
+                    (seat) => !occupiedSeatIds.has(seat.seatId)
+                ).length;
+    
                 setTickets(tickets);
                 setAvailableSeats(available);
             } catch (error) {
@@ -98,9 +112,10 @@ const ScreeningTimeComponent: React.FC<Props> = ({ screening, onSelect, onSelect
                 setIsLoading(false);
             }
         };
-
+    
         fetchData();
     }, [screening, ticketService, seatService, hallService, cart.ticket]);
+    
 
     if (!startDate || !startTime || !endTime) {
         return <div className="p-2 rounded-xl border bg-red-100 text-red-700">{t.errorDate}</div>;
@@ -131,6 +146,20 @@ const ScreeningTimeComponent: React.FC<Props> = ({ screening, onSelect, onSelect
         );
     }
 
+    const handleDelete = async () => {
+        try {
+
+
+            await screeningPriceService.delete(`screeningId = ${screening.screeningId}`);
+            await screeningService.delete(`screeningId = ${screening.screeningId}`);
+            toast.success(t.deletedSuccessfully);
+
+            handleRerender();
+        }
+        catch(error) {
+            toast.error(t.cantDeleteScreening);
+        }
+    }
     return (
         <div
             onClick={() => onSelect?.(screening)}
@@ -153,7 +182,7 @@ const ScreeningTimeComponent: React.FC<Props> = ({ screening, onSelect, onSelect
                 <button
                     onClick={(e) => {
                         e.stopPropagation();
-                        // TODO: handle delete, or pass `onDelete(screening)` if you define it
+                        handleDelete();
                     }}
                     className="text-red-500 hover:text-red-700"
                     title="Delete"

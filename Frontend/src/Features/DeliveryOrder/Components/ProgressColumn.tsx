@@ -1,3 +1,4 @@
+// Update in ProgressColumn.tsx
 import React, { useEffect, useState } from 'react'
 import { useServiceStore } from '@/Stores/ServicesStore';
 import { DeliveryOrder } from '@/Types/DeliveryOrder';
@@ -19,9 +20,10 @@ import { useUserStore } from '@/Stores/UserStore';
 
 type ProgressColumnProps = {
     deliveryOrder: DeliveryOrder;
+    handleRerender2: () => void; // Fixed prop name (was misspelled in CustomRow)
 };
 
-const ProgressColumn = ({ deliveryOrder }: ProgressColumnProps) => {
+const ProgressColumn = ({ deliveryOrder, handleRerender2 }: ProgressColumnProps) => {
     const { userActionService, deliveryOrderService, supplierService, deliveryOrderStatusService, productsInOrderService, productPlacementService, productService, employeeService, employeePositionService } = useServiceStore();
 
     const [productsInOrder, setProductsInOrder] = useState<ProductsInOrder[]>([]);
@@ -34,8 +36,6 @@ const ProgressColumn = ({ deliveryOrder }: ProgressColumnProps) => {
     const [overallQuantity, setOVerallQuantity] = useState<number>(0);
     const [products, setProducts] = useState<Product[]>([]);
 
-
-
     const [isDetailsOpen, setIsDetailsOpen] = useState<boolean>(false);
     const [isAddOpen, setIsAddOpen] = useState<boolean>(false);
     const [reloadTrigger, setReloadTrigger] = useState(false);
@@ -43,7 +43,6 @@ const ProgressColumn = ({ deliveryOrder }: ProgressColumnProps) => {
     // New states for the add product form
     const [selectedProductId, setSelectedProductId] = useState<number | ''>('');
     const [quantity, setQuantity] = useState<number>(1);
-
     const [price, setPrice] = useState<number>(20);
 
     const { language } = useLanguageStore();
@@ -68,7 +67,6 @@ const ProgressColumn = ({ deliveryOrder }: ProgressColumnProps) => {
             addToOrder: "Додати в замовлення"
         }
     };
-
 
     const t = translations[language];
 
@@ -129,18 +127,7 @@ const ProgressColumn = ({ deliveryOrder }: ProgressColumnProps) => {
             ? Math.round((safePlacedQuantity / safeOverallQuantity) * 100)
             : 0;
 
-    // Optional: Add a console.log for debugging
-    console.log({
-        overallQuantity: safeOverallQuantity,
-        placedQuantity: safePlacedQuantity,
-        percentage: completedPercentage
-    });
-
-
-
     const { user } = useUserStore();
-
-
 
     const handleAddProduct = async () => {
         if (selectedProductId && quantity > 0) {
@@ -152,17 +139,14 @@ const ProgressColumn = ({ deliveryOrder }: ProgressColumnProps) => {
                     quantity: quantity,
                     productInOrderId: 0,
                     price: price,
-
                 };
 
                 const result = await productsInOrderService.create(newProductInOrder);
-
 
                 // Reset form
                 setSelectedProductId('');
                 setQuantity(1);
                 setIsAddOpen(false);
-
 
                 const actionLog: UserActionLog = {
                     action: "Added",
@@ -172,12 +156,13 @@ const ProgressColumn = ({ deliveryOrder }: ProgressColumnProps) => {
                     user: `${user?.name} ${user?.surname}`
                 }
 
-                userActionService.post(actionLog);
-
-
+                // userActionService.post(actionLog);
 
                 // Trigger reload
                 setReloadTrigger(prev => !prev);
+                
+                // Call the parent component's rerender function
+                handleRerender2();
             } catch (error) {
                 console.error("Failed to add product to order:", error);
             }
@@ -271,16 +256,20 @@ const ProgressColumn = ({ deliveryOrder }: ProgressColumnProps) => {
                         {productsInOrder.map((p) => (
                             <div key={p.productInOrderId}>
                                 <ProductInOrder
+                                deliveryOrderFinished = { deliveryOrder.deliveryOrderStatusId == 2}
                                     productInOrderId={p.productInOrderId}
-                                    handleReload={() => setReloadTrigger(prev => !prev)}
+                                    handleReload={() => {
+                                        setReloadTrigger(prev => !prev);
+                                        // Also notify parent component when product is modified/deleted
+                                        handleRerender2();
+                                    }}
                                 />
                             </div>
                         ))}
                     </div>
                 </div>
-            )
-            }
-        </td >
+            )}
+        </td>
     )
 }
 

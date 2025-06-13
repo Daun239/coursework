@@ -1,25 +1,30 @@
 import React, { useEffect, useState } from 'react';
 import { useServiceStore } from '@/Stores/ServicesStore';
-import { Screening } from '@/Types/Screening';
-import { Hall } from '@/Types/Hall';
-import { Language } from '@/Types/Language';
-import { ScreeningFormat } from '@/Types/ScreeningFormat';
 import { useUserStore } from '@/Stores/UserStore';
 import formFilterQuery from '@/lib/formFilterQuery';
-import { Run } from '@/Types/Run';
-import { Movie } from '@/Types/Movie';
 import { t } from 'i18next';
+import { ScreeningPrice } from '@/Types/ScreeningPrice';
 
-const CreateOrUpdateScreening = ({ screeningId }: { screeningId?: number }) => {
+type Props = {
+    handleRerender: () => void;
+    screeningId: number;
+}
+
+const CreateOrUpdateScreening = ({ screeningId, handleRerender }: Props) => {
     const {
         screeningService,
-        screeningPriceService,
         screeningFormatService,
         hallService,
         languageService,
         movieService,
-        runService
+        runService,
+        seatService,
+        seatCategoryService,
+        screeningPriceService
     } = useServiceStore();
+
+
+    const [doesHallHaveVipSeats, setDoesHallHaveVipSeats] = useState<boolean>(false);
 
     const [formData, setFormData] = useState({
         screeningId: 0,
@@ -29,6 +34,8 @@ const CreateOrUpdateScreening = ({ screeningId }: { screeningId?: number }) => {
         screeningTime: null,
         movieId: null,
         runId: null,
+        screeningPrice: 1,
+        vipScreeningPrice: 1,
     });
 
     const [halls, setHalls] = useState([]);
@@ -42,16 +49,17 @@ const CreateOrUpdateScreening = ({ screeningId }: { screeningId?: number }) => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [successMessage, setSuccessMessage] = useState('');
 
-    const [run, setRun] = useState<Run>();
-
-    const [movie, setMovie] = useState<Movie>();
-
+    const [run, setRun] = useState(null);
+    const [movie, setMovie] = useState(null);
 
     const { user } = useUserStore();
 
-    const formatForDatetimeLocal = (date: Date) => {
-        const pad = (n: number) => n.toString().padStart(2, '0');
+    const [selectedHall, setSelectedHall] = useState<boolean>(false);
 
+    const formatForDatetimeLocal = (date) => {
+        if (!date) return '';
+
+        const pad = (n) => n.toString().padStart(2, '0');
         const year = date.getFullYear();
         const month = pad(date.getMonth() + 1);
         const day = pad(date.getDate());
@@ -61,9 +69,6 @@ const CreateOrUpdateScreening = ({ screeningId }: { screeningId?: number }) => {
         return `${year}-${month}-${day}T${hours}:${minutes}`;
     };
 
-
-
-
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -72,46 +77,55 @@ const CreateOrUpdateScreening = ({ screeningId }: { screeningId?: number }) => {
                     languageService.getAll('', '', 1, 100),
                     screeningFormatService.getAll('', '', 1, 100),
                 ]);
-
+    
                 setHalls(fetchedHalls.items ?? fetchedHalls);
                 setLanguages(fetchedLanguages.items ?? fetchedLanguages);
                 setFormats(fetchedFormats.items ?? fetchedFormats);
-
-                if (screeningId) {
+    
+                if (screeningId && screeningId !== 0) {
                     const [existingScreening] = await screeningService.getAll(`screeningId = ${screeningId}`);
-                    if (existingScreening) {
-                        setFormData(existingScreening);
-
-                        if (existingScreening.startDate && existingScreening.startTime) {
-                            const combinedDateTime = new Date(`${existingScreening.startDate}T${existingScreening.startTime}`);
-                            const formatted = formatForDatetimeLocal(combinedDateTime);
-
-                            setFormData(prev => ({
-                                ...prev,
-                                screeningTime: formatted,
-                            }));
-                        }
-
-
-                        const [run] = await runService.getAll(`runId = ${existingScreening.runId}`);
+                    if (!existingScreening) return;
+    
+                    const [fetchedHall] = await hallService.getAll(`hallId = ${existingScreening.hallId}`);
+                    const [fetchedLanguage] = await languageService.getAll(`languageId = ${existingScreening.languageId}`);
+                    const [fetchedScreeningFormat] = await screeningFormatService.getAll(`screeningFormatId = ${existingScreening.screeningFormatId}`);
+                    const screeningPrices = await screeningPriceService.getAll(`screeningId = ${screeningId}`);
+    
+                    let run = null;
+                    let movie = null;
+                    if (existingScreening.runId) {
+                        [run] = await runService.getAll(`runId = ${existingScreening.runId}`);
                         setRun(run);
-
-                        const [movie] = await movieService.getAll(`movieId = ${run.movieId}`);
-                        setMovie(movie);
-
-                        setMovieSearchQuery(movie.name);
-
+    
+                        if (run?.movieId) {
+                            [movie] = await movieService.getAll(`movieId = ${run.movieId}`);
+                            setMovie(movie);
+                            setMovieSearchQuery(movie?.name || '');
+                        }
                     }
+    
+                    const combinedDateTime = existingScreening.startDate && existingScreening.startTime
+                        ? formatForDatetimeLocal(new Date(`${existingScreening.startDate}T${existingScreening.startTime}`))
+                        : '';
+    
+                    setFormData({
+                        ...existingScreening,
+                        hallId: fetchedHall?.hallId ?? existingScreening.hallId,
+                        languageId: fetchedLanguage?.languageId ?? existingScreening.languageId,
+                        screeningFormatId: fetchedScreeningFormat?.screeningFormatId ?? existingScreening.screeningFormatId,
+                        screeningTime: combinedDateTime,
+                        screeningPrice: screeningPrices[0]?.ticketPrice ?? '',
+                        vipScreeningPrice: screeningPrices[1]?.ticketPrice ?? '',
+                    });
                 }
             } catch (error) {
                 console.error("Error fetching screening data:", error);
             }
         };
-
+    
         fetchData();
     }, [screeningId, hallService, languageService, screeningFormatService, screeningService, runService, movieService, user?.cinemaId]);
-
-
+    
 
     // Handle movie search
     useEffect(() => {
@@ -129,10 +143,28 @@ const CreateOrUpdateScreening = ({ screeningId }: { screeningId?: number }) => {
                         operator: "contains",
                         values: [movieSearchQuery],
                     }
-                )
-                // const query = `name CONTAINS '${movieSearchQuery}'`;
-                const results = await movieService.getAll(query, '', 1, 10);
-                setMovieSearchResults(results.items ?? results);
+                );
+                let results = await movieService.getAll(query, '', 1, 10);
+
+                const today = new Date().toISOString().split("T")[0]; // "2025-05-15"
+
+                let runFilterQuery = formFilterQuery("AND", {
+                    field: "movieId",
+                    operator: 'in',
+                    values: results.map(m => m.movieId)
+                });
+
+                runFilterQuery += ` AND StartDate <= "${today}" AND EndDate >= "${today}"`;
+
+
+                const runs = await runService.getAll(runFilterQuery);
+
+                // Filter results to only include those with a valid run
+                results = results.filter(r => runs.find(run => run.movieId === r.movieId));
+
+                // Set final search results
+                setMovieSearchResults(results);
+
             } catch (error) {
                 console.error("Error searching movies:", error);
             } finally {
@@ -144,64 +176,104 @@ const CreateOrUpdateScreening = ({ screeningId }: { screeningId?: number }) => {
         return () => clearTimeout(debounceTimeout);
     }, [movieSearchQuery, movieService]);
 
+
+    const selectHall = async () => {
+
+        const seats = await seatService.getAll(`hallId = ${formData.hallId}`);
+
+        const hasVip = seats.some(s => s.seatCategoryId === 1);
+
+        setDoesHallHaveVipSeats(hasVip);
+
+        setSelectedHall(true);
+    }
+
     const handleInputChange = (e) => {
         const { name, value } = e.target;
-        setFormData({
-            ...formData,
-            [name]: value,
-        });
 
-        // Clear any error for this field
-        if (errors[name]) {
-            setErrors({
-                ...errors,
-                [name]: null,
-            });
+        setFormData((prevData) => ({
+            ...prevData,
+            [name]: value
+        }));
+
+        // If hallId is changed, call selectHall
+        if (name === "hallId") {
+            // Delay until state updates
+            setTimeout(() => {
+                selectHall();
+            }, 0);
         }
     };
 
-    const handleMovieSelect = async (movie1) => {
+
+    // Clear any error for this field
+    if (errors[name]) {
+        setErrors(prevErrors => ({
+            ...prevErrors,
+            [name]: null,
+        }));
+    }
+
+    const handleMovieSelect = async (selectedMovie) => {
+        if (!selectedMovie || !selectedMovie.movieId) return;
+
         try {
-            // Set the selected movie ID and reset the search
+            setIsSearching(true);
 
-
-            const [movie2] = await movieService.getAll(`movieId = ${movie1.movieId}`)
-
-            setMovie(movie2);
-
-            const [run] = await runService.getAll(`movieId = ${movie1.movieId}`);
-
-            setRun(run);
-
-
-            setFormData({
-                ...formData,
-                movieId: movie1.movieId,
-                runId: run.runId // Reset run ID when changing movies
-            });
-
-
-
-            console.log('movie set', movie);
-
-            setMovieSearchQuery(movie.name);
+            // Set the selected movie
+            setMovie(selectedMovie);
+            setMovieSearchQuery(selectedMovie.name || '');
             setMovieSearchResults([]);
 
             // Fetch runs for the selected movie
-            const fetchedRuns = await runService.getAll(`movieId = ${movie.movieId}`, '', 1, 100);
-            setRuns(fetchedRuns.items ?? fetchedRuns);
+            const fetchedRuns = await runService.getAll(`movieId = ${selectedMovie.movieId}`, '', 1, 100);
+            const runsList = fetchedRuns.items ?? fetchedRuns;
+            setRuns(runsList);
+
+            // Select the first run if available
+            if (runsList && runsList.length > 0) {
+                const firstRun = runsList[0];
+                setRun(firstRun);
+
+                // Update form data with movie and run IDs
+                setFormData(prevData => ({
+                    ...prevData,
+                    movieId: selectedMovie.movieId,
+                    runId: firstRun.runId
+                }));
+            } else {
+                // No runs available
+                setRun(null);
+                setFormData(prevData => ({
+                    ...prevData,
+                    movieId: selectedMovie.movieId,
+                    runId: null
+                }));
+
+                setErrors(prevErrors => ({
+                    ...prevErrors,
+                    runId: t('screening.noRunsAvailableForMovie')
+                }));
+            }
         } catch (error) {
             console.error("Error fetching runs for selected movie:", error);
+            setErrors(prevErrors => ({
+                ...prevErrors,
+                movieId: t('screening.errorFetchingRuns')
+            }));
+        } finally {
+            setIsSearching(false);
         }
     };
 
     const validateForm = () => {
-        const newErrors: any = {};
+        const newErrors = {};
 
         if (!formData.hallId) newErrors.hallId = t('screening.hallIsRequired');
         if (!formData.screeningFormatId) newErrors.screeningFormatId = t('screening.screeningFormatIsRequired');
         if (!formData.languageId) newErrors.languageId = t('screening.languageIsRequired');
         if (!formData.movieId) newErrors.movieId = t('screening.movieIsRequired');
+        if (!formData.runId) newErrors.runId = t('screening.runIsRequired');
 
         if (!formData.screeningTime) {
             newErrors.screeningTime = t('screening.screeningTimeIsRequired');
@@ -220,18 +292,15 @@ const CreateOrUpdateScreening = ({ screeningId }: { screeningId?: number }) => {
                     newErrors.screeningTime = t('screening.screeningHasToOccurBetweenRunStartAndEndDates');
                 }
 
-                console.log('start date', start, "enddate", end);
-
-                if (start >= end)
-                    newErrors.runTime = t('screening.runStartDateHasToBeBeforeEndDate')
+                if (start >= end) {
+                    newErrors.runTime = t('screening.runStartDateHasToBeBeforeEndDate');
+                }
             }
         }
-
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
-
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -244,6 +313,7 @@ const CreateOrUpdateScreening = ({ screeningId }: { screeningId?: number }) => {
         try {
             if (!formData.screeningTime || !movie?.runtime) {
                 setErrors({ screeningTime: t('screening.invalidScreeningTimeOrMissingMovieRuntime') });
+                setIsSubmitting(false);
                 return;
             }
 
@@ -262,12 +332,53 @@ const CreateOrUpdateScreening = ({ screeningId }: { screeningId?: number }) => {
             };
 
             if (screeningId) {
-                await screeningService.update(payload);
+
+                const payload2 = {...payload,
+                    screeningId: screeningId
+                }
+                await screeningService.update(payload2);
+
+                const screeningPrices = await screeningPriceService.getAll(`screeningId = ${screeningId}`);
+
+                const normalPrice: ScreeningPrice = { ...screeningPrices[0], ticketPrice: formData.screeningPrice };
+
+                await screeningPriceService.update(normalPrice);
+
+                if (doesHallHaveVipSeats) {
+                    const vipPrice: ScreeningPrice = { ...screeningPrices[1], ticketPrice: formData.screeningPrice };
+
+                    await screeningPriceService.update(vipPrice);
+                }
                 setSuccessMessage(t('screening.updatedSuccessfully'));
             } else {
 
-                console.log('payload', payload);
-                await screeningService.create(payload);
+
+                const result = await screeningService.create(payload);
+
+                // Create normal price (assuming seatCategoryId 1 = Regular)
+                const normalScreeningPrice: ScreeningPrice = {
+                    seatCategoryId: 1,
+                    ticketPrice: formData.screeningPrice,
+                    screeningId: result.screeningId,
+                    screeningPriceId: 0,
+                };
+
+                await screeningPriceService.create(normalScreeningPrice);
+
+                // Create VIP price if VIP seats exist
+                if (doesHallHaveVipSeats && formData.vipScreeningPrice != null) {
+                    const vipScreeningPrice: ScreeningPrice = {
+                        seatCategoryId: 2, // Assuming 2 = VIP
+                        ticketPrice: formData.vipScreeningPrice,
+                        screeningId: result.screeningId,
+                        screeningPriceId: 0,
+                    };
+
+                    await screeningPriceService.create(vipScreeningPrice);
+                }
+
+
+
                 setSuccessMessage(t('screening.createdSuccessfully'));
 
                 // Reset form after successful creation
@@ -281,7 +392,12 @@ const CreateOrUpdateScreening = ({ screeningId }: { screeningId?: number }) => {
                     runId: null,
                 });
                 setMovieSearchQuery('');
+                setMovie(null);
+                setRun(null);
             }
+
+            // Call the parent component's rerender function
+            handleRerender();
         } catch (error) {
             console.error("Error saving screening:", error);
             setErrors({
@@ -292,11 +408,10 @@ const CreateOrUpdateScreening = ({ screeningId }: { screeningId?: number }) => {
         }
     };
 
-
     return (
         <div className="p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-100 dark:border-gray-700 transition-colors duration-200">
             <h2 className="text-2xl font-bold mb-6 text-gray-800 dark:text-gray-100">
-                {screeningId ? 'Update Screening' : 'Create New Screening'}
+                {screeningId ? t('screening.update') : t('screening.create')}
             </h2>
 
             {successMessage && (
@@ -317,187 +432,254 @@ const CreateOrUpdateScreening = ({ screeningId }: { screeningId?: number }) => {
                 </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Movie Search Field */}
-                <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        {t('screening.movie')}
-                    </label>
-                    <div className="relative">
+            <div className='max-h-[80vh] overflow-y-auto pr-2'>
+                <form onSubmit={handleSubmit} className="space-y-6">
+                    {/* Movie Search Field */}
+                    <div className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            {t('screening.movie')}
+                        </label>
+                        <div className="relative">
+                            <input
+                                type="text"
+                                value={movieSearchQuery}
+                                onChange={(e) => setMovieSearchQuery(e.target.value)}
+                                placeholder={t('screening.searchForMovie')}
+                                className={`w-full p-3 bg-white dark:bg-gray-700 border rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 dark:text-gray-100 ${errors.movieId
+                                    ? 'border-red-500 dark:border-red-500'
+                                    : 'border-gray-300 dark:border-gray-600'
+                                    }`}
+                            />
+                            {isSearching && (
+                                <div className="absolute right-3 top-3">
+                                    <svg className="animate-spin h-5 w-5 text-gray-500 dark:text-gray-400" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                </div>
+                            )}
+
+                            {movieSearchResults.length > 0 && (
+                                <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-lg max-h-60 overflow-auto">
+                                    {movieSearchResults.map((movie) => (
+                                        <div
+                                            key={movie.movieId}
+                                            className="p-3 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer text-gray-800 dark:text-gray-200 transition-colors duration-150"
+                                            onClick={() => handleMovieSelect(movie)}
+                                        >
+                                            {movie.name}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                        {errors.movieId && (
+                            <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.movieId}</p>
+                        )}
+                    </div>
+
+
+
+
+
+                    {(selectedHall || screeningId)  && (
+                        <div className="relative mb-4">
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                {t('screening.normalPrice')}
+                            </label>
+                            <input
+                                type="number"
+                                min="1"
+                                value={formData.screeningPrice || ''}
+                                onChange={(e) =>
+                                    setFormData({
+                                        ...formData,
+                                        screeningPrice: Number(e.target.value)
+                                    })
+                                }
+                                placeholder={t('screening.normalPrice')}
+                                className={`w-full p-3 bg-white dark:bg-gray-700 border rounded-md shadow-sm
+                focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400
+                focus:border-blue-500 dark:focus:border-blue-400 dark:text-gray-100
+                ${errors.screeningPrices ? 'border-red-500 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'}`}
+                            />
+                        </div>
+                    )}
+
+                    {(selectedHall || screeningId) && doesHallHaveVipSeats && (
+                        <div className="relative">
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                {t('screening.vipPrice')}
+                            </label>
+                            <input
+                                type="number"
+                                min="1"
+                                value={formData.vipScreeningPrice || ''}
+                                onChange={(e) =>
+                                    setFormData({
+                                        ...formData,
+                                        vipScreeningPrice: Number(e.target.value)
+                                    })
+                                }
+                                placeholder={t('screening.vipPrice')}
+                                className={`w-full p-3 bg-white dark:bg-gray-700 border rounded-md shadow-sm
+                focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400
+                focus:border-blue-500 dark:focus:border-blue-400 dark:text-gray-100
+                ${errors.screeningPrices ? 'border-red-500 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'}`}
+                            />
+                        </div>
+                    )}
+
+
+
+                    {/* Run Selection */}
+                    {movie && (
+                        <div className="space-y-1">
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                {t('screening.run')}
+                            </label>
+
+                            {run ? (
+                                <>
+                                    <span className="block text-sm text-gray-600 dark:text-gray-400">
+                                        <strong>{t('screening.runStartDate')}</strong> {run.startDate ?? 'N/A'}
+                                    </span>
+                                    <span className="block text-sm text-gray-600 dark:text-gray-400">
+                                        <strong>{t('screening.runEndDate')}</strong> {run.endDate ?? 'N/A'}
+                                    </span>
+                                </>
+                            ) : (
+                                <span className="block text-sm text-red-600 dark:text-red-400">
+                                    {t('screening.noRunSelected')}
+                                </span>
+                            )}
+
+                            {errors.runId && (
+                                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.runId}</p>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Hall Selection */}
+                    <div className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            {t('screening.hall')}
+                        </label>
+                        <select
+                            // disabled={!!screeningId}
+                            name="hallId"
+                            value={formData.hallId || ''}
+                            onChange={handleInputChange}
+                            className={`w-full p-3 bg-white dark:bg-gray-700 border rounded-md shadow-sm
+                                focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400
+                                focus:border-blue-500 dark:focus:border-blue-400 dark:text-gray-100
+                                ${errors.hallId ? 'border-red-500 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'}
+                                disabled:cursor-not-allowed disabled:bg-gray-100 dark:disabled:bg-gray-800 disabled:text-gray-500`}
+                        >
+                            <option value="">{t('screening.hall')}</option>
+                            {halls.map((hall) => (
+                                <option key={hall.hallId} value={hall.hallId}>
+                                    {hall.hallNumber}
+                                </option>
+                            ))}
+                        </select>
+                        {errors.hallId && (
+                            <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.hallId}</p>
+                        )}
+                    </div>
+
+                    {/* Screening Format */}
+                    <div className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            {t('screening.format')}
+                        </label>
+                        <select
+                            name="screeningFormatId"
+                            value={formData.screeningFormatId || ''}
+                            onChange={handleInputChange}
+                            className={`w-full p-3 bg-white dark:bg-gray-700 border rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 dark:text-gray-100 ${errors.screeningFormatId
+                                ? 'border-red-500 dark:border-red-500'
+                                : 'border-gray-300 dark:border-gray-600'
+                                }`}
+                        >
+                            <option value="">{t('screening.selectFormat')}</option>
+                            {formats.map((format) => (
+                                <option key={format.screeningFormatId} value={format.screeningFormatId}>
+                                    {format.screeningFormat1}
+                                </option>
+                            ))}
+                        </select>
+                        {errors.screeningFormatId && (
+                            <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.screeningFormatId}</p>
+                        )}
+                    </div>
+
+                    {/* Language */}
+                    <div className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            {t('screening.language')}
+                        </label>
+                        <select
+                            name="languageId"
+                            value={formData.languageId || ''}
+                            onChange={handleInputChange}
+                            className={`w-full p-3 bg-white dark:bg-gray-700 border rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 dark:text-gray-100 ${errors.languageId
+                                ? 'border-red-500 dark:border-red-500'
+                                : 'border-gray-300 dark:border-gray-600'
+                                }`}
+                        >
+                            <option value="">{t('screening.selectLanguage')}</option>
+                            {languages.map((language) => (
+                                <option key={language.languageId} value={language.languageId}>
+                                    {language.language1}
+                                </option>
+                            ))}
+                        </select>
+                        {errors.languageId && (
+                            <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.languageId}</p>
+                        )}
+                    </div>
+
+                    {/* Screening Time */}
+                    <div className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            {t('screening.time')}
+                        </label>
                         <input
-                            type="text"
-                            value={movieSearchQuery}
-                            onChange={(e) => setMovieSearchQuery(e.target.value)}
-                            placeholder={t('screening.searchForMovie')}
-                            className={`w-full p-3 bg-white dark:bg-gray-700 border rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 dark:text-gray-100 ${errors.movieId
+                            type="datetime-local"
+                            name="screeningTime"
+                            value={formData.screeningTime || ''}
+                            onChange={handleInputChange}
+                            className={`w-full p-3 bg-white dark:bg-gray-700 border rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 dark:text-gray-100 ${errors.screeningTime
                                 ? 'border-red-500 dark:border-red-500'
                                 : 'border-gray-300 dark:border-gray-600'
                                 }`}
                         />
-                        {isSearching && (
-                            <div className="absolute right-3 top-3">
-                                <svg className="animate-spin h-5 w-5 text-gray-500 dark:text-gray-400" viewBox="0 0 24 24">
-                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
-                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                            </div>
-                        )}
-
-                        {movieSearchResults.length > 0 && (
-                            <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-lg max-h-60 overflow-auto">
-                                {movieSearchResults.map((movie) => (
-                                    <div
-                                        key={movie.id}
-                                        className="p-3 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer text-gray-800 dark:text-gray-200 transition-colors duration-150"
-                                        onClick={() => handleMovieSelect(movie)}
-                                    >
-                                        {movie.name}
-                                    </div>
-                                ))}
-                            </div>
+                        {errors.screeningTime && (
+                            <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.screeningTime}</p>
                         )}
                     </div>
-                    {errors.movieId && (
-                        <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.movieId}</p>
-                    )}
-                </div>
 
-                {/* Run Selection */}
-                <div className="space-y-1">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        {t('run')}
-                    </label>
-
-                    <span className="block text-sm text-gray-600 dark:text-gray-400">
-                        <strong>{t('screening.runStartDate')}</strong> {run?.startDate ?? 'N/A'}
-                    </span>
-                    <span className="block text-sm text-gray-600 dark:text-gray-400">
-                        <strong>{t('screening.runEndDate')}</strong> {run?.endDate ?? 'N/A'}
-                    </span>
-                </div>
-
-
-                {/* Hall Selection */}
-                <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        {t('screening.hall')}
-                    </label>
-                    <select
-                        disabled={!!screeningId}
-                        name="hallId"
-                        value={formData.hallId || ''}
-                        onChange={handleInputChange}
-                        className={`w-full p-3 bg-white dark:bg-gray-700 border rounded-md shadow-sm
-              focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400
-              focus:border-blue-500 dark:focus:border-blue-400 dark:text-gray-100
-              ${errors.hallId ? 'border-red-500 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'}
-              disabled:cursor-not-allowed disabled:bg-gray-100 dark:disabled:bg-gray-800 disabled:text-gray-500`}
-                    >
-
-                        <option value="">{t('screening.hall')}</option>
-                        {halls.map((hall) => (
-                            <option key={hall.hallId} value={hall.hallId}>
-                                {hall.hallNumber}
-                            </option>
-                        ))}
-
-                    </select>
-                    {errors.hallId && (
-                        <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.hallId}</p>
-                    )}
-                </div>
-
-                {/* Screening Format */}
-                <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        {t('screening.format')}
-                    </label>
-                    <select
-                        name="screeningFormatId"
-                        value={formData.screeningFormatId || ''}
-                        onChange={handleInputChange}
-                        className={`w-full p-3 bg-white dark:bg-gray-700 border rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 dark:text-gray-100 ${errors.screeningFormatId
-                            ? 'border-red-500 dark:border-red-500'
-                            : 'border-gray-300 dark:border-gray-600'
-                            }`}
-                    >
-                        <option value="">{t('screening.selectFormat')}</option>
-                        {formats.map((format) => (
-                            <option key={format.screeningFormatId} value={format.screeningFormatId}>
-                                {format.screeningFormat1}
-                            </option>
-                        ))}
-                    </select>
-                    {errors.screeningFormatId && (
-                        <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.screeningFormatId}</p>
-                    )}
-                </div>
-
-                {/* Language */}
-                <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        {t('screening.language')}
-                    </label>
-                    <select
-                        name="languageId"
-                        value={formData.languageId || ''}
-                        onChange={handleInputChange}
-                        className={`w-full p-3 bg-white dark:bg-gray-700 border rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 dark:text-gray-100 ${errors.languageId
-                            ? 'border-red-500 dark:border-red-500'
-                            : 'border-gray-300 dark:border-gray-600'
-                            }`}
-                    >
-                        <option value="">{t('screening.selectLanguage')}</option>
-                        {languages.map((language) => (
-                            <option key={language.languageId} value={language.languageId}>
-                                {language.language1}
-                            </option>
-                        ))}
-                    </select>
-                    {errors.languageId && (
-                        <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.languageId}</p>
-                    )}
-                </div>
-
-                {/* Screening Time */}
-                <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        {t('screening.time')}
-                    </label>
-                    <input
-                        type="datetime-local"
-                        name="screeningTime"
-                        value={formData.screeningTime || ''}
-                        onChange={handleInputChange}
-                        className={`w-full p-3 bg-white dark:bg-gray-700 border rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 dark:text-gray-100 ${errors.screeningTime
-                            ? 'border-red-500 dark:border-red-500'
-                            : 'border-gray-300 dark:border-gray-600'
-                            }`}
-                    />
-                    {errors.screeningTime && (
-                        <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.screeningTime}</p>
-                    )}
-                </div>
-
-                {/* Submit Button */}
-                <div className="flex justify-end pt-4">
-                    <button
-                        type="submit"
-                        disabled={isSubmitting}
-                        className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md shadow transition-colors duration-200 dark:bg-blue-500 dark:hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 disabled:opacity-60 disabled:cursor-not-allowed"
-                    >
-                        {isSubmitting ? (
-                            <span className="flex items-center justify-center">
-                                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" viewBox="0 0 24 24">
-                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
-                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                                {t('screening.processing')}
-                            </span>
-                        ) : screeningId ? 'Update Screening' : 'Create Screening'}
-                    </button>
-                </div>
-            </form>
+                    {/* Submit Button */}
+                    <div className="flex justify-end pt-4">
+                        <button
+                            type="submit"
+                            disabled={isSubmitting}
+                            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md shadow transition-colors duration-200 dark:bg-blue-500 dark:hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 disabled:opacity-60 disabled:cursor-not-allowed"
+                        >
+                            {isSubmitting ? (
+                                <span className="flex items-center justify-center">
+                                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    {t('screening.processing')}
+                                </span>
+                            ) : screeningId ? t('save') : t('create')}
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     );
 };

@@ -124,7 +124,7 @@ const EmployeeComponent = ({ employee, onEmployeeUpdated }: EmployeeComponentPro
             }
 
 
-            userActionService.post(actionLog);
+            // userActionService.post(actionLog);
 
 
 
@@ -157,7 +157,7 @@ const EmployeeComponent = ({ employee, onEmployeeUpdated }: EmployeeComponentPro
             }
 
 
-            userActionService.post(actionLog);
+            // userActionService.post(actionLog);
 
 
             setRerender(prev => !prev);

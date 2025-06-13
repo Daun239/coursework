@@ -1,42 +1,42 @@
 import React, { useState } from "react";
 import { useServiceStore } from "../../Stores/ServicesStore";
 import { toast } from "sonner";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { useNavigate } from "react-router-dom";
 import { useUserStore } from "@/Stores/UserStore";
 import { UserActionLog } from "@/Types/UserActionLog";
 
 const LoginPage = () => {
-  const { loginService } = useServiceStore();
+  const { loginService, userActionService } = useServiceStore();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const navigate = useNavigate(); // Hook to navigate programmatically
-
-
-  const { user } = useUserStore();
-
-  const { userActionService } = useServiceStore();
-
-
+  const navigate = useNavigate();
+  
   const handleLogin = async () => {
     try {
+      if (!email.trim() || !password.trim()) {
+        toast.error("Будь ласка, введіть електронну пошту та пароль");
+        return;
+      }
+
       const result = await loginService.loginUser(email.trim(), password.trim());
 
-      console.log('result', result);
-      if (result) {
-        toast.success("Успішний вхід!");
-        // navigate("/dashboard"); // Redirect to the dashboard or any other page after login
-
-
+      console.log('Login result:', result);
+      
+      if (result && result.success) {
+        // Log the successful login
         const actionLog: UserActionLog = {
           action: "Logged in",
           details: `${JSON.stringify(result.user)}`,
           entity: "User",
           timestamp: new Date(),
           user: `${result.user?.name} ${result.user?.surname}`
-        }
-
-        userActionService.post(actionLog);
-
+        };
+        
+        // await userActionService.post(actionLog);
+        
+        toast.success("Успішний вхід!");
+        
+        // Determine which page to navigate to based on user role
         if (result.user?.role === "Cashier") {
           navigate("/movies");
         }
@@ -47,15 +47,25 @@ const LoginPage = () => {
           navigate("/deliveryOrders");
         }
         else if (result.user?.role === "Admin") {
-          navigate("/auditPage")
+          navigate("/auditPage");
         }
-
-
+        else {
+          // Default redirect if role doesn't match any of the above
+          navigate("/dashboard");
+        }
       } else {
         toast.error("Невірний логін або пароль. Спробуйте ще раз.");
       }
     } catch (error) {
+      console.error("Login error:", error);
       toast.error("Сталася помилка при вході. Спробуйте ще раз.");
+    }
+  };
+
+  // Handle enter key press for login
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleLogin();
     }
   };
 
@@ -68,6 +78,7 @@ const LoginPage = () => {
           placeholder="Електронна пошта"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          onKeyDown={handleKeyDown}
           className="w-full p-3 mb-4 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-400"
         />
         <input
@@ -75,6 +86,7 @@ const LoginPage = () => {
           placeholder="Пароль"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          onKeyDown={handleKeyDown}
           className="w-full p-3 mb-6 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-400"
         />
         <button

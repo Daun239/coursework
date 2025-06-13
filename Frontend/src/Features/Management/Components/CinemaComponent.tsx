@@ -26,9 +26,10 @@ import { useUserStore } from '@/Stores/UserStore';
 
 type CinemaComponentProps = {
     cinema: Cinema;
+    handleRerender : () => void;
 };
 
-const CinemaComponent = ({ cinema }: CinemaComponentProps) => {
+const CinemaComponent = ({ cinema, handleRerender }: CinemaComponentProps) => {
     const {
         cinemaService,
         hallService,
@@ -52,10 +53,6 @@ const CinemaComponent = ({ cinema }: CinemaComponentProps) => {
 
 
     const [rerender, setRerender] = useState<boolean>(false);
-
-    const handleRerender = () => {
-        setRerender(prev => !prev);
-    }
 
     useEffect(() => {
         const fetchData = async () => {
@@ -112,7 +109,7 @@ const CinemaComponent = ({ cinema }: CinemaComponentProps) => {
             }
 
 
-            userActionService.post(actionLog);
+            // userActionService.post(actionLog);
 
         }
 
@@ -147,7 +144,7 @@ const CinemaComponent = ({ cinema }: CinemaComponentProps) => {
             }
 
 
-            userActionService.post(actionLog);
+            // userActionService.post(actionLog);
 
         } catch (error) {
             toast.error(`${t('cinemas.deleteCinemaError')}: ${error.message || error}`);
@@ -171,7 +168,7 @@ const CinemaComponent = ({ cinema }: CinemaComponentProps) => {
 
 
             <Modal isOpen={isModalOpen} onClose={closeModal}>
-                <AddEditHallForm cinema={cinema} />
+                <AddEditHallForm handleRerender={ handleRerender} cinema={cinema} />
             </Modal>
 
 

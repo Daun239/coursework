@@ -6,15 +6,16 @@ import {
     DropdownMenu,
     DropdownMenuTrigger,
     DropdownMenuContent,
-    DropdownMenuItem,
     DropdownMenuLabel,
     DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import { useLanguageStore } from '@/Stores/useLanguageStore';
 
 const CartLogoOnNavbar = () => {
-
     const [isOpen, setIsOpen] = useState<boolean>(false);
     const modalRef = useRef<HTMLDialogElement>(null);
+    const { language } = useLanguageStore();
+
     const {
         productsTotalQuantity,
         productsTotalPrice,
@@ -23,36 +24,46 @@ const CartLogoOnNavbar = () => {
         totalItems,
     } = useCartTotals();
 
+    const translations = {
+        en: {
+            yourCart: "Your Cart",
+            tickets: "tickets",
+            products: "products",
+            viewCart: "View cart",
+        },
+        ua: {
+            yourCart: "Ваш кошик",
+            tickets: "квитки",
+            products: "продукти",
+            viewCart: "Переглянути кошик",
+        },
+    };
+
+    const t = translations[language] || translations.en;
+
     useEffect(() => {
         const down = (e: KeyboardEvent) => {
             if ((e.key === "c" || e.key === 'с') && (e.metaKey || e.ctrlKey) && e.altKey) {
                 e.preventDefault();
-                setIsOpen(prevState => !prevState);
-            }
-            else if (e.key === 'Escape') {
+                setIsOpen(prev => !prev);
+            } else if (e.key === 'Escape') {
                 modalRef.current?.close();
             }
-
         };
 
         document.addEventListener("keydown", down);
-
-        return () => {
-            document.removeEventListener("keydown", down);
-        };
+        return () => document.removeEventListener("keydown", down);
     }, []);
-
 
     useEffect(() => {
         if (isOpen && modalRef.current) {
             modalRef.current.showModal();
-            document.body.style.overflow = "";  // Disable scroll when modal is open
+            document.body.style.overflow = "";
         } else if (modalRef.current) {
             modalRef.current.close();
-            document.body.style.overflow = "auto";  // Re-enable scroll when modal is closed
+            document.body.style.overflow = "auto";
         }
-    }, [isOpen]); // Dependency on isOpen ensures the modal is only toggled when isOpen changes
-
+    }, [isOpen]);
 
     return (
         <>
@@ -85,16 +96,20 @@ const CartLogoOnNavbar = () => {
 
                 <DropdownMenuContent className="w-56 p-4">
                     <DropdownMenuLabel className="text-base font-semibold mb-2">
-                        Your Cart
+                        {t.yourCart}
                     </DropdownMenuLabel>
 
                     <div className="flex flex-col gap-2 mb-3">
                         <div className="flex justify-between text-info">
-                            <span className="font-medium">{ticketsTotalQuantity} tickets</span>
+                            <span className="font-medium">
+                                {ticketsTotalQuantity} {t.tickets}
+                            </span>
                             <span className="font-semibold">{ticketsTotalPrice}₴</span>
                         </div>
                         <div className="flex justify-between text-info">
-                            <span className="font-medium">{productsTotalQuantity} products</span>
+                            <span className="font-medium">
+                                {productsTotalQuantity} {t.products}
+                            </span>
                             <span className="font-semibold">{productsTotalPrice}₴</span>
                         </div>
                     </div>
@@ -106,7 +121,7 @@ const CartLogoOnNavbar = () => {
                             onClick={() => modalRef.current?.showModal()}
                             className="btn btn-primary btn-block btn-sm"
                         >
-                            View cart
+                            {t.viewCart}
                         </button>
                     </div>
                 </DropdownMenuContent>

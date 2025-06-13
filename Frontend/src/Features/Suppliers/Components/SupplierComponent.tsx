@@ -74,7 +74,7 @@ const SupplierComponent = ({ Supplier, onSupplierUpdated }: SupplierComponentPro
             }
 
 
-            userActionService.post(actionLog);
+            // userActionService.post(actionLog);
 
 
             setIsDeleted(true); // Set deletion flag to true
@@ -106,7 +106,7 @@ const SupplierComponent = ({ Supplier, onSupplierUpdated }: SupplierComponentPro
             }
 
 
-            userActionService.post(actionLog);
+            // userActionService.post(actionLog);
 
 
 

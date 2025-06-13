@@ -21,6 +21,14 @@ import { toast } from "sonner"
 import { UserActionLog } from "@/Types/UserActionLog"
 import { exportDeliveryOrderData } from "../Utils/exportDeliveryOrder"
 
+import {
+    Popover,
+    PopoverTrigger,
+    PopoverContent,
+} from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+
+
 
 
 
@@ -139,6 +147,11 @@ export default function DeliveryOrder() {
     }, [])
 
 
+    const [rerender, setRerender] = useState<number>(1);
+
+    const handleRerender = () => {
+        setRerender(prev => prev + 1);
+    }
 
     useEffect(() => {
         const fetchDropdownData = async () => {
@@ -216,7 +229,9 @@ export default function DeliveryOrder() {
                 user: `${user?.name} ${user?.surname}`
             }
 
-            userActionService.post(actionLog);
+            // userActionService.post(actionLog);
+
+            handleRerender();
 
 
         } catch (error) {
@@ -329,7 +344,8 @@ export default function DeliveryOrder() {
         currentPage,
         pageSize,
         user,
-        deliveryOrderStatuses // ✅ Add this
+        deliveryOrderStatuses, // ✅ Add this
+        rerender
     ]);
 
 
@@ -479,13 +495,39 @@ export default function DeliveryOrder() {
 
                             {/* Right side: buttons */}
                             <div className="flex gap-4 items-center">
-                                {/* Add Delivery Order Button */}
-                                <button
-                                    onClick={handleAddDeliveryOrder}
-                                    className="px-6 py-2 rounded-md bg-white text-black hover:bg-gray-200 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700 transition-colors duration-200 shadow-md"
-                                >
-                                    {t2.addDeliveryOrder}
-                                </button>
+
+
+                                {user?.employeePosition === "Manager" && (
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <Button
+                                                className="px-6 py-2 rounded-md bg-white text-black hover:bg-gray-200 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700 transition-colors duration-200 shadow-md"
+                                            >
+                                                {t2.addDeliveryOrder}
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-64">
+                                            <div className="flex flex-col space-y-4">
+                                                <div className="text-sm font-medium text-gray-800 dark:text-gray-100">
+                                                   Ви впевнені що хочете додати поставку?
+                                                </div>
+                                                <div className="flex justify-end space-x-2">
+                                                    <Button variant="outline" size="sm">
+                                                        Ні
+                                                    </Button>
+                                                    <Button
+                                                        size="sm"
+                                                        onClick={handleAddDeliveryOrder}
+                                                    >
+                                                        Так
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        </PopoverContent>
+                                    </Popover>
+                                )}
+
+
 
                                 {/* Export Buttons */}
                                 <div className="flex gap-2">
@@ -578,6 +620,7 @@ export default function DeliveryOrder() {
                                     <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                                         {deliveryOrders.map(d => (
                                             <CustomRow
+                                                handleRerender={handleRerender}
                                                 deliveryOrderId={d.deliveryOrderId}
                                                 key={d.deliveryOrderId}
                                             />

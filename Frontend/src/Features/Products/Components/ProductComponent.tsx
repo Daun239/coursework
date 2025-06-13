@@ -10,6 +10,7 @@ import { useState, useEffect } from "react";
 import { BsImage, BsCartCheckFill, BsCart2 } from "react-icons/bs";
 
 
+
 import { toast } from "sonner"
 
 interface Props {
@@ -332,51 +333,58 @@ const ProductComponent: React.FC<Props> = ({ productInStorageId, onSelecProductI
                 </div>
 
                 {/* Cart Controls */}
-                <div className="mt-5 border-t dark:border-gray-700 pt-4">
-                    {orderedProductsNumber > 0 ? (
-                        <div className="flex items-center">
-                            <button
-                                onClick={() => handleProductsNumberChange(orderedProductsNumber - 1)}
-                                className="flex-shrink-0 bg-red-50 dark:bg-red-900 hover:bg-red-100 dark:hover:bg-red-800 text-red-600 dark:text-red-300 font-bold w-8 h-8 rounded-full flex items-center justify-center transition-colors"
-                            >
-                                -
-                            </button>
-                            <input
-                                min={0}
-                                max={productInStorage?.quantity}
-                                type="number"
-                                value={orderedProductsNumber}
-                                onChange={(e) => handleProductsNumberChange(Number(e.target.value))}
-                                className="w-12 text-center mx-2 py-1 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
-                            />
-                            <button
-                                onClick={() => handleProductsNumberChange(orderedProductsNumber + 1)}
-                                className="flex-shrink-0 bg-green-50 dark:bg-green-900 hover:bg-green-100 dark:hover:bg-green-800 text-green-600 dark:text-green-300 font-bold w-8 h-8 rounded-full flex items-center justify-center transition-colors"
-                            >
-                                +
-                            </button>
-                            <div className="ml-auto flex items-center">
-                                <BsCartCheckFill className="text-green-600 dark:text-green-400 text-xl mr-2" />
-                                <span className="text-green-600 dark:text-green-400 font-medium">{t[language].inCart}</span> {/* Translated */}
+
+
+                {
+                    user?.employeePosition === "Cashier" &&
+                    <div className="mt-5 border-t dark:border-gray-700 pt-4">
+                        {orderedProductsNumber > 0 ? (
+                            <div className="flex items-center">
+                                <button
+                                    onClick={() => handleProductsNumberChange(orderedProductsNumber - 1)}
+                                    className="flex-shrink-0 bg-red-50 dark:bg-red-900 hover:bg-red-100 dark:hover:bg-red-800 text-red-600 dark:text-red-300 font-bold w-8 h-8 rounded-full flex items-center justify-center transition-colors"
+                                >
+                                    -
+                                </button>
+                                <input
+                                    min={0}
+                                    max={productInStorage?.quantity}
+                                    type="number"
+                                    value={orderedProductsNumber}
+                                    onChange={(e) => handleProductsNumberChange(Number(e.target.value))}
+                                    className="w-12 text-center mx-2 py-1 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
+                                />
+                                <button
+                                    onClick={() => handleProductsNumberChange(orderedProductsNumber + 1)}
+                                    className="flex-shrink-0 bg-green-50 dark:bg-green-900 hover:bg-green-100 dark:hover:bg-green-800 text-green-600 dark:text-green-300 font-bold w-8 h-8 rounded-full flex items-center justify-center transition-colors"
+                                >
+                                    +
+                                </button>
+                                <div className="ml-auto flex items-center">
+                                    <BsCartCheckFill className="text-green-600 dark:text-green-400 text-xl mr-2" />
+                                    <span className="text-green-600 dark:text-green-400 font-medium">{t[language].inCart}</span> {/* Translated */}
+                                </div>
+
+
+
                             </div>
+                        ) : (
+                            <button
+                                onClick={() => {
+                                    handleProductsNumberChange(1);
+                                    setHasBeenAddedToCart(true);
+                                }}
+                                className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center"
+                                disabled={!productInStorage || productInStorage.quantity <= 0}
+                            >
+                                <BsCart2 className="mr-2" />
+                                {t[language].addToCart} {/* Translated */}
+                            </button>
+                        )}
+                    </div>
 
+                }
 
-
-                        </div>
-                    ) : (
-                        <button
-                            onClick={() => {
-                                handleProductsNumberChange(1);
-                                setHasBeenAddedToCart(true);
-                            }}
-                            className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center"
-                            disabled={!productInStorage || productInStorage.quantity <= 0}
-                        >
-                            <BsCart2 className="mr-2" />
-                            {t[language].addToCart} {/* Translated */}
-                        </button>
-                    )}
-                </div>
             </div>
 
         </div >

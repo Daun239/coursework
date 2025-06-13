@@ -13,7 +13,7 @@ import { Movie } from "@/Types/Movie";
 import { Publisher } from "@/Types/Publisher";
 import { Run } from "@/Types/Run";
 import { Screening } from "@/Types/Screening";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useMovieFiltersLoader } from "../Hooks/useMovieFiltersLoader";
 import MoviePreview from "./MoviePreview";
 import {
@@ -52,51 +52,38 @@ const MovieList = () => {
     const [pagesCount, setPagesCount] = useState<number>(10);
 
     const [runs, setRuns] = useState<Run[]>([]);
-
-
     const [screenings, setScreenings] = useState<Screening[]>([]);
-
     const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
+    const [rerenderKey, setRerenderKey] = useState<number>(0); // New state for forcing re-renders
 
     const toggleSidebar = () => {
         setIsSidebarOpen(prev => !prev);
     };
 
-    const [rerender, setRerender] = useState<boolean>(false);
-
-    const handleRerender = () => {
-        setRerender(prev => !prev);
-    }
-
+    // Improved rerender function using a numeric key instead of a boolean toggle
+    const handleRerender = useCallback(() => {
+        setRerenderKey(prevKey => prevKey + 1);
+        setLoading(true); // Set loading state to show loading indicator
+    }, []);
 
     const { user } = useUserStore();
 
     const handleAddMovie = () => {
-
         if (createMovieOpen === true)
             setSelectedMovieId(null);
 
-
         setCreateMovieOpen(prev => !prev);
-
     }
 
-
-
     const handleAddScreening = () => {
-
         if (createMovieOpen === true)
             setSelectedScreeningId(null);
 
-
         setCreateScreeningOpen(prev => !prev);
-
     }
 
     const [createScreeningOpen, setCreateScreeningOpen] = useState(false);
-
     const [selectedScreeningId, setSelectedScreeningId] = useState<number>(null)
-
 
     useEffect(() => {
         const down = (e: KeyboardEvent) => {
@@ -109,19 +96,14 @@ const MovieList = () => {
         return () => document.removeEventListener("keydown", down)
     }, [])
 
-
-
     const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Enter') {
             // Perform the search action here
-            const searchTerm = e.target.value;
-            console.log('Search for:', searchTerm); // Replace with actual search logic]
+            const searchTerm = e.currentTarget.value; // Fixed: using currentTarget instead of target
+            console.log('Search for:', searchTerm);
             setTitle(searchTerm);
         }
     };
-
-
-
 
     const {
         minBudget, maxBudget, selectedBudgetRange, setSelectedBudgetRange,
@@ -129,195 +111,195 @@ const MovieList = () => {
         moviesCount
     } = useMovieFiltersLoader();
 
-
-
-
-
-
-    const getScreeningsForMovie = (movieId: number): Screening[] => {
+    const getScreeningsForMovie = useCallback((movieId: number): Screening[] => {
         const movieRunIds = runs.filter(run => run.movieId === movieId).map(run => run.runId);
         return screenings.filter(screening => movieRunIds.includes(screening.runId));
-    };
-
+    }, [runs, screenings]);
 
     const [selectedScreening, setSelectedScreening] = useState<Screening | null>(null);
 
-
-
-
-
     useEffect(() => {
         setPagesCount(Math.ceil(moviesCount / pageSize));
-
-        console.log("pagescount", pagesCount)
-    }, [pageSize, movies]);
-
-
-
+        console.log("pagescount", pagesCount);
+    }, [pageSize, moviesCount, pagesCount]);
 
     const [createMovieOpen, setCreateMovieOpen] = useState<boolean>(false);
-
-
-
     const [selectedMovieId, setSelectedMovieId] = useState<number>(undefined);
 
-    const handleSelectMovie = (movieId: number) => {
+    const handleSelectMovie = useCallback((movieId: number) => {
         setSelectedMovieId(movieId);
         setCreateMovieOpen(true);
         window.scrollTo({ top: 0, behavior: 'smooth' }); // scrolls to top
-    };
+    }, []);
 
-    const handleSelectScreening = (screeningId: number) => {
+    const handleSelectScreening = useCallback((screeningId: number) => {
         setSelectedScreeningId(screeningId);
         setCreateScreeningOpen(true);
         window.scrollTo({ top: 0, behavior: 'smooth' }); // scrolls to top
-    };
-
+    }, []);
 
     const [showMoviesNoScreenings, setShowMoviesNoScreenings] = useState<boolean>(false);
 
+    // Optimized fetchMovies function extracted for clarity
+    const fetchMovies = useCallback(async () => {
+        console.log('fetching movies');
+        setLoading(true);
 
-    // Fixed useEffect to properly fetch screenings when currentPage changes
-    useEffect(() => {
-        const fetchMovies = async () => {
-            try {
-                const movieGenreQuery = formFilterQuery(
-                    "AND", {
-                    field: "genreId",
-                    values: genres.map(g => g.genreId).filter(id => id != null),
+        try {
+            const movieGenreQuery = formFilterQuery(
+                "AND", {
+                field: "genreId",
+                values: genres.map(g => g.genreId).filter(id => id != null),
+                operator: 'in',
+            });
+
+            const correspondingMoviesByGenre = await moviesGenreService.getAll(movieGenreQuery, "", currentPage, 100000);
+
+            const uniqueMovies = correspondingMoviesByGenre.filter((movie, index, self) =>
+                index === self.findIndex((m) => m.movieId === movie.movieId)
+            );
+
+            const movieIds = uniqueMovies.map(m => m.movieId);
+
+            let filterQuery = formFilterQuery(
+                "AND",
+                {
+                    field: 'movieId',
+                    values: movieIds,
+                    operator: 'in'
+                },
+                {
+                    field: 'budget',
+                    values: selectedBudgetRange.map(v => v.toString()).filter(v => v !== '0'),
+                    operator: 'range'
+                },
+                {
+                    field: 'runtime',
+                    values: selectedRuntimeRange.map(v => v.toString()).filter(v => v !== '0'),
+                    operator: 'range'
+                },
+                {
+                    field: 'languageId',
+                    values: languages.map((l => l.languageId)),
                     operator: 'in',
+                },
+                {
+                    field: 'ageRestrictionId',
+                    operator: 'in',
+                    values: ageRestrictions.map(a => a.ageRestrictionId),
+                },
+                {
+                    field: 'countryId',
+                    operator: 'in',
+                    values: countries.map(c => c.countryId),
+                },
+                {
+                    field: 'publisherId',
+                    operator: 'in',
+                    values: publishers.map(p => p.publisherId)
+                }
+            );
+
+            if (title) {
+                filterQuery = filterQuery + ` AND ` + formFilterQuery("OR",
+                    {
+                        field: 'name',
+                        values: title ? [title] : [],
+                        operator: "contains"
+                    },
+                    {
+                        field: 'description',
+                        values: title ? [title] : [],
+                        operator: "contains"
+                    }
+                );
+            }
+
+            if (filterQuery) {
+                console.log('Filter Query:', filterQuery);
+                const data = await movieService.getAll(filterQuery, "", currentPage, pageSize);
+                console.log("data", data);
+                
+                // Important: Make sure state updates properly with new references
+                setMovies([...data]);
+
+                console.log("Rendering with movies:", data.length, "movies");
+
+                // Fetch runs AFTER movies are fetched, using the fetched movie IDs directly
+                const moviesFromResponse = data; // Use the data response directly
+                const movieIdsFromResponse = moviesFromResponse.map(m => m.movieId);
+
+                const runsQuery = formFilterQuery("AND", {
+                    field: "movieId",
+                    operator: "in",
+                    values: movieIdsFromResponse
                 });
 
-                const correspondingMoviesByGenre = await moviesGenreService.getAll(movieGenreQuery, "", currentPage, 100000);
+                const fetchedRuns = await runService.getAll(runsQuery, "", 1, 100000);
+                setRuns([...fetchedRuns]); // Ensure new array reference
 
-                const uniqueMovies = correspondingMoviesByGenre.filter((movie, index, self) =>
-                    index === self.findIndex((m) => m.movieId === movie.movieId)
-                );
+                // Use the correct field (runId) from the fetched runs for the screenings query
+                if (fetchedRuns.length > 0) {
+                    const runIds = fetchedRuns.map(r => r.runId);
 
-                const movieIds = uniqueMovies.map(m => m.movieId);
+                    const halls = await hallService.getAll(`cinemaId = ${user?.cinemaId}`, "", 1, 10000);
 
-                let filterQuery = formFilterQuery(
-                    "AND",
-                    {
-                        field: 'movieId',
-                        values: movieIds,
-                        operator: 'in'
-                    },
-                    {
-                        field: 'budget',
-                        values: selectedBudgetRange.map(v => v.toString()).filter(v => v !== '0'),
-                        operator: 'range'
-                    },
-                    {
-                        field: 'runtime',
-                        values: selectedRuntimeRange.map(v => v.toString()).filter(v => v !== '0'),
-                        operator: 'range'
-                    },
-                    {
-                        field: 'languageId',
-                        values: languages.map((l => l.languageId)),
-                        operator: 'in',
-                    },
-                    {
-                        field: 'ageRestrictionId',
-                        operator: 'in',
-                        values: ageRestrictions.map(a => a.ageRestrictionId),
-                    },
-                    {
-                        field: 'countryId',
-                        operator: 'in',
-                        values: countries.map(c => c.countryId),
-                    },
-                    {
-                        field: 'publisherId',
-                        operator: 'in',
-                        values: publishers.map(p => p.publisherId)
-                    }
-                );
-
-                if (title) {
-                    filterQuery = filterQuery + ` AND ` + formFilterQuery("OR",
-                        {
-                            field: 'name',
-                            values: title ? [title] : [],
-                            operator: "contains"
-                        },
-                        {
-                            field: 'description',
-                            values: title ? [title] : [],
-                            operator: "contains"
-                        }
-                    );
-                }
-
-
-                if (filterQuery) {
-                    console.log('Filter Query:', filterQuery);
-                    const data = await movieService.getAll(filterQuery, "", currentPage, pageSize);
-                    console.log("data", data);
-                    setMovies(data);
-
-                    // Fetch runs AFTER movies are fetched, using the fetched movie IDs directly
-                    const moviesFromResponse = data; // Use the data response directly
-                    const movieIdsFromResponse = moviesFromResponse.map(m => m.movieId);
-
-                    const runsQuery = formFilterQuery("AND", {
-                        field: "movieId",
+                    let screeningsQuery = formFilterQuery("AND", {
+                        field: 'runId',
                         operator: "in",
-                        values: movieIdsFromResponse
+                        values: runIds, // Fixed: using runId instead of movieId
+                    },
+                    {
+                        field: "hallId",
+                        operator: "in",
+                        values: halls.map(h => h.hallId)
                     });
 
-                    const fetchedRuns = await runService.getAll(runsQuery, "", 1, 100000);
-                    setRuns(fetchedRuns);
-
-                    // Use the correct field (runId) from the fetched runs for the screenings query
-                    if (fetchedRuns.length > 0) {
-                        const runIds = fetchedRuns.map(r => r.runId);
-
-
-                        const halls = await hallService.getAll(`cinemaId = ${user?.cinemaId}`, "", 1, 10000);
-
-
-
-                        let screeningsQuery = formFilterQuery("AND", {
-                            field: 'runId',
-                            operator: "in",
-                            values: runIds, // Fixed: using runId instead of movieId
-                        }
-                            ,
-                            {
-                                field: "hallId",
-                                operator: "in",
-                                values: halls.map(h => h.hallId)
-                            }
-                        );
-
-                        // const now = new Date();
-                        // const formattedDate = now.toISOString().split('T')[0]; // "2025-05-09"
-
-                        // screeningsQuery += ` AND startDate >= '${formattedDate}'`;
-
-
-                        const fetchedScreenings = await screeningService.getAll(screeningsQuery, "startDate desc", 1, 1000);
-                        console.log('Fetched screenings:', fetchedScreenings);
-                        setScreenings(fetchedScreenings);
-                    } else {
-                        // If no runs found, set empty screenings array
-                        setScreenings([]);
-                    }
+                    const fetchedScreenings = await screeningService.getAll(screeningsQuery, "startDate desc", 1, 1000);
+                    console.log('Fetched screenings:', fetchedScreenings.length, "screenings");
+                    setScreenings([...fetchedScreenings]); // Ensure new array reference
+                } else {
+                    // If no runs found, set empty screenings array
+                    setScreenings([]);
                 }
-            } catch (error) {
-                console.error('Failed to fetch movies:', error);
-            } finally {
-                setLoading(false);
             }
-        };
+        } catch (error) {
+            console.error('Failed to fetch movies:', error);
+        } finally {
+            setLoading(false);
+        }
+    }, [
+        currentPage, 
+        movieService, 
+        genres, 
+        ageRestrictions, 
+        languages, 
+        publishers, 
+        countries, 
+        selectedBudgetRange, 
+        selectedRuntimeRange, 
+        title, 
+        pageSize, 
+        user, 
+        hallService, 
+        moviesGenreService, 
+        runService, 
+        screeningService
+    ]);
 
+    // Updated useEffect with rerenderKey dependency
+    useEffect(() => {
         fetchMovies();
-    }, [rerender, currentPage, movieService, genres, ageRestrictions, languages, publishers, countries, minBudget, maxBudget, selectedBudgetRange, minRuntime, maxRuntime, selectedRuntimeRange, title, pageSize]);
+        // Added rerenderKey to dependencies to ensure re-execution when handleRerender is called
+    }, [rerenderKey, fetchMovies]);
 
+    // Render loading indicator when loading
     if (loading) {
-        <span className="loading loading-spinner loading-xl"></span>
+        return (
+            <div className="flex justify-center items-center h-screen">
+                <span className="loading loading-spinner loading-xl"></span>
+            </div>
+        );
     }
 
     const handleExport = (format: "csv" | "json" | "pdf") => {
@@ -331,7 +313,6 @@ const MovieList = () => {
         exportMovieData(movies, format, `movies_data_${format}`, services);
     };
 
-
     return (
         <div className="flex h-screen overflow-hidden mt-16">
             {/* Sidebar with filters */}
@@ -344,7 +325,7 @@ const MovieList = () => {
                 <div className="w-80 h-full bg-white dark:bg-gray-900 p-4 shadow-lg">
 
                     <div className="filters-container">
-                        {movies.length && <h2 className="font-semibold text-xl mb-4">{movies.length} {t('movieList.moviesFound')}</h2>}
+                        {movies.length > 0 && <h2 className="font-semibold text-xl mb-4">{movies.length} {t('movieList.moviesFound')}</h2>}
 
                         <DropdownList
                             listName={t('movieList.filterByAgeRestrictions')}
@@ -480,8 +461,6 @@ const MovieList = () => {
 
                 </div>
 
-
-
                 <div className="flex-1 flex flex-col h-screen overflow-auto bg-gray-50 dark:bg-gray-800">
                     {/* Header section with action buttons */}
                     <div className="p-6 flex justify-between items-center bg-gray-200 dark:bg-gray-700 rounded-lg shadow-md mb-6">
@@ -532,12 +511,6 @@ const MovieList = () => {
                         </div>
                     </div>
 
-
-
-
-
-
-
                     {/* Movie Modal */}
                     {createMovieOpen && (
                         <div className="fixed inset-0 z-50 flex items-center bg-black/50 justify-center">
@@ -574,27 +547,30 @@ const MovieList = () => {
                                     ✕
                                 </button>
 
-                                <CreateOrUpdateScreening screeningId={selectedScreeningId} />
+                                <CreateOrUpdateScreening 
+                                    screeningId={selectedScreeningId} 
+                                    handleRerender={handleRerender} // Added handleRerender prop here
+                                />
                             </div>
                         </div>
                     )}
 
-
                     <div className="p-6 flex-1">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 w-full">
+                        {/* Key-based container to force rerender */}
+                        <div key={rerenderKey} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 w-full">
                             {movies
                                 .filter((movie) => {
                                     const movieScreenings = getScreeningsForMovie(movie.movieId);
                                     // Show all movies if checkbox is checked; otherwise, only movies that have screenings
                                     return showMoviesNoScreenings || (movieScreenings && movieScreenings.length > 0);
                                 })
-                                .map((movie, i) => {
+                                .map((movie) => {
                                     const movieScreenings = getScreeningsForMovie(movie.movieId);
 
                                     return (
-                                        <div key={i} className="rounded-xl shadow-md overflow-hidden transition-all hover:shadow-lg">
+                                        <div key={movie.movieId} className="rounded-xl shadow-md overflow-hidden transition-all hover:shadow-lg">
                                             <MoviePreview
-                                                handleRerender={() => handleRerender()}
+                                                handleRerender={handleRerender}
                                                 onSelectMovieId={handleSelectMovie}
                                                 movieId={movie.movieId}
                                             />
@@ -616,6 +592,7 @@ const MovieList = () => {
                                                             <AccordionContent className="grid grid-cols-1 gap-3">
                                                                 {movieScreenings.map((screening) => (
                                                                     <ScreeningTimeComponent
+                                                                    handleRerender={handleRerender}
                                                                         key={screening.screeningId}
                                                                         screening={screening}
                                                                         onSelect={setSelectedScreening}
@@ -634,7 +611,6 @@ const MovieList = () => {
                                         </div>
                                     );
                                 })}
-
                         </div>
                     </div>
                 </div>
@@ -653,7 +629,7 @@ const MovieList = () => {
                     </div>
                 )}
             </div>
-        </div >
+        </div>
     );
 };
 

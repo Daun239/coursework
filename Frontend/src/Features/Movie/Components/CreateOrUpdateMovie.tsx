@@ -180,64 +180,97 @@ const CreateOrUpdateMovie = ({ movieId, handleRerender }: { movieId?: number, ha
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-
             if (formData.runEndDate <= formData.runStartDate) {
-                toast.error(t.runStartDateHasToBeBeforeEndDate)
+                toast.error(t.runStartDateHasToBeBeforeEndDate);
                 return;
             }
+            
             let movieResponse;
-
+    
             if (movieId) {
+                // Update existing movie
                 movieResponse = await movieService.update(formData);
+
+
+                const [actualRun] = await runService.getAll(`movieId = ${movieResponse.movieId}`);
+
+                const run : Run = {
+                    ...actualRun,
+                    startDate: formData.runStartDate,
+                    endDate: formData.runEndDate
+                }
+                
+                // Update existing run instead of creating a new one
+                await runService.update(run);
+                
+                // Update genres for the movie
+                if (selectedGenres.length > 0) {
+                    // First remove existing genres (to handle removals)
+                    await moviesGenreService.delete(`movieId = ${movieResponse.movieId}`);
+                    
+                    // Then add the current selection
+                    for (const genreId of selectedGenres) {
+                        const movieGenre: MoviesGenre = {
+                            genreId: genreId,
+                            movieId: movieId,
+                            moviesGenresId: 0,
+                        };
+                        await moviesGenreService.create(movieGenre);
+                    }
+                }
+                
+                // Log the update action
+                const actionLog: UserActionLog = {
+                    action: "Updated",  // Changed from "Added" to "Updated"
+                    details: `${JSON.stringify(movieResponse)}`,
+                    entity: "Movie",
+                    timestamp: new Date(),
+                    user: `${user?.name} ${user?.surname}`
+                };
+                // userActionService.post(actionLog);
+                
                 handleRerender();
                 toast(t.updateSuccess);
-
+            } else {
+                // Create new movie
+                movieResponse = await movieService.create(formData);
+                
+                // Create new run for the movie
+                const run: Run = {
+                    endDate: formData.runEndDate,
+                    movieId: movieResponse.movieId,
+                    runId: 0,
+                    startDate: formData.runStartDate
+                };
+                await runService.create(run);
+                
+                // Associate genres with the movie
+                if (selectedGenres.length > 0) {
+                    for (const genreId of selectedGenres) {
+                        const movieGenre: MoviesGenre = {
+                            genreId: genreId,
+                            movieId: movieResponse.movieId,
+                            moviesGenresId: 0,
+                        };
+                        await moviesGenreService.create(movieGenre);
+                    }
+                }
+                
+                // Log the create action
                 const actionLog: UserActionLog = {
                     action: "Added",
                     details: `${JSON.stringify(movieResponse)}`,
                     entity: "Movie",
                     timestamp: new Date(),
                     user: `${user?.name} ${user?.surname}`
-                }
-
-                userActionService.post(actionLog);
-
-            } else {
-                movieResponse = await movieService.create(formData);
+                };
+                // userActionService.post(actionLog);
+                
                 handleRerender();
                 toast(t.success);
-
-                const actionLog: UserActionLog = {
-                    action: "Added",
-                    details: `${JSON.stringify(movieResponse)}`,
-                    entity: "Movie",
-                    timestamp: new Date(),
-                    user: `${user?.name} ${user?.surname}`
-                }
-
-                userActionService.post(actionLog);
-
             }
-
-            const run: Run = {
-                endDate: formData.runEndDate,
-                movieId: movieResponse.movieId,
-                runId: 0,
-                startDate: formData.runStartDate
-            };
-            await runService.create(run);
-
-            if (selectedGenres.length > 0) {
-                for (const genreId of selectedGenres) {
-                    const movieGenre: MoviesGenre = {
-                        genreId: genreId,
-                        movieId: movieResponse.movieId,
-                        moviesGenresId: 0,
-                    };
-                    await moviesGenreService.create(movieGenre);
-                }
-            }
-
+    
+            // Reset form after successful submission
             setFormData({
                 name: '',
                 description: '',
@@ -253,7 +286,7 @@ const CreateOrUpdateMovie = ({ movieId, handleRerender }: { movieId?: number, ha
                 runEndDate: null,
             });
             setSelectedGenres([]);
-
+    
         } catch (err) {
             console.error(err);
             toast(t.failure);
@@ -261,195 +294,192 @@ const CreateOrUpdateMovie = ({ movieId, handleRerender }: { movieId?: number, ha
     };
 
     return (
-        <div className="w-full max-w-2xl mx-auto p-6 bg-black dark:bg-gray-800 rounded-lg shadow-md">
-            <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">
+        <div className="w-full max-w-2xl mx-auto p-4 bg-black dark:bg-gray-800 rounded-lg shadow-md">
+            <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">
                     {movieId ? t.update : t.title}
                 </h2>
             </div>
 
-            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-                <div className="flex flex-col">
-                    <label className="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">{t.name}</label>
-                    <input
-                        name="name"
-                        placeholder={t.name}
-                        value={formData.name}
-                        onChange={handleChange}
-                        required
-                        className="px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                </div>
-
-                <div className="flex flex-col">
-                    <label className="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">{t.description}</label>
-                    <textarea
-                        name="description"
-                        placeholder={t.description}
-                        value={formData.description}
-                        onChange={handleChange}
-                        required
-                        rows={4}
-                        className="px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                </div>
-
-                <div className="flex flex-col sm:flex-row gap-4">
-                    <div className="flex flex-col flex-1">
-                        <label className="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">{t.budget}</label>
+            <div className="max-h-[80vh] overflow-y-auto pr-2">
+                <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+                    {/* Name */}
+                    <div className="flex flex-col">
+                        <label className="mb-1 text-xs font-medium text-gray-700 dark:text-gray-300">{t.name}</label>
                         <input
-                            name="budget"
-                            placeholder={t.budget}
-                            type="number"
-                            min={1}
-                            value={formData.budget}
+                            name="name"
+                            placeholder={t.name}
+                            value={formData.name}
                             onChange={handleChange}
                             required
-                            className="px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="px-2.5 py-1.5 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                     </div>
 
-                    <div className="flex flex-col flex-1">
-                        <label className="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">{t.runtime}</label>
-                        <input
-                            name="runtime"
-                            type="number"
-                            min={31}
-                            value={formData.runtime}
+                    {/* Description */}
+                    <div className="flex flex-col">
+                        <label className="mb-1 text-xs font-medium text-gray-700 dark:text-gray-300">{t.description}</label>
+                        <textarea
+                            name="description"
+                            placeholder={t.description}
+                            value={formData.description}
                             onChange={handleChange}
                             required
-                            className="px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                    </div>
-                </div>
-
-                <div className="flex flex-col sm:flex-row gap-4">
-                    <div className="flex flex-col flex-1">
-                        <label className="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">{t.runStart}</label>
-                        <input
-                            name="runStartDate"
-                            type="date"
-                            value={formData.runStartDate ?? ''}
-                            onChange={handleChange}
-                            required
-                            className="px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            rows={3}
+                            className="px-2.5 py-1.5 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                     </div>
 
-                    <div className="flex flex-col flex-1">
-                        <label className="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">{t.runEnd}</label>
-                        <input
-                            name="runEndDate"
-                            type="date"
-                            value={formData.runEndDate ?? ''}
-                            onChange={handleChange}
-                            required
-                            className="px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                    </div>
-                </div>
+                    {/* Budget & Runtime */}
+                    <div className="flex flex-col sm:flex-row gap-3">
+                        <div className="flex flex-col flex-1">
+                            <label className="mb-1 text-xs font-medium text-gray-700 dark:text-gray-300">{t.budget}</label>
+                            <input
+                                name="budget"
+                                type="number"
+                                min={1}
+                                value={formData.budget}
+                                onChange={handleChange}
+                                required
+                                className="px-2.5 py-1.5 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                        </div>
 
-                {/* Publisher, Language, Country, Age Restriction Fields */}
-                <div className="flex flex-col sm:flex-row gap-4">
-                    <div className="flex flex-col flex-1">
-                        <label className="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">{t.selectPublisher}</label>
+                        <div className="flex flex-col flex-1">
+                            <label className="mb-1 text-xs font-medium text-gray-700 dark:text-gray-300">{t.runtime}</label>
+                            <input
+                                name="runtime"
+                                type="number"
+                                min={31}
+                                value={formData.runtime}
+                                onChange={handleChange}
+                                required
+                                className="px-2.5 py-1.5 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Run Dates */}
+                    <div className="flex flex-col sm:flex-row gap-3">
+                        <div className="flex flex-col flex-1">
+                            <label className="mb-1 text-xs font-medium text-gray-700 dark:text-gray-300">{t.runStart}</label>
+                            <input
+                                name="runStartDate"
+                                type="date"
+                                value={formData.runStartDate ?? ''}
+                                onChange={handleChange}
+                                required
+                                className="px-2.5 py-1.5 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                        </div>
+
+                        <div className="flex flex-col flex-1">
+                            <label className="mb-1 text-xs font-medium text-gray-700 dark:text-gray-300">{t.runEnd}</label>
+                            <input
+                                name="runEndDate"
+                                type="date"
+                                value={formData.runEndDate ?? ''}
+                                onChange={handleChange}
+                                required
+                                className="px-2.5 py-1.5 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Publisher, Language */}
+                    <div className="flex flex-col sm:flex-row gap-3">
+                        <div className="flex flex-col flex-1">
+                            <label className="mb-1 text-xs font-medium text-gray-700 dark:text-gray-300">{t.selectPublisher}</label>
+                            <select
+                                name="publisherId"
+                                value={formData.publisherId}
+                                onChange={handleChange}
+                                required
+                                className="px-2.5 py-1.5 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                                <option value="" disabled>{t.selectLanguage}</option>
+                                {publishers.map(pub => (
+                                    <option key={pub.publisherId} value={pub.publisherId}>{pub.publisher1}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="flex flex-col flex-1">
+                            <label className="mb-1 text-xs font-medium text-gray-700 dark:text-gray-300">{t.selectLanguage}</label>
+                            <select
+                                name="languageId"
+                                value={formData.languageId}
+                                onChange={handleChange}
+                                required
+                                className="px-2.5 py-1.5 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                                <option value="" disabled>{t.selectLanguage}</option>
+                                {languages.map(lang => (
+                                    <option key={lang.languageId} value={lang.languageId}>{lang.language1}</option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+
+                    {/* Country & Age Restriction */}
+                    <div className="flex flex-col sm:flex-row gap-3">
+                        <div className="flex flex-col flex-1">
+                            <label className="mb-1 text-xs font-medium text-gray-700 dark:text-gray-300">{t.selectCountry}</label>
+                            <select
+                                name="countryId"
+                                value={formData.countryId}
+                                onChange={handleChange}
+                                required
+                                className="px-2.5 py-1.5 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                                <option value="" disabled>{t.selectCountry}</option>
+                                {countries.map(country => (
+                                    <option key={country.countryId} value={country.countryId}>{country.country1}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="flex flex-col flex-1">
+                            <label className="mb-1 text-xs font-medium text-gray-700 dark:text-gray-300">{t.selectAgeRestriction}</label>
+                            <select
+                                name="ageRestrictionId"
+                                value={formData.ageRestrictionId}
+                                onChange={handleChange}
+                                required
+                                className="px-2.5 py-1.5 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                                <option value="" disabled>{t.selectAgeRestriction}</option>
+                                {ageRestrictions.map(ar => (
+                                    <option key={ar.ageRestrictionId} value={ar.ageRestrictionId}>{ar.ageRestriction1}</option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+
+                    {/* Genres */}
+                    <div className="flex flex-col">
+                        <label className="mb-1 text-xs font-medium text-gray-700 dark:text-gray-300">{t.genres}</label>
                         <select
-                            name="publisherId"
-                            value={formData.publisherId}
-                            onChange={handleChange}
-                            required
-                            className="px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            multiple
+                            name="genreIds"
+                            value={selectedGenres}
+                            onChange={handleGenresChange}
+                            className="px-2.5 py-1.5 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
-                            <option value="" disabled>{t.selectLanguage}</option>
-                            {publishers.map(pub => (
-                                <option key={pub.publisherId} value={pub.publisherId}>
-                                    {pub.publisher1}
-                                </option>
+                            {genres.map(genre => (
+                                <option key={genre.genreId} value={genre.genreId}>{genre.genre1}</option>
                             ))}
                         </select>
                     </div>
 
-                    <div className="flex flex-col flex-1">
-                        <label className="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">{t.selectLanguage}</label>
-                        <select
-                            name="languageId"
-                            value={formData.languageId}
-                            onChange={handleChange}
-                            required
-                            className="px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                            <option value="" disabled>{t.selectLanguage}</option>
-                            {languages.map(lang => (
-                                <option key={lang.languageId} value={lang.languageId}>
-                                    {lang.language1}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-                </div>
-
-                <div className="flex flex-col sm:flex-row gap-4">
-                    <div className="flex flex-col flex-1">
-                        <label className="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">{t.selectCountry}</label>
-                        <select
-                            name="countryId"
-                            value={formData.countryId}
-                            onChange={handleChange}
-                            required
-                            className="px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                            <option value="" disabled>{t.selectCountry}</option>
-                            {countries.map(country => (
-                                <option key={country.countryId} value={country.countryId}>
-                                    {country.country1}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-
-                    <div className="flex flex-col flex-1">
-                        <label className="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">{t.selectAgeRestriction}</label>
-                        <select
-                            name="ageRestrictionId"
-                            value={formData.ageRestrictionId}
-                            onChange={handleChange}
-                            required
-                            className="px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                            <option value="" disabled>{t.selectAgeRestriction}</option>
-                            {ageRestrictions.map(ar => (
-                                <option key={ar.ageRestrictionId} value={ar.ageRestrictionId}>
-                                    {ar.ageRestriction1}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-                </div>
-
-                {/* Genre selection */}
-                <div className="flex flex-col">
-                    <label className="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">{t.genres}</label>
-                    <select
-                        multiple
-                        name="genreIds"
-                        value={selectedGenres}
-                        onChange={handleGenresChange}
-                        className="px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                        {genres.map(genre => (
-                            <option key={genre.genreId} value={genre.genreId}>
-                                {genre.genre1}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-
-                <button type="submit" className="mt-6 bg-blue-500 text-white px-6 py-2 rounded-md">
-                    {movieId ? t.update : t.create}
-                </button>
-            </form>
+                    <button type="submit" className="mt-4 bg-blue-500 text-white px-4 py-2 rounded-md">
+                        {movieId ? t.update : t.create}
+                    </button>
+                </form>
+            </div>
         </div>
     );
+
 };
 
 export default CreateOrUpdateMovie;
