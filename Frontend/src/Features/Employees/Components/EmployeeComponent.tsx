@@ -22,8 +22,7 @@ const EmployeeComponent = ({ employee, onEmployeeUpdated }: EmployeeComponentPro
     const [editedEmployee, setEditedEmployee] = useState<Employee>({ ...employee });
     const [currentEmployee, setCurrentEmployee] = useState<Employee>({ ...employee });
     const [error, setError] = useState<string | null>(null);
-    const [isDeleted, setIsDeleted] = useState(false); // Track deletion status
-
+    const [isDeleted, setIsDeleted] = useState(false);
 
 
     const [employeePositions, setEmployeePositions] = useState<EmployeePosition[]>([]);
@@ -155,10 +154,6 @@ const EmployeeComponent = ({ employee, onEmployeeUpdated }: EmployeeComponentPro
                 timestamp: new Date(),
                 user: `${user?.name} ${user?.surname}`
             }
-
-
-            // userActionService.post(actionLog);
-
 
             setRerender(prev => !prev);
             setError(null);

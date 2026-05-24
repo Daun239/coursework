@@ -1,4 +1,15 @@
-﻿-- Видалення таблиць у правильному порядку
+﻿- Створення бази даних
+IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = 'DiplomaDB')
+BEGIN
+    CREATE DATABASE DiplomaDB;
+END
+GO
+
+-- Перемикання на створену базу даних
+USE DiplomaDB;
+GO
+
+-- Видалення таблиць у правильному порядку
 DROP TABLE IF EXISTS ProductCheckDetails;
 DROP TABLE IF EXISTS ProductChecks;
 DROP TABLE IF EXISTS ProductPlacements;

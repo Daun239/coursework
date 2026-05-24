@@ -188,7 +188,7 @@ const SuppliersPage = () => {
                     {/* Add Supplier Button */}
                     <button
                         onClick={openModal}
-                        className="dark:bg-gray-950 bg-blue-600 text-white px-4 py-2 rounded"
+                        className="ml-2 dark:bg-gray-950 bg-blue-600 text-white px-4 py-2 rounded-lg"
                     >
                         {t('add')}
                     </button>

@@ -6,7 +6,6 @@ interface LanguageState {
   language: Language;
   setLanguage: (lang: Language) => void;
 }
-
 // Load from localStorage or fallback to "en"
 const savedLanguage = localStorage.getItem("language") as Language | null;
 

@@ -27,66 +27,66 @@ namespace CinemaNetwork.API.Controllers
         }
 
         [HttpPost]
-public async Task<IActionResult> Login([FromBody] LoginRequest request)
-{
-    var employee = await _context.Employees
-        .Include(e => e.EmployeePosition)
-        .Include(e => e.EmployeePassword)
-        .Include(e => e.Cinema)
-            .ThenInclude(c => c.City)
-        .FirstOrDefaultAsync(e => e.Email == request.Email);
-
-    if (employee == null)
-    {
-        return Unauthorized("Invalid email or password.");
-    }
-
-    // Check if EmployeePassword exists
-    if (employee.EmployeePassword == null || employee.EmployeePassword.Password != request.Password)
-    {
-        return Unauthorized("Invalid email or password.");
-    }
-
-    // Check if EmployeePosition exists and role is assigned
-    var role = employee.EmployeePosition?.EmployeePosition1;
-    if (string.IsNullOrEmpty(role))
-    {
-        return Unauthorized("Employee role not found.");
-    }
-
-    // Check if Cinema and City exist before accessing their properties
-    var cinemaName = employee.Cinema?.Name ?? "Unknown Cinema";
-    var cityName = employee.Cinema?.City?.City1 ?? "Unknown City";
-
-    // Generate JWT
-    var token = GenerateToken(
-        employee.EmployeeId.ToString(),
-        employee.Email,
-        role,
-        employee.Name,
-        employee.Surname,
-        employee.CellNumber,
-        employee.CinemaId.ToString(),
-        cinemaName,
-        role,
-        cityName
-    );
-
-    // Return token and user info
-    return Ok(new
-    {
-        token,
-        employee = new
+        public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
-            id = employee.EmployeeId,
-            email = employee.Email,
-            name = employee.Name,
-            surname = employee.Surname,
-            cellNumber = employee.CellNumber,
-            role
+            var employee = await _context.Employees
+                .Include(e => e.EmployeePosition)
+                .Include(e => e.EmployeePassword)
+                .Include(e => e.Cinema)
+                    .ThenInclude(c => c.City)
+                .FirstOrDefaultAsync(e => e.Email == request.Email);
+
+            if (employee == null)
+            {
+                return Unauthorized("Invalid email or password.");
+            }
+
+            // Check if EmployeePassword exists
+            if (employee.EmployeePassword == null || employee.EmployeePassword.Password != request.Password)
+            {
+                return Unauthorized("Invalid email or password.");
+            }
+
+            // Check if EmployeePosition exists and role is assigned
+            var role = employee.EmployeePosition?.EmployeePosition1;
+            if (string.IsNullOrEmpty(role))
+            {
+                return Unauthorized("Employee role not found.");
+            }
+
+            // Check if Cinema and City exist before accessing their properties
+            var cinemaName = employee.Cinema?.Name ?? "Unknown Cinema";
+            var cityName = employee.Cinema?.City?.City1 ?? "Unknown City";
+
+            // Generate JWT
+            var token = GenerateToken(
+                employee.EmployeeId.ToString(),
+                employee.Email,
+                role,
+                employee.Name,
+                employee.Surname,
+                employee.CellNumber,
+                employee.CinemaId.ToString(),
+                cinemaName,
+                role,
+                cityName
+            );
+
+            // Return token and user info
+            return Ok(new
+            {
+                token,
+                employee = new
+                {
+                    id = employee.EmployeeId,
+                    email = employee.Email,
+                    name = employee.Name,
+                    surname = employee.Surname,
+                    cellNumber = employee.CellNumber,
+                    role
+                }
+            });
         }
-    });
-}
 
 
         private string GenerateToken(string userId, string email, string role, string name, string surname, string phone, string cinemaId, string cinemaName, string employeePosition, string cityName)

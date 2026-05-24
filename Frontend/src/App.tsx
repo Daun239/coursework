@@ -1,6 +1,7 @@
 import './App.css';
-import React, { useEffect } from 'react';
+import React, { useEffect, useLayoutEffect, useState } from 'react';
 import { jwtDecode } from 'jwt-decode';
+
 
 import Navbar from "./components/Navbar";
 
@@ -75,24 +76,25 @@ function App() {
   }, [theme, setTheme]);
 
 
-  useEffect(() => {
-    const storedToken = localStorage.getItem("jwt");
-    if (storedToken && !token) {
-      const decodedToken = getDecodedToken(storedToken);
-      if (decodedToken) {
-        const userData: User = {
-          employeeId: decodedToken.employeeId,
-          cinemaId: String(decodedToken.cinemaId),
-          name: decodedToken.name,
-          surname: decodedToken.surname,
-          cellNumber: decodedToken.cellNumber,
-          email: decodedToken.email,
-          employeePosition: decodedToken.role,
-        };
-        setUser(userData, storedToken);
-      }
-    }
-  }, [token, setUser]);
+  const { isInitialized, initializeFromStorage } = useUserStore();
+
+
+  useLayoutEffect(() => {
+    initializeFromStorage();
+  }, []);
+
+  if (!isInitialized) return null;
+
+
+  // console.log("isInitializing:", isInitializing);
+  // console.log("user:", user);
+  // console.log("token:", token);
+  // console.log("localStorage jwt:", localStorage.getItem("jwt"));
+  // console.log("pathname:", location.pathname);
+
+  if (!user && location.pathname !== '/login') {
+    return <Navigate to="/login" replace />;
+  }
 
   // Redirect logic: if no user and not on /login -> redirect to login
   if (!user && location.pathname !== '/login') {
@@ -260,3 +262,7 @@ function App() {
 }
 
 export default App;
+function initializeFromStorage() {
+  throw new Error('Function not implemented.');
+}
+

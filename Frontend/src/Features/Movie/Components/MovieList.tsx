@@ -138,7 +138,7 @@ const MovieList = () => {
         window.scrollTo({ top: 0, behavior: 'smooth' }); // scrolls to top
     }, []);
 
-    const [showMoviesNoScreenings, setShowMoviesNoScreenings] = useState<boolean>(false);
+    const [showMoviesNoScreenings, setShowMoviesNoScreenings] = useState<boolean>(true);
 
     // Optimized fetchMovies function extracted for clarity
     const fetchMovies = useCallback(async () => {
@@ -219,7 +219,7 @@ const MovieList = () => {
                 console.log('Filter Query:', filterQuery);
                 const data = await movieService.getAll(filterQuery, "", currentPage, pageSize);
                 console.log("data", data);
-                
+
                 // Important: Make sure state updates properly with new references
                 setMovies([...data]);
 
@@ -249,11 +249,11 @@ const MovieList = () => {
                         operator: "in",
                         values: runIds, // Fixed: using runId instead of movieId
                     },
-                    {
-                        field: "hallId",
-                        operator: "in",
-                        values: halls.map(h => h.hallId)
-                    });
+                        {
+                            field: "hallId",
+                            operator: "in",
+                            values: halls.map(h => h.hallId)
+                        });
 
                     const fetchedScreenings = await screeningService.getAll(screeningsQuery, "startDate desc", 1, 1000);
                     console.log('Fetched screenings:', fetchedScreenings.length, "screenings");
@@ -269,21 +269,21 @@ const MovieList = () => {
             setLoading(false);
         }
     }, [
-        currentPage, 
-        movieService, 
-        genres, 
-        ageRestrictions, 
-        languages, 
-        publishers, 
-        countries, 
-        selectedBudgetRange, 
-        selectedRuntimeRange, 
-        title, 
-        pageSize, 
-        user, 
-        hallService, 
-        moviesGenreService, 
-        runService, 
+        currentPage,
+        movieService,
+        genres,
+        ageRestrictions,
+        languages,
+        publishers,
+        countries,
+        selectedBudgetRange,
+        selectedRuntimeRange,
+        title,
+        pageSize,
+        user,
+        hallService,
+        moviesGenreService,
+        runService,
         screeningService
     ]);
 
@@ -403,6 +403,7 @@ const MovieList = () => {
 
                         <label className="flex items-center gap-2 mt-4">
                             <input
+                                checked={showMoviesNoScreenings}
                                 type="checkbox"
                                 onChange={() => setShowMoviesNoScreenings(prev => !prev)}
                             />
@@ -547,8 +548,8 @@ const MovieList = () => {
                                     ✕
                                 </button>
 
-                                <CreateOrUpdateScreening 
-                                    screeningId={selectedScreeningId} 
+                                <CreateOrUpdateScreening
+                                    screeningId={selectedScreeningId}
                                     handleRerender={handleRerender} // Added handleRerender prop here
                                 />
                             </div>
@@ -592,7 +593,7 @@ const MovieList = () => {
                                                             <AccordionContent className="grid grid-cols-1 gap-3">
                                                                 {movieScreenings.map((screening) => (
                                                                     <ScreeningTimeComponent
-                                                                    handleRerender={handleRerender}
+                                                                        handleRerender={handleRerender}
                                                                         key={screening.screeningId}
                                                                         screening={screening}
                                                                         onSelect={setSelectedScreening}

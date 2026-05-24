@@ -6,7 +6,6 @@ using CinemaNetwork.Infrastructure.Repositories;
 using CinemaNetwork.Services;
 using Microsoft.EntityFrameworkCore;
 using CinemaNetwork.Application.Services;
-using CinemaNetwork.Application.Dtos;
 using CinemaNetwork.Infrastructure.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -14,8 +13,6 @@ using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.OpenApi.Models;
 using CinemaNetwork.API.MongoDB;
-using MongoDB.Driver;
-using Microsoft.Extensions.Options;
 // using CinemaNetwork.API.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -30,12 +27,7 @@ builder.Services.Configure<MongoDBSettings>(
 //     return new MongoClient(settings.ConnectionString);
 // });
 
-
-
 var config = builder.Configuration; // Додаємо цю змінну
-
-
-
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -85,7 +77,6 @@ builder.Services.AddDbContext<CinemaNetworkContext>(options =>
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 
 
-
 // builder.Services.AddScoped(<UserActionService>);
 // Реєстрація репозиторіїв
 builder.Services.AddScoped<IAgeRestrictionRepository, AgeRestrictionRepository>();
@@ -108,33 +99,12 @@ builder.Services.AddScoped<IScreeningFormatRepository, ScreeningFormatRepository
 builder.Services.AddScoped<IScreeningRepository, ScreeningRepository>();
 builder.Services.AddScoped<ISeatRepository, SeatRepository>();
 builder.Services.AddScoped<ITicketRepository, TicketRepository>();
-
-
-
 builder.Services.AddScoped<IDeliveryOrderRepository, DeliveryOrderRepository>();
-
-
 builder.Services.AddScoped<IDeliveryOrderStatusRepository, DeliveryOrderStatusRepository>();
-
-
 builder.Services.AddScoped<IScreeningPriceRepository, ScreeningPriceRepository>();
-
-
-
 builder.Services.AddScoped<IDeliveryOrderService, DeliveryOrderService>();
-
-
 builder.Services.AddScoped<IDeliveryOrderStatusService, DeliveryOrderStatusService>();
-
-
-
 builder.Services.AddScoped<IPasswordHasher<Employee>, PasswordHasher<Employee>>();
-
-
-
-
-
-
 
 // Реєстрація сервісів
 
@@ -168,7 +138,6 @@ builder.Services.AddScoped(typeof(IService<,>), typeof(Service<,>));
 builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 
 
-
 // builder.Services.AddIdentity<IdentityUser, IdentityRole>()
 //     .AddEntityFrameworkStores<CinemaNetworkContext>()
 //     .AddDefaultTokenProviders();
@@ -176,7 +145,6 @@ builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 
 
 //----------------------------------------------jwt------------------
-
 
 builder.Services.AddAuthentication(x =>
 {
@@ -201,16 +169,6 @@ builder.Services.AddAuthentication(x =>
 builder.Services.AddAuthorization();
 
 
-//-------------------------------------------------------------------
-
-
-
-
-
-
-
-
-
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowSpecificOrigins", policy =>
@@ -222,9 +180,7 @@ builder.Services.AddCors(options =>
     });
 });
 
-
 var app = builder.Build();
-
 
 // using (var scope = app.Services.CreateScope())
 // {
@@ -233,14 +189,7 @@ var app = builder.Build();
 // }
 
 
-
-
-
-
-
-
 app.UseCors("AllowSpecificOrigins");
-
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -248,17 +197,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
 app.UseHttpsRedirection();
-
 app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapControllers();
-
 app.Run();
-
-
-
-
-// builder.Services.AddScoped<IService<ProductsInOrder, ProductsInOrderDto>, Service<ProductsInOrder, ProductsInOrderDto>>();

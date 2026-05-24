@@ -1,0 +1,24 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CinemaNetwork.API", "CinemaNetwork.API.csproj", "{3CC78E2C-1E0E-E1B7-3079-928625EFD302}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3CC78E2C-1E0E-E1B7-3079-928625EFD302}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3CC78E2C-1E0E-E1B7-3079-928625EFD302}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3CC78E2C-1E0E-E1B7-3079-928625EFD302}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3CC78E2C-1E0E-E1B7-3079-928625EFD302}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7149133F-57FC-47BF-8973-AF10C09B9758}
+	EndGlobalSection
+EndGlobal

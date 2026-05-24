@@ -10,7 +10,7 @@ const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
-  
+
   const handleLogin = async () => {
     try {
       if (!email.trim() || !password.trim()) {
@@ -21,7 +21,7 @@ const LoginPage = () => {
       const result = await loginService.loginUser(email.trim(), password.trim());
 
       console.log('Login result:', result);
-      
+
       if (result && result.success) {
         // Log the successful login
         const actionLog: UserActionLog = {
@@ -31,11 +31,11 @@ const LoginPage = () => {
           timestamp: new Date(),
           user: `${result.user?.name} ${result.user?.surname}`
         };
-        
+
         // await userActionService.post(actionLog);
-        
+
         toast.success("Успішний вхід!");
-        
+
         // Determine which page to navigate to based on user role
         if (result.user?.role === "Cashier") {
           navigate("/movies");

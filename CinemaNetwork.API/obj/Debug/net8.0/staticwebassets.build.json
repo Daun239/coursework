@@ -1,12 +1,1 @@
-{
-  "Version": 1,
-  "Hash": "x/Cyv5K9eq1PdRYKFsn87ckVcehZp8aSt4dRY9pBygI=",
-  "Source": "CinemaNetwork.API",
-  "BasePath": "_content/CinemaNetwork.API",
-  "Mode": "Default",
-  "ManifestType": "Build",
-  "ReferencedProjectsConfiguration": [],
-  "DiscoveryPatterns": [],
-  "Assets": [],
-  "Endpoints": []
-}
+{"Version":1,"Hash":"6e1gKbpzLPD72y8zM2ElhC7n6zK5ulS5LoMsrPqcM28=","Source":"CinemaNetwork.API","BasePath":"/","Mode":"Root","ManifestType":"Build","ReferencedProjectsConfiguration":[],"DiscoveryPatterns":[],"Assets":[],"Endpoints":[]}
