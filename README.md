@@ -1,17 +1,86 @@
-<img width="506" height="411" alt="image" src="https://github.com/user-attachments/assets/b9880c5a-26ef-4d03-b7cc-72cff7705716" />
-<img width="921" height="440" alt="image" src="https://github.com/user-attachments/assets/9615c1d8-b7fa-4a2d-8696-ac71319ccc6c" />
-<img width="558" height="142" alt="image" src="https://github.com/user-attachments/assets/58bd342b-f933-476a-9cbf-15d08859ee32" />
-<img width="440" height="715" alt="image" src="https://github.com/user-attachments/assets/e7efa0ba-5922-4932-ae21-bcb4c20fd187" />
-<img width="404" height="522" alt="image" src="https://github.com/user-attachments/assets/9d26850e-bc84-45a7-974e-3b677a2c5e4d" />
-<img width="300" height="485" alt="image" src="https://github.com/user-attachments/assets/a24135be-a233-40fe-8654-2df702e7befe" />
-<img width="631" height="526" alt="image" src="https://github.com/user-attachments/assets/46c7a8b3-906b-4db4-82fa-13d99812a290" />
-<img width="505" height="268" alt="image" src="https://github.com/user-attachments/assets/0d1e3197-46f4-47a9-8ebe-6b067898fbda" />
-<img width="121" height="164" alt="image" src="https://github.com/user-attachments/assets/aa27da82-5b9d-4db1-98ba-1daf4303346f" />
-<img width="372" height="259" alt="image" src="https://github.com/user-attachments/assets/a6acb8dd-94db-4f96-b569-6bcead310130" />
-<img width="551" height="524" alt="image" src="https://github.com/user-attachments/assets/e680effc-0419-4057-9fc8-edb7a2d65160" />
-<img width="926" height="446" alt="image" src="https://github.com/user-attachments/assets/122bf492-a341-4a2e-ad37-9daefe52629e" />
-<img width="336" height="545" alt="image" src="https://github.com/user-attachments/assets/5e2966f4-e399-4cb2-bcef-5516fcec2ec9" />
-<img width="662" height="484" alt="image" src="https://github.com/user-attachments/assets/90f8aec1-e017-4977-8de3-e1685b364e5d" />
-<img width="556" height="327" alt="image" src="https://github.com/user-attachments/assets/de6bf31c-edd3-47ff-a5e9-360369cd464e" />
-<img width="952" height="456" alt="image" src="https://github.com/user-attachments/assets/eee9ec2b-0c95-4ec1-b004-544575a4617e" />
-<img width="1049" height="336" alt="image" src="https://github.com/user-attachments/assets/48111586-990b-45f6-b36f-062c977baa55" />
+Центральну частину інтерфейсу займає форма авторизації (рис. 4.1), що дозволяє користувачам системи здійснити вхід за допомогою електронної пошти та пароля. Для введення даних передбачено два поля: email та пароль, останнє з можливістю відображення введеного значення. 
+Під формою розміщена кнопка входу «Увійти», що надсилає запит на входження в систему.
+<p align="center">
+  <img width="506" height="411" alt="image" src="https://github.com/user-attachments/assets/b9880c5a-26ef-4d03-b7cc-72cff7705716" />
+</p>
+
+Після входу в систему, працівника переносить на відповідну сторінку. Для працівника складу та менеджера – це сторінка із замовленнями поставок, для касира – це сторінка з фільмами, а для адміністратора – сторінка з аудитом.
+Загальний вигляд для сторінки з фільмами представлено на рисунку 4.2. 
+<p align="center">
+  <img width="921" height="440" alt="image" src="https://github.com/user-attachments/assets/9615c1d8-b7fa-4a2d-8696-ac71319ccc6c" />
+</p>
+
+Після цього знаходиться елемент зі знаком питання. Натиснувши на нього, можна переглянути додаткову інформацію про систему, а саме, комбінації гарячих клавіш (рис. 4.4).
+<p align="center">
+  <img width="558" height="142" alt="image" src="https://github.com/user-attachments/assets/58bd342b-f933-476a-9cbf-15d08859ee32" />
+</p>
+
+Кожен елемент фільму представляється картковим компонентом, що містить постер фільму, який стягується з відкритої бази даних за назвою фільму, кнопки редагування та видалення інформації про фільм, назву фільму, вікове обмеження, компанію-видавника, оригінальну мову фільму, країну створення фільму, опис, жанри, період прокату, бюджет та довжину фільму в хвилинах. Під кожним фільмом також демонструється кількість наявних сеансів на цей фільм в цьому кінотеатрі (рис. 4.5).
+<p align="center">
+  <img width="440" height="715" alt="image" src="https://github.com/user-attachments/assets/e7efa0ba-5922-4932-ae21-bcb4c20fd187" />
+</p>
+
+Натиснувши на кнопку “Edit”, перед користувачем відкриється вікно із вводом нової інформації. Після цього користувач може зберегти зміни, натиснувши на кнопку “Update Movie”. На вибір даються всі поля фільму, жанри, а також початок та кінець прокату. В даному випадку, було змінено назву фільму з “Inception” на “Dead Pool” (рис. 4.6 та рис. 4.7).
+<p align="center">
+  <img width="404" height="522" alt="image" src="https://github.com/user-attachments/assets/9d26850e-bc84-45a7-974e-3b677a2c5e4d" />
+</p>
+
+При натисненні на один із елементі зі списку сеансів, відкриється вікно із детальною інформацією про сеанс. Вказаний фільм, мова, формат трансляції, технологія залу, номер залу та період трансляції сеансу. Знизу також представлений умовний вигляд фізичного залу, із вказаною ціною на покупку місця (рис. 4.10).
+<p align="center">
+  <img width="300" height="485" alt="image" src="https://github.com/user-attachments/assets/a24135be-a233-40fe-8654-2df702e7befe" />
+</p>
+
+Можна натиснути на сидіння, після чого воно змінює свій колір для індикації того, що воно було обрано, після чого справа з’явиться кнопка “Add to cart”, натиснувши на яку, квитки на відповідні сидіння будуть додані до кошика, а ціна порахована (рис. 4.11).  
+<p align="center">
+  <img width="631" height="526" alt="image" src="https://github.com/user-attachments/assets/46c7a8b3-906b-4db4-82fa-13d99812a290" />
+</p>
+
+Після додавання сидінь до кошика, їхній колір також міняється (рис. 4.12).
+<p align="center">
+  <img width="505" height="268" alt="image" src="https://github.com/user-attachments/assets/0d1e3197-46f4-47a9-8ebe-6b067898fbda" />
+</p>
+
+Видалити сидіння з кошика можна прямо в цьому ж вікні, якщо натиснути на додане до кошика місце (рис. 4.13).
+<p align="center">
+  <img width="121" height="164" alt="image" src="https://github.com/user-attachments/assets/aa27da82-5b9d-4db1-98ba-1daf4303346f" />
+</p>
+
+Кошик можна відкрити, натиснувши на іконку в навігаційній панелі зверху, або використавши комбінацію гарячих клавіш. В кошику показується загальна сума ціни всіх квитків та товарів, що були додані туди, а також, їхня детальні інформація (рис. 4.14). 
+<p align="center">
+  <img width="372" height="259" alt="image" src="https://github.com/user-attachments/assets/a6acb8dd-94db-4f96-b569-6bcead310130" />
+</p>
+
+Додані квитки можна видалити з кошика прямо тут. Також, натиснувши на постер фільму, відкриється вікно із детальною інформацією про сеанс. Натиснувши на червону кнопку знизу, кошик буде повністю очищений. Для проведення оплати, необхідно обрати метод оплати та клієнта, що оплатив. Зробити це можна за пошуком по прізвищу, електронній пошті чи номеру телефона. Після цього, потрібно натиснути на кнопку “Complete Purchase”, після чого покупка виконується, а кошик очиститься. (рис. 4.15 та 4.16).
+<p align="center">
+  <img width="551" height="524" alt="image" src="https://github.com/user-attachments/assets/e680effc-0419-4057-9fc8-edb7a2d65160" />
+</p>
+
+Сторінка з продуктами демонструє товари, що наявні в кінотеатрі, в якому працює поточний працівник. Кожен товар представлений компонентом, що має назву, ціну, тип, дату виготовлення та придатності та кількість наявних товарів на складі для товару. Також для кожного товару демонструється картинка, яка автоматично береться із відкритих джерел, надсилаючи запит, в якому міститься назва товару (рис. 4.19).
+<p align="center">
+  <img width="926" height="446" alt="image" src="https://github.com/user-attachments/assets/122bf492-a341-4a2e-ad37-9daefe52629e" />
+</p>
+
+Додати товар до кошика можна натиснувши на кнопку “Add to cart”, після чого з’явиться поле, де можна додавати чи віднімати кількість товарів у кошику, проте кількість товарів у кошику не може перевищувати кількість товарів на складі (рис. 4.20).
+<p align="center">
+  <img width="336" height="545" alt="image" src="https://github.com/user-attachments/assets/5e2966f4-e399-4cb2-bcef-5516fcec2ec9" />
+</p>
+
+Додані товари, детальні інформація про них, їхня загальна ціна також відображаються в кошику (рис. 4.21).
+<p align="center">
+  <img width="662" height="484" alt="image" src="https://github.com/user-attachments/assets/90f8aec1-e017-4977-8de3-e1685b364e5d" />
+</p>
+
+Товари також можна спробувати видалити та змінити інформацію про товар, для цього відкриється вікно, де можна обрати нову назву товару, тип товару та ціну за штуку. Виконується валідація на стороні клієнта: обов’язковими полями є тип продукту, його назва та ціна. Якщо не обрати хоча б одне з них, система не надішле запит на оновлення. Окрім того, виставлена нижня межа ціни – 0 (рис. 4.22 та 4.23).
+<p align="center">
+  <img width="556" height="327" alt="image" src="https://github.com/user-attachments/assets/de6bf31c-edd3-47ff-a5e9-360369cd464e" />
+</p>
+
+Для демонстрації фільтрів, було виконано фільтрацію за назвами товарів: було обрано лише товари з типом “Nachos” або Popcorn та ціною в межі 49-115$. Інші поля не було обрано для фільтру, завдяки чому було обрано аж 52 товари    (рис. 4.25).
+<p align="center">
+  <img width="952" height="456" alt="image" src="https://github.com/user-attachments/assets/eee9ec2b-0c95-4ec1-b004-544575a4617e" />
+</p>
+
+На сторінці також доступні фільтри, які знаходяться у боковій панелі. Відкрити панель можна, натиснувши на кнопку зі стрілкою зліва зверху або використавши комбінацію гарячих клавіш. Фільтрування можливе за користувачем, дією, сутністю і часом виконання дії. Також можливе сортування за часом (рис. 4.37).
+<p align="center">
+  <img width="1049" height="336" alt="image" src="https://github.com/user-attachments/assets/48111586-990b-45f6-b36f-062c977baa55" />
+</p>
