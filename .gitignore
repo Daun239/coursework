@@ -44,3 +44,7 @@ Frontend/**/coverage/
 Thumbs.db
 
 # Ignore package manager lock files (optional if you're not using them
+**/node_modules/
+**/.vs/
+**/bin/
+**/obj/
