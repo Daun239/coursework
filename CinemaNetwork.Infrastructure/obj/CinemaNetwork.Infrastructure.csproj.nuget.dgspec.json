@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "I:\\Coursework\\coursework\\CinemaNetwork.Infrastructure\\CinemaNetwork.Infrastructure.csproj": {}
+    "I:\\Coursework new\\coursework\\CinemaNetwork.Infrastructure\\CinemaNetwork.Infrastructure.csproj": {}
   },
   "projects": {
-    "I:\\Coursework\\coursework\\CinemaNetwork.Infrastructure\\CinemaNetwork.Infrastructure.csproj": {
+    "I:\\Coursework new\\coursework\\CinemaNetwork.Infrastructure\\CinemaNetwork.Infrastructure.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "I:\\Coursework\\coursework\\CinemaNetwork.Infrastructure\\CinemaNetwork.Infrastructure.csproj",
+        "projectUniqueName": "I:\\Coursework new\\coursework\\CinemaNetwork.Infrastructure\\CinemaNetwork.Infrastructure.csproj",
         "projectName": "CinemaNetwork.Infrastructure",
-        "projectPath": "I:\\Coursework\\coursework\\CinemaNetwork.Infrastructure\\CinemaNetwork.Infrastructure.csproj",
+        "projectPath": "I:\\Coursework new\\coursework\\CinemaNetwork.Infrastructure\\CinemaNetwork.Infrastructure.csproj",
         "packagesPath": "C:\\Users\\New\\.nuget\\packages\\",
-        "outputPath": "I:\\Coursework\\coursework\\CinemaNetwork.Infrastructure\\obj\\",
+        "outputPath": "I:\\Coursework new\\coursework\\CinemaNetwork.Infrastructure\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\New\\AppData\\Roaming\\NuGet\\NuGet.Config"

@@ -5974,11 +5974,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "I:\\Coursework\\coursework\\cinemanetwork.api\\CinemaNetwork.API.csproj",
+      "projectUniqueName": "I:\\Coursework new\\coursework\\cinemanetwork.api\\CinemaNetwork.API.csproj",
       "projectName": "CinemaNetwork.API",
-      "projectPath": "I:\\Coursework\\coursework\\cinemanetwork.api\\CinemaNetwork.API.csproj",
+      "projectPath": "I:\\Coursework new\\coursework\\cinemanetwork.api\\CinemaNetwork.API.csproj",
       "packagesPath": "C:\\Users\\New\\.nuget\\packages\\",
-      "outputPath": "I:\\Coursework\\coursework\\cinemanetwork.api\\obj\\",
+      "outputPath": "I:\\Coursework new\\coursework\\cinemanetwork.api\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\New\\AppData\\Roaming\\NuGet\\NuGet.Config"
@@ -5993,11 +5993,11 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "projectReferences": {
-            "I:\\Coursework\\coursework\\CinemaNetwork.Application\\CinemaNetwork.Application.csproj": {
-              "projectPath": "I:\\Coursework\\coursework\\CinemaNetwork.Application\\CinemaNetwork.Application.csproj"
+            "I:\\Coursework new\\coursework\\CinemaNetwork.Application\\CinemaNetwork.Application.csproj": {
+              "projectPath": "I:\\Coursework new\\coursework\\CinemaNetwork.Application\\CinemaNetwork.Application.csproj"
             },
-            "I:\\Coursework\\coursework\\CinemaNetwork.Infrastructure\\CinemaNetwork.Infrastructure.csproj": {
-              "projectPath": "I:\\Coursework\\coursework\\CinemaNetwork.Infrastructure\\CinemaNetwork.Infrastructure.csproj"
+            "I:\\Coursework new\\coursework\\CinemaNetwork.Infrastructure\\CinemaNetwork.Infrastructure.csproj": {
+              "projectPath": "I:\\Coursework new\\coursework\\CinemaNetwork.Infrastructure\\CinemaNetwork.Infrastructure.csproj"
             }
           }
         }
