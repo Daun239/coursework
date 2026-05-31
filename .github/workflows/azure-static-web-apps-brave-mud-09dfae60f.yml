@@ -24,7 +24,7 @@ jobs:
         working-directory: ./Frontend
 
       - name: Build
-        run: npm run build
+        run: npx vite build
         working-directory: ./Frontend
 
       - name: Build And Deploy
