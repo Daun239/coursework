@@ -173,7 +173,9 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowSpecificOrigins", policy =>
     {
-        policy.WithOrigins("http://localhost:5173") // Дозволити Angular-застосунок
+        policy.WithOrigins("http://localhost:5173",
+        "https://brave-mud-09dfae60f.azurestaticapps.net"
+        )
               .AllowAnyMethod()                     // Дозволити всі методи (GET, POST тощо)
               .AllowAnyHeader()                     // Дозволити всі заголовки
               .AllowCredentials();                  // Дозволити куки, якщо потрібно
