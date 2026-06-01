@@ -21,7 +21,7 @@ Frontend/**/dist/
 
 # Ignore environment files
 .env
-.env.*
+# .env.*
 
 # Ignore log files
 Frontend/npm-debug.log*
