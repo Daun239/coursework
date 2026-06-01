@@ -1,4 +1,3 @@
-// using Microsoft.AspNetCore.Authentication.JwtBearer;
 using CinemaNetwork.Application.Interfaces_Services;
 using CinemaNetwork.Infrastructure.Data;
 using CinemaNetwork.Infrastructure.Interfaces;
@@ -13,19 +12,12 @@ using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.OpenApi.Models;
 using CinemaNetwork.API.MongoDB;
-// using CinemaNetwork.API.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 
 
 builder.Services.Configure<MongoDBSettings>(
     builder.Configuration.GetSection("UserLoggingDatabase"));
-
-// builder.Services.AddSingleton<IMongoClient>(sp =>
-// {
-//     var settings = sp.GetRequiredService<IOptions<MongoDBSettings>>().Value;
-//     return new MongoClient(settings.ConnectionString);
-// });
 
 var config = builder.Configuration; // Додаємо цю змінну
 
@@ -105,44 +97,10 @@ builder.Services.AddScoped<IScreeningPriceRepository, ScreeningPriceRepository>(
 builder.Services.AddScoped<IDeliveryOrderService, DeliveryOrderService>();
 builder.Services.AddScoped<IDeliveryOrderStatusService, DeliveryOrderStatusService>();
 builder.Services.AddScoped<IPasswordHasher<Employee>, PasswordHasher<Employee>>();
-
-// Реєстрація сервісів
-
-// Add this alongside your generic registration
-// builder.Services.AddScoped<IService<AgeRestriction, AgeRestrictionDto>, Service<AgeRestriction, AgeRestrictionDto>>();
-// builder.Services.AddScoped<ICheckService, CheckService>();
-// builder.Services.AddScoped<ICheckTicketService, CheckTicketService>();
-// builder.Services.AddScoped<ICinemaService, CinemaService>();
-// builder.Services.AddScoped<ICityService, CityService>();
-// builder.Services.AddScoped<ICountryService, CountryService>();
-
-// builder.Services.AddScoped<IGenreService, GenreService>();
-// builder.Services.AddScoped<IHallService, HallService>();
-// builder.Services.AddScoped<IHallTechnologyService, HallTechnologyService>();
-// builder.Services.AddScoped<ILanguageService, LanguageService>();
-// builder.Services.AddScoped<IMovieGenreService, MovieGenreService>();
-// builder.Services.AddScoped<IMovieService, MovieService>();
-// builder.Services.AddScoped<IPaymentMethodService, PaymentMethodService>();
-// builder.Services.AddScoped<IPublisherService, PublisherService>();
-// builder.Services.AddScoped<IRunService, RunService>();
-// builder.Services.AddScoped<IScreeningFormatService, ScreeningFormatService>();
-// builder.Services.AddScoped<IScreeningService, ScreeningService>();
-// builder.Services.AddScoped<ISeatService, SeatService>();
-// builder.Services.AddScoped<ITicketService, TicketService>();
-
-
 builder.Services.AddScoped<UserActionService>();
-
 
 builder.Services.AddScoped(typeof(IService<,>), typeof(Service<,>));
 builder.Services.AddScoped<IEmployeeService, EmployeeService>();
-
-
-// builder.Services.AddIdentity<IdentityUser, IdentityRole>()
-//     .AddEntityFrameworkStores<CinemaNetworkContext>()
-//     .AddDefaultTokenProviders();
-
-
 
 //----------------------------------------------jwt------------------
 
@@ -173,9 +131,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowSpecificOrigins", policy =>
     {
-        policy.WithOrigins("http://localhost:5173",
-        "https://brave-mud-09dfae60f.azurestaticapps.net"
-        )
+        policy.WithOrigins(builder.Configuration["AllowedOrigins"] ?? "http://localhost:5173")
               .AllowAnyMethod()                     // Дозволити всі методи (GET, POST тощо)
               .AllowAnyHeader()                     // Дозволити всі заголовки
               .AllowCredentials();                  // Дозволити куки, якщо потрібно
