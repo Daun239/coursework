@@ -7,6 +7,10 @@ on:
   push:
     branches:
       - pc-branch
+    paths:
+      - "CinemaNetwork.Api/**"
+      - "CinemaNetwork.Application/**"
+      - "CinemaNetwork.Infrastructure/**"
   workflow_dispatch:
 
 jobs:
@@ -62,5 +66,5 @@ jobs:
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'CinemaNetworkBackend'
+          app-name: "CinemaNetworkBackend"
           package: ./myapp

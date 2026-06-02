@@ -17,8 +17,8 @@ using CinemaNetwork.API.MongoDB;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var keyVaultUrl = new Uri("https://cinemanetworkvault.vault.azure.net/");
-builder.Configuration.AddAzureKeyVault(keyVaultUrl, new DefaultAzureCredential());
+// var keyVaultUrl = new Uri("https://cinemanetworkvault.vault.azure.net/");
+// builder.Configuration.AddAzureKeyVault(keyVaultUrl, new DefaultAzureCredential());
 
 
 
