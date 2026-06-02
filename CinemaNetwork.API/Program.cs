@@ -124,6 +124,7 @@ builder.Services.AddAuthentication(x =>
     };
 });
 
+builder.Services.AddApplicationInsightsTelemetry();
 builder.Services.AddAuthorization();
 
 

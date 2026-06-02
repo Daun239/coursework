@@ -1,0 +1,9 @@
+{
+  "configurations": {
+    "app": {
+      "context": "http://localhost:5173",
+      "run": "npm run dev",
+      "appLocation": "./Frontend"
+    }
+  }
+}
