@@ -1,3 +1,5 @@
+using Azure.Identity;
+
 using CinemaNetwork.Application.Interfaces_Services;
 using CinemaNetwork.Infrastructure.Data;
 using CinemaNetwork.Infrastructure.Interfaces;
@@ -14,6 +16,10 @@ using Microsoft.OpenApi.Models;
 using CinemaNetwork.API.MongoDB;
 
 var builder = WebApplication.CreateBuilder(args);
+
+var keyVaultUrl = new Uri("https://cinemanetworkvault.vault.azure.net/");
+builder.Configuration.AddAzureKeyVault(keyVaultUrl, new DefaultAzureCredential());
+
 
 
 builder.Services.Configure<MongoDBSettings>(
@@ -62,7 +68,7 @@ builder.Services.AddAutoMapper(typeof(MappingProfile));
 
 builder.Services.AddDbContext<CinemaNetworkContext>(options =>
 {
-    options.UseSqlServer(builder.Configuration.GetConnectionString("PC"));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 
 
@@ -138,6 +144,8 @@ builder.Services.AddCors(options =>
               .AllowCredentials();                  // Дозволити куки, якщо потрібно
     });
 });
+
+
 
 var app = builder.Build();
 
