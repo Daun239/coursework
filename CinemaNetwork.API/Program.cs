@@ -130,7 +130,10 @@ builder.Services.AddAuthentication(x =>
     };
 });
 
-builder.Services.AddApplicationInsightsTelemetry();
+if (!builder.Environment.IsDevelopment())
+{
+    builder.Services.AddApplicationInsightsTelemetry();
+}
 builder.Services.AddAuthorization();
 
 

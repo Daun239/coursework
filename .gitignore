@@ -3,6 +3,8 @@
 **/Debug/
 **/bin/
 **/obj/
+*.dll
+.*pdb
 
 # Ignore node_modules inside the Frontend folder
 Frontend/**/node_modules/
