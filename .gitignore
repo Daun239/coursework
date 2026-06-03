@@ -12,6 +12,7 @@ Frontend/**/node_modules/
 # Ignore production build folders inside Frontend
 Frontend/**/build/
 Frontend/**/dist/
+auth.json
 
 # Ignore IDE folders
 .vscode/

@@ -1,16 +1,14 @@
 {
   "version": 2,
-  "dgSpecHash": "JquKuL9ZX/U=",
-  "success": false,
+  "dgSpecHash": "BFVd9KsK/8o=",
+  "success": true,
   "projectFilePath": "I:\\Coursework new\\coursework\\CinemaNetwork.Api\\CinemaNetwork.Api.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\New\\.nuget\\packages\\automapper\\12.0.1\\automapper.12.0.1.nupkg.sha512",
     "C:\\Users\\New\\.nuget\\packages\\automapper.extensions.microsoft.dependencyinjection\\12.0.1\\automapper.extensions.microsoft.dependencyinjection.12.0.1.nupkg.sha512",
     "C:\\Users\\New\\.nuget\\packages\\azure.core\\1.54.0\\azure.core.1.54.0.nupkg.sha512",
-    "C:\\Users\\New\\.nuget\\packages\\azure.extensions.aspnetcore.configuration.secrets\\1.5.1\\azure.extensions.aspnetcore.configuration.secrets.1.5.1.nupkg.sha512",
-    "C:\\Users\\New\\.nuget\\packages\\azure.identity\\1.21.0\\azure.identity.1.21.0.nupkg.sha512",
+    "C:\\Users\\New\\.nuget\\packages\\azure.identity\\1.11.4\\azure.identity.1.11.4.nupkg.sha512",
     "C:\\Users\\New\\.nuget\\packages\\azure.monitor.opentelemetry.exporter\\1.8.0\\azure.monitor.opentelemetry.exporter.1.8.0.nupkg.sha512",
-    "C:\\Users\\New\\.nuget\\packages\\azure.security.keyvault.secrets\\4.10.0\\azure.security.keyvault.secrets.4.10.0.nupkg.sha512",
     "C:\\Users\\New\\.nuget\\packages\\dnsclient\\1.6.1\\dnsclient.1.6.1.nupkg.sha512",
     "C:\\Users\\New\\.nuget\\packages\\dotenv.net\\3.2.1\\dotenv.net.3.2.1.nupkg.sha512",
     "C:\\Users\\New\\.nuget\\packages\\fluentvalidation\\11.11.0\\fluentvalidation.11.11.0.nupkg.sha512",
@@ -132,6 +130,7 @@
     "C:\\Users\\New\\.nuget\\packages\\system.text.encodings.web\\10.0.3\\system.text.encodings.web.10.0.3.nupkg.sha512",
     "C:\\Users\\New\\.nuget\\packages\\system.text.json\\10.0.3\\system.text.json.10.0.3.nupkg.sha512",
     "C:\\Users\\New\\.nuget\\packages\\system.threading.channels\\7.0.0\\system.threading.channels.7.0.0.nupkg.sha512",
+    "C:\\Users\\New\\.nuget\\packages\\system.threading.tasks.extensions\\4.5.4\\system.threading.tasks.extensions.4.5.4.nupkg.sha512",
     "C:\\Users\\New\\.nuget\\packages\\system.valuetuple\\4.5.0\\system.valuetuple.4.5.0.nupkg.sha512",
     "C:\\Users\\New\\.nuget\\packages\\system.windows.extensions\\6.0.0\\system.windows.extensions.6.0.0.nupkg.sha512",
     "C:\\Users\\New\\.nuget\\packages\\zstdsharp.port\\0.7.3\\zstdsharp.port.0.7.3.nupkg.sha512",
@@ -140,17 +139,5 @@
     "C:\\Users\\New\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\8.0.24\\microsoft.aspnetcore.app.ref.8.0.24.nupkg.sha512",
     "C:\\Users\\New\\.nuget\\packages\\microsoft.netcore.app.host.win-x64\\8.0.24\\microsoft.netcore.app.host.win-x64.8.0.24.nupkg.sha512"
   ],
-  "logs": [
-    {
-      "code": "NU1605",
-      "level": "Error",
-      "message": "Warning As Error: Detected package downgrade: Microsoft.Extensions.Configuration from 10.0.3 to 9.0.0. Reference the package directly from the project to select a different version. \r\n CinemaNetwork.Api -> Azure.Extensions.AspNetCore.Configuration.Secrets 1.5.1 -> Microsoft.Extensions.Configuration (>= 10.0.3) \r\n CinemaNetwork.Api -> Microsoft.Extensions.Configuration (>= 9.0.0)",
-      "projectPath": "I:\\Coursework new\\coursework\\CinemaNetwork.Api\\CinemaNetwork.Api.csproj",
-      "filePath": "I:\\Coursework new\\coursework\\CinemaNetwork.Api\\CinemaNetwork.Api.csproj",
-      "libraryId": "Microsoft.Extensions.Configuration",
-      "targetGraphs": [
-        "net8.0"
-      ]
-    }
-  ]
+  "logs": []
 }

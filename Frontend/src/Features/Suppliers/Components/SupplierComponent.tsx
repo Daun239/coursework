@@ -122,7 +122,9 @@ const SupplierComponent = ({ Supplier, onSupplierUpdated }: SupplierComponentPro
     if (isDeleted) return null;
 
     return (
-        <div className="p-4 mb-4 bg-white rounded-lg shadow-sm dark:bg-gray-800 dark:text-white space-y-4">
+        <div className="p-4 mb-4 bg-white rounded-lg shadow-sm dark:bg-gray-800 dark:text-white space-y-4"
+        data-testid = "supplier-card"
+        >
             {/* Top Row: Actions */}
             <div className="flex justify-end gap-3 text-gray-500 dark:text-gray-400">
                 {isEditing ? (
