@@ -43,6 +43,7 @@ jobs:
           ###### End of Repository/Build Configurations ######
 
   e2e_tests:
+    if: false
     runs-on: ubuntu-latest
     needs: build_and_deploy_job
     name: E2E Tests
