@@ -13,6 +13,7 @@ Frontend/**/node_modules/
 Frontend/**/build/
 Frontend/**/dist/
 auth.json
+e2e/auth/
 
 # Ignore IDE folders
 .vscode/

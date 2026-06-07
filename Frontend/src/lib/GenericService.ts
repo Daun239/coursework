@@ -16,6 +16,10 @@ export class GenericService<TDto> implements IGenericService<TDto> {
     params.append("page", page.toString());
     params.append("pageSize", pageSize.toString());
 
+    console.log('page', page);
+        console.log('pageSize', pageSize);
+    
+
     const response = await axios.get<TDto[]>(`${this.baseUrl}/all?${params}`);
     return response.data;
   }

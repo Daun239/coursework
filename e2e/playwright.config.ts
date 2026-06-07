@@ -1,9 +1,11 @@
+import dotenv from 'dotenv';
 import { defineConfig, devices } from "@playwright/test";
+dotenv.config({ path: '../Frontend/.env' });
 
 export default defineConfig({
   testDir: "./tests",
   use: {
-    baseURL: "http://localhost:5173",
+    baseURL: process.env.VITE_API_URL || "http://localhost:5173",
   },
   projects: [
     {

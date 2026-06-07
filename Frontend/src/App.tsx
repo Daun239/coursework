@@ -1,5 +1,5 @@
 import './App.css';
-import React, { useEffect, useLayoutEffect, useState } from 'react';
+import React, { useEffect, useLayoutEffect } from 'react';
 import { jwtDecode } from 'jwt-decode';
 
 
@@ -11,7 +11,6 @@ import { ThemeProvider, useTheme } from './components/ThemeProvider';
 import MovieList from './Features/Movie/Components/MovieList';
 import { useUserStore } from './Stores/UserStore';
 import DecodedToken from './Types/DecodedToken';
-import { User } from './Types/User';
 import { Toaster } from 'sonner';
 import ProductsList from './Features/Products/Components/ProductsList';
 import DeliveryOrder from './Features/DeliveryOrder/Components/DeliveryOrder';

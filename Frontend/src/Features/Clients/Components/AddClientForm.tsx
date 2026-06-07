@@ -6,6 +6,8 @@ import { useServiceStore } from "@/Stores/ServicesStore";  // Assuming this is y
 import { UserActionLog } from "@/Types/UserActionLog";
 import { useUserStore } from "@/Stores/UserStore";
 
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+
 type Client = {
     clientId: number;
     name: string;
@@ -18,14 +20,10 @@ type Props = {
     rerender: () => void;
 };
 
-
-
-
 export default function AddClientForm() {
 
-    const { user } = useUserStore();
-
-    const { t } = useTranslation();  // Using i18n hook for translations
+    const client = useQueryClient();
+    const { t } = useTranslation();
     const [form, setForm] = useState({
         name: "",
         surname: "",
@@ -40,47 +38,41 @@ export default function AddClientForm() {
 
     const { clientService, userActionService } = useServiceStore();
 
+
+    const { mutate: createClient, isPending } = useMutation({
+        mutationFn: (newClient: Client) => {
+
+            // const actionLog: UserActionLog = {
+            //     action: "Added",
+            //     details: `${JSON.stringify(result)}`,
+            //     entity: "Client",
+            //     timestamp: new Date(),
+            //     user: `${user?.name} ${user?.surname}`
+            // }
+            // userActionService.post(actionLog);
+            return clientService.create(newClient);
+        },
+        onSuccess: () => {
+            client.invalidateQueries({ queryKey: ['clients'] });
+            toast.success(t("clients.clientAddedSuccessfully"));
+            setForm({ name: "", surname: "", email: "", cellNumber: "" });
+        },
+        onError: (error) => {
+            console.error("Error adding client:", error);
+            toast.error(t("clients.clientAddError"));
+        }
+    })
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        // Validate form before submission
         const validationError = validateInput({ ...form, clientId: 0 }, t);
         if (validationError) {
             toast.error(validationError);  // Show validation error in toast
             return;
         }
 
-        const newClient: Client = {
-            clientId: 0,  // Backend sets the ID
-            ...form,
-        };
-
-        try {
-            // Async call to create a new client
-            const result = await clientService.create(newClient);
-
-
-            const actionLog: UserActionLog = {
-                action: "Added",
-                details: `${JSON.stringify(result)}`,
-                entity: "Client",
-                timestamp: new Date(),
-                user: `${user?.name} ${user?.surname}`
-            }
-
-
-            // userActionService.post(actionLog);
-
-            // Show success toast with translated success message
-            toast.success(t("clients.clientAddedSuccessfully"));
-
-            // Reset form after successful submission
-            setForm({ name: "", surname: "", email: "", cellNumber: "" });
-        } catch (error) {
-            // Show error toast with translated error message
-            console.error("Error adding client:", error);
-            toast.error(t("clients.clientAddError"));
-        }
+        createClient({ clientId: 0, ...form })
     };
 
     return (
@@ -99,7 +91,7 @@ export default function AddClientForm() {
                 </div>
             ))}
             <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">
-                {t("clients.createClient")} {/* Translating button text */}
+                {isPending ? t('loading') : t("clients.createClient")}
             </button>
         </form>
     );

@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { useTranslation } from 'react-i18next';
 import { UserActionLog } from '@/Types/UserActionLog';
 import { useUserStore } from '@/Stores/UserStore';
-
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 type ClientComponentProps = {
     client: Client;
     onClientUpdated?: (updatedClient: Client) => void;
@@ -19,8 +19,8 @@ const ClientComponent = ({ client, onClientUpdated }: ClientComponentProps) => {
     const [currentClient, setCurrentClient] = useState<Client>({ ...client });
     const [error, setError] = useState<string | null>(null);
     const [isDeleted, setIsDeleted] = useState(false); // Track deletion status
-
     const { user } = useUserStore();
+    const queryClient = useQueryClient();
 
 
     const { clientService, userActionService } = useServiceStore();
@@ -58,14 +58,46 @@ const ClientComponent = ({ client, onClientUpdated }: ClientComponentProps) => {
         return null;
     };
 
-    const handleDelete = async () => {
-        try {
-            const result = await clientService.delete(`clientId = ${client.clientId}`); // Pass just the ID
+
+    const { mutate: UpdateClient } = useMutation({
+        mutationFn: () => {
+
+            queryClient.cancelQueries({ queryKey: ['clients'] });
+
+            const previousClients = queryClient.getQueryData(['clients'])
+
+            setCurrentClient(editedClient);
+            setIsEditing(false);
+            setError(null);
+            return { previousClients };
+        },
+        onSuccess: (updatedClient) => {
+            queryClient.invalidateQueries({ queryKey: ["clients"] })
+            // const actionLog: UserActionLog = {
+            //     action: "Updated",
+            //     details: `${JSON.stringify(updatedClient)}`,
+            //     entity: "Client",
+            //     timestamp: new Date(),
+            //     user: `${user?.name} ${user?.surname}`
+            // }
+            // userActionService.post(actionLog);
+        },
+        onError: (err, variables, context) => {
+            // Щось пішло не так — відкочуємо до попереднього стану
+            queryClient.setQueryData(["clients"], context?.previousClients);
+            setCurrentClient(client); // повертаємо оригінальні дані
+            setIsEditing(true);
+            setError(t('clients.clientUpdateError'));
+        },
+    })
+
+    const { mutate: DeleteClient } = useMutation({
+        mutationFn: () => {
+            return clientService.delete(`clientId = ${currentClient.clientId}`)
+        },
+        onSuccess: (result) => {
+            queryClient.invalidateQueries({ queryKey: ["clients"] })
             toast.success(t('clients.clientDeletedSuccessfully'));
-
-
-
-
             const actionLog: UserActionLog = {
                 action: "Deleted",
                 details: `${JSON.stringify(result)}`,
@@ -73,17 +105,17 @@ const ClientComponent = ({ client, onClientUpdated }: ClientComponentProps) => {
                 timestamp: new Date(),
                 user: `${user?.name} ${user?.surname}`
             }
-
-
             // userActionService.post(actionLog);
-
-
-
             setIsDeleted(true); // Set deletion flag to true
-        } catch (error) {
+        },
+        onError: () => {
             toast.error(t('clients.clientDeleteError'));
             console.error(error);
         }
+    })
+
+    const handleDelete = async () => {
+        DeleteClient();
     };
 
     const handleSave = async () => {
@@ -92,31 +124,7 @@ const ClientComponent = ({ client, onClientUpdated }: ClientComponentProps) => {
             setError(validationError);
             return;
         }
-
-        try {
-            const updatedClient = await clientService.update(editedClient);
-            setCurrentClient(updatedClient);
-            onClientUpdated?.(updatedClient);
-
-
-            const actionLog: UserActionLog = {
-                action: "Updated",
-                details: `${JSON.stringify(updatedClient)}`,
-                entity: "Client",
-                timestamp: new Date(),
-                user: `${user?.name} ${user?.surname}`
-            }
-
-
-            // userActionService.post(actionLog);
-
-
-            setIsEditing(false);
-            setError(null);
-        } catch (error) {
-            console.error('Failed to update client:', error);
-            setError(t('clients.clientUpdateError'));
-        }
+        UpdateClient();
     };
 
     // If the client was deleted, return null to remove the component
